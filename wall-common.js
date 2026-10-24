@@ -23,7 +23,10 @@
         if(typeof ip==='string' && ip) return ip;
       }catch(e){}
     }
-    let h=0; const s=navigator.userAgent+'|'+screen.width+'x'+screen.height+'|'+Intl.DateTimeFormat().resolvedOptions().timeZone+'|'+Math.random();
+    // 稳定的设备指纹（不含随机数，保证同一设备跨刷新一致，IP 服务不可用也能锁票）
+    let seed='';
+    try{ seed=localStorage.getItem(DATA_KEY+'_fp')||('fp-'+Math.random().toString(36).slice(2)); localStorage.setItem(DATA_KEY+'_fp',seed); }catch(e){ seed='fp-anon'; }
+    let h=0; const s=navigator.userAgent+'|'+screen.width+'x'+screen.height+'|'+Intl.DateTimeFormat().resolvedOptions().timeZone+'|'+seed;
     for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
     return 'dev-'+h.toString(16);
   }
