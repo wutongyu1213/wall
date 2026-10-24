@@ -1,0 +1,4 @@
+# 忽略 Agnes 内部工作目录与缓存
+.agnes/
+debates/
+*.log
