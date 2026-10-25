@@ -61,11 +61,11 @@
     const {error:upErr}=await s.storage.from('wall-photos').upload(path,file,{contentType:'image/jpeg'});
     if(upErr){ console.error(upErr); tip('照片上传失败：'+upErr.message); return; }
     const publicUrl=s.storage.from('wall-photos').getPublicUrl(path).data.publicUrl;
-    /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图 */
+    /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图（PostgREST 需显式传全 6 个参数名） */
     const {data:cand,error:insErr}=await s.rpc('fn_wall_candidate_add',{
       p_kind:KIND, p_nickname:(name||'匿名'), p_class_no:'',
       p_photo_url:publicUrl, p_msg:(msg||''), p_user_key:uk
-    }).select().single();
+    });
     if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return; }
     await loadCands(); render(); tip('已上传 ✔ 全校可见');
   }
