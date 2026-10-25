@@ -28,7 +28,7 @@
   function votedIds(){ try{ return JSON.parse(localStorage.getItem('wallVoted_'+KIND)||'[]'); }catch(e){ return []; } }
   function markVoted(id){ const a=votedIds(); if(!a.includes(id)){ a.push(id); localStorage.setItem('wallVoted_'+KIND, JSON.stringify(a)); } }
 
-  let people=[]; let loadErr=false;
+  let people=[]; let loadErr=false; let loading=true;
 
   /* ---- 拉候选人（云端） ---- */
   async function loadCands(){
@@ -38,8 +38,8 @@
       .select('id,nickname,class_no,photo_url,like_count,msg,created_ts')
       .eq('kind',KIND).eq('status','ok')
       .order('like_count',{ascending:false}).limit(200);
-    if(error){ loadErr=true; people=[]; return; }
-    people=data||[];
+    if(error){ loadErr=true; people=[]; loading=false; return; }
+    people=data||[]; loading=false;
   }
 
   /* ---- 上传照片 → Storage 桶 wall-photos → 写 wall_candidates ---- */
@@ -132,7 +132,9 @@
       +'</div>';
     // 投票墙
     h+='<h3 class="sec-title">🗳️ 投票（每人一票 · 全校共享排名）</h3>';
-    if(loadErr){
+    if(loading){
+      h+='<div class="empty"><div class="loading-spin"></div>加载中…</div>';
+    } else if(loadErr){
       h+='<div class="empty err">加载失败 <a id="retryLoad" href="javascript:;">点击重试</a></div>';
     } else if(people.length===0){
       h+='<div class="empty">还没有候选人，上传第一张吧 ☝️</div>';
@@ -174,7 +176,7 @@
       b.onclick=function(){ vote(b.getAttribute('data-vote')); };
     });
     const rt=document.getElementById('retryLoad');
-    if(rt){ rt.onclick=function(){ loadCands().then(function(){ render(); }); }; }
+    if(rt){ rt.onclick=function(){ loading=false; loadCands().then(function(){ render(); }); }; }
     // 深色模式跟随
     if(localStorage.getItem('wallDark')==='1') document.body.classList.add('dark');
   }
