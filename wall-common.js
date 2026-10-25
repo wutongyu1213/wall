@@ -61,9 +61,10 @@
     const {error:upErr}=await s.storage.from('wall-photos').upload(path,file,{contentType:'image/jpeg'});
     if(upErr){ console.error(upErr); tip('照片上传失败：'+upErr.message); return; }
     const publicUrl=s.storage.from('wall-photos').getPublicUrl(path).data.publicUrl;
-    const {data:cand,error:insErr}=await s.from('wall_candidates').insert({
-      kind:KIND, nickname:name||'匿名', class_no:msg? '':(msg||''),
-      photo_url:publicUrl, msg:msg||'', status:'ok', like_count:0, created_ts:Date.now()
+    /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图 */
+    const {data:cand,error:insErr}=await s.rpc('fn_wall_candidate_add',{
+      p_kind:KIND, p_nickname:(name||'匿名'), p_class_no:'',
+      p_photo_url:publicUrl, p_msg:(msg||''), p_user_key:uk
     }).select().single();
     if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return; }
     await loadCands(); render(); tip('已上传 ✔ 全校可见');
@@ -73,15 +74,13 @@
   async function vote(cid){
     const s=getSB(); if(!s){ tip('云端未连接'); return; }
     const uk=userKey();
-    const {error}=await s.from('wall_votes').insert({candidate_id:Number(cid),user_key:uk});
-    if(error){
-      if(/23505|unique/i.test(error.message)){ tip('你已投过这位啦'); }
-      else { tip('投票失败：'+error.message); }
-      await loadCands(); render(); return;
-    }
-    markVoted(cid);
+    /* 切换到 fn_wall_vote RPC：服务端幂等 + like_count 原子 +1 */
+    const {data:voteRes,error:voteErr}=await s.rpc('fn_wall_vote',{p_candidate_id:Number(cid),p_user_key:uk});
+    if(voteErr){ tip('投票失败：'+voteErr.message); await loadCands(); render(); return; }
+    if(voteRes==='already'){ tip('你已投过这位啦'); }
+    else if(voteRes==='not_found'){ tip('候选人不存在'); }
+    else { markVoted(cid); tip('投票成功 🌟 全校实时可见'); }
     await loadCands(); render();
-    tip('投票成功 🌟 全校实时可见');
   }
 
   /* ---- 图片压缩（保留原逻辑） ---- */
