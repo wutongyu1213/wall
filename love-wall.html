@@ -441,7 +441,7 @@ function userKey(){let k=localStorage.getItem("wallUserKey");if(!k){k="u"+Math.r
 function keyOf(c){return c.fromG+c.toG}
 function groupOf(c){return c.fromG==="男"?"male":"female"}
 function loadState(msg,spin){const el=document.getElementById("loadState");if(!el)return;el.className="loading"+(spin?"":" error");el.innerHTML=(spin?'<span class="spin"></span>':'')+msg}
-async function load(){busy=true;const lim=shownCount>=PAGE?500:30;
+async function load(){if(busy)return;busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
 wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
 /* gifts：merge 而非全量替换，防止送礼后并发 load 覆盖本地 push */
@@ -526,20 +526,26 @@ const upEl=card.querySelector("[data-like]"),dnEl=card.querySelector("[data-disl
 if(upEl){upEl.textContent=(likedSet.has(id)?"❤":"♥")+" "+(c.likes||0);upEl.classList.toggle("liked",likedSet.has(id))}
 if(dnEl){dnEl.textContent="👎 "+(c.dislikes||0);dnEl.classList.toggle("on",dislikedSet.has(id))}
 }
+/* 点赞/倒赞互斥锁：同卡片 in-flight 时拒绝下一个点击，防 up+down 或同方向连点双发 */
+const __cardBusy=new Set();
 async function likeItem(id,type){
 const c=wall.find(x=>x.id==id);if(!c)return;
 const myT=type||"up";
 if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经点过赞了 💗":"这条你已经点过倒赞了 👎");return}
+if(__cardBusy.has(id)){return}
+__cardBusy.add(id);
 try{
-const {error:rpcErr}=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT});
-if(rpcErr){/* RPC 不存在则回退本地增量 */}
-}catch(e){}
-// 读回真实 count（防并发漂移）
-const {data:cnt}=await sb.from("wall").select("like_count,dislike_count").eq("id",id).limit(1);
-if(cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0}
-if(myT==="up")likedSet.add(id);else dislikedSet.add(id);
-(myT==="up"?saveLiked:saveDisliked)();
-patchCardCount(id);toast(myT==="up"?"已点赞 💗":"已点倒赞 👎")}
+  try{
+    const {error:rpcErr}=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT});
+    if(rpcErr){/* RPC 不存在则回退本地增量 */}
+  }catch(e){}
+  const {data:cnt}=await sb.from("wall").select("like_count,dislike_count").eq("id",id).limit(1);
+  if(cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0}
+  if(myT==="up")likedSet.add(id);else dislikedSet.add(id);
+  (myT==="up"?saveLiked:saveDisliked)();
+  patchCardCount(id);toast(myT==="up"?"已点赞 💗":"已点倒赞 👎")
+}finally{__cardBusy.delete(id);}
+}
 function bindLikes(){bindCardEvents()}
 function bindShare(){bindCardEvents()}
 function bindReport(){bindCardEvents()}
@@ -616,10 +622,12 @@ ctx.textAlign="center";ctx.fillStyle="#c4002a";ctx.font="16px 'Microsoft YaHei'"
 ctx.fillText((ga.length?"🎁 "+ga.join(" ")+"　":"")+"❤ "+(c.likes||0)+(c.dislikes?"　👎 "+c.dislikes:""),W/2,505);
 ctx.strokeStyle="#ffd7e0";ctx.lineWidth=2;ctx.setLineDash([]);roundRect(ctx,W/2-110,530,220,220,16);ctx.stroke();ctx.fillStyle="#fff";roundRect(ctx,W/2-104,536,208,208,12);ctx.fill();
 const qr=document.createElement("canvas");
-QRCode.toCanvas(qr,SITE_BASE+"?post="+id,{width:196,height:196,colorDark:"#c4002a",colorLight:"#ffffff",margin:1},()=>{ctx.drawImage(qr,W/2-98,542,196,196);ctx.fillStyle="#8a5a68";ctx.font="14px 'Microsoft YaHei'";ctx.textAlign="center";ctx.fillText("扫码 / 链接直达这条表白",W/2,785)});
+/* P1-5：QR 生成完成后才允许下载，避免 QR 还没画完就 toDataURL 得到缺二维码的海报 */
+let qrReady=null;const qrWait=new Promise(function(res){qrReady=res});
+QRCode.toCanvas(qr,SITE_BASE+"?post="+id,{width:196,height:196,colorDark:"#c4002a",colorLight:"#ffffff",margin:1},function(){ctx.drawImage(qr,W/2-98,542,196,196);ctx.fillStyle="#8a5a68";ctx.font="14px 'Microsoft YaHei'";ctx.textAlign="center";ctx.fillText("扫码 / 链接直达这条表白",W/2,785);qrReady();});
 document.getElementById("posterMsg").textContent=c.msg;
 document.getElementById("posterModal").classList.add("show");
-document.getElementById("dlPoster").onclick=()=>{const a=document.createElement("a");a.download="love-wall-poster-"+id+".png";a.href=canvas.toDataURL("image/png");a.click();toast("海报已下载 📷");document.getElementById("posterModal").classList.remove("show")}}
+document.getElementById("dlPoster").onclick=function(){qrWait.then(function(){if(document.getElementById("posterModal").classList.contains("show")){const a=document.createElement("a");a.download="love-wall-poster-"+id+".png";a.href=canvas.toDataURL("image/png");a.click();toast("海报已下载 📷");document.getElementById("posterModal").classList.remove("show")}})}}
 document.getElementById("closePoster").onclick=()=>document.getElementById("posterModal").classList.remove("show");
 document.getElementById("posterModal").onclick=(e)=>{if(e.target.id==="posterModal")document.getElementById("posterModal").classList.remove("show")}
 /* 匿名勾选联动 */
@@ -630,8 +638,9 @@ let name=document.getElementById("inName").value.trim();if(anon)name="神秘人"
 let to=document.getElementById("inTo").value.trim().replace(/[@\s]/g,"");if(!to){toast("请填写表白对象的真实姓名（不超过 4 个字）");return}if(to.length>4){toast("真实姓名不能超过 4 个字");return}
 const year=document.getElementById("inYear").value;const cls=document.getElementById("inClass").value;
 const tag=document.getElementById("inTag").value;const fromG=document.getElementById("inFrom").value;const toG=document.getElementById("inToG").value;
-const msg=document.getElementById("inMsg").value.trim();
+const msg=document.getElementById("inMsg").value.trim().slice(0,200);
 if(!msg){toast("先写点想说的话吧 ✍️");return}
+if(msg.length>200){toast("正文不能超过 200 字");return}
 if(!document.getElementById("inConsent").checked){toast("请先勾选了解对象信息会公开显示（自愿原则）再发 ✍️");return}
 await ensureBadWords();const allText=name+" "+to+" "+msg;if(!passFilter(allText)||hitAdClient(allText)){toast("内容含不适当词汇（昵称/对象/正文），请修改后再发 ✍️");return}
 
@@ -680,7 +689,7 @@ function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t
 makeFloatLayer();
 (function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
 (function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();Promise.all([load(),loadVisits(),recordVisit()]);
-(function(){try{var ch=sb.channel("love-wall-rt").on("postgres_changes",{event:"*",schema:"public",table:"wall"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"likes"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"card_gifts"},function(){rt()}).subscribe(function(s){console.log("realtime:",s)});window.__wallRt=ch;}catch(e){console.log("realtime init failed, fallback to polling",e)}})();var __rtT=null;function rt(){if(document.hidden)return;if(__rtT)return;__rtT=setTimeout(function(){__rtT=null;load();},3000);}
+(function(){try{var ch=sb.channel("love-wall-rt").on("postgres_changes",{event:"*",schema:"public",table:"wall"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"likes"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"card_gifts"},function(){rt()}).subscribe(function(s){if(s==="CLOSED"||s==="CHANNEL_ERROR"){console.log("realtime",s,", resubscribing");try{window.__wallRt&&window.__wallRt.unsubscribe()}catch(e){}if(__rtReconnects<3){__rtReconnects++;setTimeout(rt,5000)}else{console.log("realtime: max reconnects, fallback to polling")}}else{console.log("realtime:",s)}});window.__wallRt=ch;}catch(e){console.log("realtime init failed, fallback to polling",e)}})();var __rtT=null;let __rtReconnects=0;function rt(){if(document.hidden)return;if(__rtT)return;__rtT=setTimeout(function(){__rtT=null;safeLoad();},3000);}
 /* 轮询与 Realtime 互斥：加冷却，避免 load 并发 + visibilitychange 频繁触发 */
 let __lastLoadTs=0;
 function safeLoad(){
