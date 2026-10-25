@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>校草之墙 · 投票</title>
 <style>
+:root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
+
 :root{--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#0a1a3a;--muted:#5a6a88;--teal:#18a8c7;--gold:#f4b740;--pink:#e0498f}
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);background:radial-gradient(1100px 500px at 80% -10%,rgba(59,111,214,.16),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(24,168,199,.16),transparent 60%),linear-gradient(160deg,#f0f5ff 0%,#eaf1ff 50%,#f4f9ff 100%)}
@@ -76,8 +78,8 @@ body.dark .card .ms{color:#c79ba8}
 .card .vote:hover{transform:translateY(-1px)}
 .card .vote.done,.card .vote.dis{background:#999;opacity:.6;pointer-events:none}
 /* 深色切换钮 */
-.dark-toggle{position:fixed;right:14px;top:14px;z-index:80;width:38px;height:38px;border-radius:50%;
-  border:1px solid rgba(59,111,214,.25);background:var(--card);cursor:pointer;font-size:16px;box-shadow:0 4px 12px rgba(196,0,42,.15)}
+.dark-toggle{position:fixed;right:16px;top:72px;z-index:80;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;cursor:pointer;box-shadow:var(--shadow-card);display:flex;align-items:center;justify-content:center;transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
+.dark-toggle:hover{transform:translateY(-2px);box-shadow:var(--shadow-card-hover)}
 /* 深色覆盖面板/输入 */
 body.dark .panel,body.dark .wrap{color:var(--ink)}
 body.dark .btn{background:linear-gradient(90deg,#3b6fd6,#8fb4ff)}
@@ -88,11 +90,48 @@ body.dark input{background:#1a0810;color:#f5dfe6;border-color:rgba(255,255,255,.
 .loading-spin{display:block;width:36px;height:36px;margin:24px auto;border:4px solid #ffd6e3;border-top-color:#c4002a;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+
+/* 校草蓝调彻底化 */
+body[data-theme="xiaocao"]{--ink:var(--ink-blue);--muted:var(--muted-blue);--line:#cdd9f5;--line-soft:#dfe8f7;--surface:#fbfcff;--shadow-card:0 8px 24px rgba(59,111,214,.10);--shadow-card-hover:0 18px 36px rgba(59,111,214,.18)}
+body[data-theme="xiaocao"] .card:hover{box-shadow:0 18px 36px rgba(59,111,214,.18)}
+body[data-theme="xiaocao"] .card .ct{color:var(--blue-d)}
+body[data-theme="xiaocao"] .empty.err a{color:var(--blue-d)}
+body[data-theme="xiaocao"] .loading-spin{border-color:rgba(111,155,255,.4);border-top-color:var(--blue)}
+body[data-theme="xiaocao"] .nav a.nl.cur,body[data-theme="xiaocao"] .dark-toggle .cur{background:linear-gradient(135deg,var(--blue),var(--blue-l))}
+body[data-theme="xiaocao"] .brand{color:var(--blue-d)}
+body[data-theme="xiaocao"] .card .vote{background:linear-gradient(90deg,var(--blue),var(--blue-l));box-shadow:0 5px 14px rgba(59,111,214,.3)}
+body[data-theme="xiaocao"] .btn{background:linear-gradient(90deg,var(--blue),var(--blue-l))}
+body[data-theme="xiaocao"].dark{--ink:#dfe6f5;--muted:#8a98ba;--card:#0a1020;--surface:#0d1428;--line:rgba(111,155,255,.28)}
+body[data-theme="xiaocao"].dark .card{border-color:rgba(255,255,255,.08)}
+body[data-theme="xiaocao"].dark .card .nm{color:#e8eefc}
+body[data-theme="xiaocao"].dark .card .ms{color:#8a98ba}
+body[data-theme="xiaocao"].dark input{background:#0d1428;color:#dfe6f5;border-color:rgba(255,255,255,.14)}
+body[data-theme="xiaocao"].dark .panel{background:#0d1428;border-color:rgba(255,255,255,.08)}
+body[data-theme="xiaocao"].dark .btn,body[data-theme="xiaocao"].dark .card .vote{background:linear-gradient(90deg,var(--blue),var(--blue-l))}
+
 </style>
-<style>.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(196,0,42,.08);box-shadow:0 2px 14px rgba(196,0,42,.05)}.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#3b6fd6,#8fb4ff);color:#fff}</style>
+<style>.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(196,0,42,.08);box-shadow:0 2px 14px rgba(196,0,42,.05)}.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#3b6fd6,#8fb4ff);color:#fff}
+/* 卡片层级 + hover 动效统一 */
+.card{display:flex;flex-direction:column;transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease)}
+.card:hover{transform:translateY(-6px) scale(1.012);box-shadow:var(--shadow-card-hover)}
+.card .ph{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--line-soft)}
+.card .ph img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;transition:transform .35s var(--ease)}
+.card:hover .ph img{transform:scale(1.04)}
+.card .ph .ph-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;z-index:0}
+.card .medal{position:absolute;top:10px;left:10px;z-index:3;font-size:1.15rem;line-height:1;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .nm{font-size:1rem;font-weight:800;color:var(--ink);line-height:1.35}
+.card .ms{font-size:.82rem;color:var(--muted);line-height:1.45}
+.card .vf{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card .ct{font-size:.85rem;font-weight:700;color:var(--rose)}
+body[data-theme="xiaocao"] .card .ct{color:var(--blue-d)}
+.btn,.vote{transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s var(--ease)}
+.btn:hover,.vote:hover{transform:translateY(-2px)}
+
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
-<body>
+<body data-theme="xiaocao" data-theme="xiaocao">
 <nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl cur" href="xiaocao-wall.html">🌿 校草</a><a class="nl" href="love-wall.html">❤️ 表白</a></div></nav>
 
 
