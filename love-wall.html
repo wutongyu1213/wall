@@ -7,6 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js" defer></script>
 <style>
+:root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
+
 :root{--rose:#ff4d6d;--rose-d:#c4002a;--rose-l:#ff8fa3;--ink:#3a0a1a;--muted:#8a5a68;--blue:#3b6fd6;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--pink:#e0498f;--pink-l:#ff7cb0;--pink-bg:#ffe6f2;--green:#12b886;--green-bg:#e6fbf3;--card:#ffffff;--bg1:#fff5f7;--bg2:#ffe9ef;--bg3:#fff0f5;--shadow:0 8px 24px rgba(196,0,42,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);background:radial-gradient(1200px 600px at 80% -10%,rgba(255,77,109,.18),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(255,143,163,.20),transparent 60%),linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%)}
@@ -254,6 +256,8 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .more-opt,.more-opt-chip{display:none}
 body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
 @media(max-width:680px){.opt-toggle{width:100%;text-align:center}}
+.hl-flash{animation:hlflash 1.2s ease 2}
+@keyframes hlflash{0%{outline:3px solid rgba(196,0,42,.7);outline-offset:3px}100%{outline:3px solid transparent}}
 </style>
 </head><body>
 <nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
@@ -396,7 +400,7 @@ const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?loca
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
-const BGM_URLS=["bgm.mp3","https://cdn.pixabay.com/audio/2022/08/02/audio_8de1a9f2c0.mp3"];
+const BGM_URLS=["https://cdn.pixabay.com/audio/2022/08/02/audio_8de1a9f2c0.mp3"];BGM_URLS.forEach(function(u,i){fetch(u,{method:"HEAD",mode:"no-cors"}).then(function(r){if(r.status===404||r.status===0){BGM_URLS.splice(i,1)}}).catch(function(){BGM_URLS.splice(i,1)})});
 const bgm=document.getElementById("bgm");bgm.volume=0.35;let bgmIndex=0;
 function tryBgm(){if(bgmIndex>=BGM_URLS.length)return false;bgm.src=BGM_URLS[bgmIndex];return true}
 tryBgm();bgm.addEventListener("error",()=>{bgmIndex++;if(tryBgm())bgm.load();});
