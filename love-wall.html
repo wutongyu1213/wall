@@ -444,8 +444,10 @@ function loadState(msg,spin){const el=document.getElementById("loadState");if(!e
 async function load(){busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
 wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
-if((j.gifts||[]).length){giftByWall={};(j.gifts).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)})}
-if((j.badWords||[]).length){BAD_WORDS.length=0;j.badWords.forEach(function(w){if(w)BAD_WORDS.push(w)})}
+/* gifts：merge 而非全量替换，防止送礼后并发 load 覆盖本地 push */
+if((j.gifts||[]).length){(j.gifts).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)})}
+/* badWords：与内置词合并去重（而非替换），Edge 返回小列表不会清空内置词 */
+if((j.badWords||[]).length){j.badWords.forEach(function(w){if(w&&BAD_WORDS.indexOf(w)<0)BAD_WORDS.push(w)})}
 const vse=document.getElementById("stVisit");if(vse&&j.visitCount!=null)vse.textContent=j.visitCount;
 busy=false;shownCount=PAGE;render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
 const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);giftByWall={};(gq.data||[]).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)});shownCount=PAGE;render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
@@ -545,22 +547,27 @@ const _origFooter=document.getElementById("footer").onclick;
 
 function bindAdminDel(){
   if(!adminMode) return;
-  document.querySelectorAll("[data-admin-del]").forEach(function(el){
-    el.onclick = async function(){
-      if(!confirm("确定隐藏这条表白？")) return;
-      var id = el.dataset.adminDel;
-      try{
-        var r = await fetch(EDGE_URL,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:adminPwd,act:"hide",id:id})});
-        var j = await r.json();
-        if(!j || !j.ok){ toast("隐藏失败：需在 Edge 配置 ADMIN_PWD"); return; }
-        wall = wall.filter(function(x){ return x.id != id; });
-        render();
-        toast("已隐藏这条表白 🗑️");
-      } catch(err){
-        toast("隐藏失败："+err.message);
-      }
-    };
+  /* 事件委托到 #wall，重渲染后仍生效（不再 per-element onclick） */
+  var w=document.getElementById("wall");
+  if(!w||w.__adminBound)return;
+  w.__adminBound=true;
+  w.addEventListener("click",function(ev){
+    var el=ev.target.closest("[data-admin-del]");
+    if(!el)return;
+    ev.preventDefault();
+    hideWall(el.dataset.adminDel);
   });
+}
+async function hideWall(id){
+  if(!confirm("确定隐藏这条表白？"))return;
+  try{
+    var r=await fetch(EDGE_URL,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:adminPwd,act:"hide",id:id})});
+    var j=await r.json();
+    if(!j||!j.ok){toast("隐藏失败：需在 Edge 配置 ADMIN_PWD");return;}
+    wall=wall.filter(function(x){return x.id!=id;});
+    render();
+    toast("已隐藏这条表白 🗑️");
+  }catch(err){toast("隐藏请求失败，请重试");}
 }
 /* 修复 E：移除 ?admin= URL 参数入口，只保留点 footer 输密码 */
 document.getElementById("footer").onclick=()=>{if(adminMode)return;const p=prompt("输入管理密码（已存 Edge 函数）：");if(p&&p.length>=6){adminPwd=p;
@@ -620,7 +627,8 @@ localStorage.setItem(lastKey,String(Date.now()));
 document.getElementById("inMsg").value="";document.getElementById("inName").value="";document.getElementById("inTo").value="";pickedGift="";document.querySelectorAll("#giftGrid .gift-btn").forEach(x=>x.classList.remove("on"));
 curTag="all";curGender="all";curYear="all";curClass="all";curSearch="";document.getElementById("inSearch").value="";
 shownCount=PAGE;syncTabs();syncGenderTabs();syncYearTabs();syncClassTabs();
-await load();toast("表白成功 ❤ 已贴到墙上");celebrate()};
+/* 发帖后 bust Edge 缓存（60s），新帖立即可见 */
+__edgeOk=false;await load();__edgeOk=true;toast("表白成功 ❤ 已贴到墙上");celebrate()};
 document.querySelectorAll("#quickChips .chip").forEach(ch=>{ch.onclick=()=>{const t=document.getElementById("inMsg");t.value=(t.value?"\n":"")+ch.textContent}});
 document.getElementById("inSearch").oninput=function(){curSearch=this.value.trim();shownCount=PAGE;render()};
 document.getElementById("tabs").onclick=(e)=>{const t=e.target.closest(".tab");if(!t)return;curTag=t.dataset.t;shownCount=PAGE;syncTabs();render()};
@@ -650,8 +658,16 @@ makeFloatLayer();
 (function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
 (function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();Promise.all([load(),loadVisits(),recordVisit()]);
 (function(){try{var ch=sb.channel("love-wall-rt").on("postgres_changes",{event:"*",schema:"public",table:"wall"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"likes"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"card_gifts"},function(){rt()}).subscribe(function(s){console.log("realtime:",s)});window.__wallRt=ch;}catch(e){console.log("realtime init failed, fallback to polling",e)}})();var __rtT=null;function rt(){if(document.hidden)return;if(__rtT)return;__rtT=setTimeout(function(){__rtT=null;load();},3000);}
-setInterval(load,300000);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){load();loadVisits()}});
+/* 轮询与 Realtime 互斥：加冷却，避免 load 并发 + visibilitychange 频繁触发 */
+let __lastLoadTs=0;
+function safeLoad(){
+  const now=Date.now();
+  if(now-__lastLoadTs<10000)return; // 10s 冷却
+  __lastLoadTs=now;
+  load();
+}
+setInterval(safeLoad,300000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){safeLoad();loadVisits();}});
 </script>
 <div class="notice-overlay" id="noticeModal"><div class="notice-card"><div class="notice-head"><span class="nicon">📢</span><h3>公告</h3></div><div class="notice-poem">偶然的相遇，让平淡的日子多了一束光。<br>犹豫了很久，还是想在这里写下心动。<br>或许你不会看见，但若刚好是你，<br>我想告诉你：我很喜欢你。</div><div class="notice-tip"><b>💡 说明</b>　本表白墙为个人自制，制作不易。大家有需求或者觉得需要改进的地方都可以提出来。请大家不要恶意捣乱、乱发无关内容，本表白墙仅限<b class="school">重庆第二外国语学校</b>的同学使用，其他学校同学请勿投稿。希望大家心怀公德，文明发言，一起好好维护这里。</div><div class="notice-foot"><span class="nhint">点击"我已阅读"后，24 小时内不再弹出</span><button id="noticeCancel" class="nbtn ghost">✕ 取消</button><button id="noticeOk" class="nbtn solid">✓ 我已阅读</button></div></div></div>
 </body>
