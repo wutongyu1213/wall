@@ -66,7 +66,12 @@ body.dark footer b{color:#ff8fa3}
 body.dark .donate{border-color:rgba(255,143,163,.3);color:#ff8fa3}
 @media(hover:none){.card .go{opacity:1;transform:none}}
 </style>
-<script>if(localStorage.getItem('wallDark')==='1')document.documentElement.classList.add('dark');</script>
+<script>
+/* 深色恢复：与 CSS 选择器 body.dark + 动态按钮一致，统一操作 body；DOM 就绪后再执行避免 body 为 null */
+(function(){
+  function applyDark(){ if(localStorage.getItem('wallDark')==='1') document.body.classList.add('dark'); }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',applyDark); } else { applyDark(); }
+})();
 </head>
 <body>
 <nav class="nav"><div class="nav-in">
