@@ -10,6 +10,8 @@
 <meta property="og:description" content="全校共享的表白墙 / 校花校草之墙">
 <meta property="og:type" content="website">
 <style>
+:root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
+
 :root{--rose:#c4002a;--rose-l:#ff4d6d;--pink:#e0498f;--blue:#3b6fd6;--ink:#3a0a1a;--muted:#8a5a68;--card:#fff;--bg1:#fff5f7;--bg2:#ffe9ef;--bg3:#fff0f5;--shadow:0 10px 30px rgba(196,0,42,.10)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -96,7 +98,7 @@ body.dark .donate{border-color:rgba(255,143,163,.3);color:#ff8fa3}
 // 深色模式切换按钮（右上角小圆钮）
 (function(){
   var b=document.createElement('button');
-  b.style.cssText='position:fixed;right:14px;top:64px;z-index:60;width:38px;height:38px;border-radius:50%;border:1px solid rgba(196,0,42,.25);background:var(--card);cursor:pointer;font-size:16px;box-shadow:0 4px 12px rgba(196,0,42,.15)';
+  b.className='dark-toggle';b.style.cssText='position:fixed;right:16px;top:72px;z-index:80;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:16px;box-shadow:var(--shadow-card)';
   b.textContent=document.body.classList.contains('dark')?'☀️':'🌙';
   b.onclick=function(){
     var d=document.body.classList.toggle('dark');
