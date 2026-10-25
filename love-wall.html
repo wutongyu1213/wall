@@ -465,7 +465,7 @@ function openGiftQ(id){ensureGiftQ();document.getElementById("giftQModal").class
 function ensureGiftQ(){if(document.getElementById("giftQModal"))return;const m=document.createElement("div");m.className="giftq-modal";m.id="giftQModal";m.innerHTML='<div class="giftq-box"><h3 id="giftQTitle">送礼物</h3><div class="gg" id="giftQGrid">'+["🌹","❤️","🧸","🎂","⭐","🎈","🍫","🍀"].map(g=>'<button type="button" class="gb" data-g="'+g+'">'+g+'</button>').join("")+'</div><div class="giftq-act"><button id="giftQClose" type="button">取消</button></div></div>';document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.classList.remove("show")};document.getElementById("giftQClose").onclick=()=>m.classList.remove("show")}
 async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const giftRes=await sb.rpc("fn_wall_gift",{p_wall_id:Number(id),p_gift:gift,p_user_key:uk||""});
 if(giftRes.error){toast("送出失败："+giftRes.error.message);return}
-localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();ush(gift);toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");render()}
+localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();celebrate();toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");}
 let curTag="all",curGender="all",curMajor="all",curYear="all",curClass="all",curSearch="";
 const DLIKED_KEY="wallDisliked";let dislikedSet=new Set();
 try{dislikedSet=new Set(JSON.parse(localStorage.getItem(DLIKED_KEY))||[])}catch(e){dislikedSet=new Set()}
@@ -496,9 +496,27 @@ return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'
 if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还有 '+(list.length-shownCount)+' 条）</button>'}
 wallEl.innerHTML=html;const lm=document.getElementById("loadMore");if(lm){lm.onclick=()=>{shownCount+=PAGE;render()}}
 stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPoster();renderHot();renderRank();
-/* 修复 D：如果 URL 带 ?post=id，自动定位并高亮那条 */
-const postParam=new URL(window.location.href).searchParams.get("post");
-if(postParam&&/^[0-9]+$/.test(postParam)){const el=document.querySelector('[data-id="'+postParam+'"]');if(el){el.classList.add("highlight");el.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(()=>el.classList.remove("highlight"),8000)}}}
+/* 修复 D：如果 URL 带 ?post=id，自动定位并高亮那条；目标被过滤/截断/删除则重置筛选重渲染再定位 */
+function postFocus(){
+  var postParam=new URL(window.location.href).searchParams.get("post");
+  if(!postParam||!/^[0-9]+$/.test(postParam))return;
+  var el=document.querySelector('[data-id="'+postParam+'"]');
+  if(el){el.classList.add("hl-flash");el.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(function(){el.classList.remove("hl-flash")},2500);return;}
+  /* 卡片不在当前渲染里：先查是否被过滤/截断/删除 */
+  var target=wall.find(function(x){return String(x.id)==String(postParam);});
+  if(target){
+    curTag="all";curGender="all";curMajor="all";curYear="all";curClass="all";curSearch="";
+    shownCount=wall.length;render();
+    requestAnimationFrame(function(){
+      var el2=document.querySelector('[data-id="'+postParam+'"]');
+      if(el2){el2.classList.add("hl-flash");el2.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(function(){el2.classList.remove("hl-flash")},2500);}
+      else{toast("该条表白正在加载，稍候自动定位");}
+    });
+  }else{
+    toast("未找到该条表白，可能已被删除");
+  }
+}
+if(document.readyState!=="loading"){postFocus()}else{document.addEventListener("DOMContentLoaded",postFocus)}}
 /* 修复 A：点赞用原子自增（数据库侧 +1，消除并发丢计数） */
 /* 局部更新：只改单张卡点赞/倒赞数字，不重建整页 */
 async function patchCardCount(id){
@@ -651,7 +669,7 @@ themeBtn.onclick=()=>{const dark=document.body.classList.toggle("dark");themeBtn
 if(localStorage.getItem("wallDark")==="1"){document.body.classList.add("dark");themeBtn.textContent="☀️ 浅色模式";themeBtn.classList.add("on")}
 const musicBtn=document.getElementById("musicBtn");const musicFab=document.getElementById("musicFab");
 function setMusicUI(on){musicBtn.textContent=on?"🔇 关闭音乐":"🎵 开启音乐";musicBtn.classList.toggle("on",on);musicFab.textContent=on?"▶":"🎵";musicFab.classList.toggle("playing",on)}
-function toggleMusic(){if(bgm.paused){bgmIndex=0;tryBgm();bgm.load();bgm.play().then(()=>{setMusicUI(true);localStorage.setItem("wallBgmOn","1")}).catch(()=>{bgmIndex++;if(tryBgm()){bgm.load();bgm.play().then(()=>setMusicUI(true)).catch(()=>toast("背景音乐加载失败"))}else{toast("背景音乐加载失败")}})}else{bgm.pause();setMusicUI(false);localStorage.setItem("wallBgmOn","off")}}
+function toggleMusic(){if(bgm.paused){bgmIndex=0;tryBgm();bgm.load();bgm.play().then(()=>{setMusicUI(true);localStorage.setItem("wallBgmOn","on")}).catch(()=>{bgmIndex++;if(tryBgm()){bgm.load();bgm.play().then(()=>setMusicUI(true)).catch(()=>toast("背景音乐加载失败"))}else{toast("背景音乐加载失败")}})}else{bgm.pause();setMusicUI(false);localStorage.setItem("wallBgmOn","off")}}
 musicBtn.onclick=toggleMusic;musicFab.onclick=toggleMusic;
 function makeFloatLayer(){const layer=document.getElementById("floatLayer");const g=["❤","💗","💕","♥","✨"];for(let i=0;i<12;i++){const s=document.createElement("span");s.textContent=g[i%g.length];s.style.left=Math.random()*100+"vw";s.style.fontSize=(12+Math.random()*22)+"px";const d=10+Math.random()*14;s.style.animationDuration=d+"s";s.style.animationDelay=(-Math.random()*d)+"s";layer.appendChild(s)}}
 function burstAt(el){if(!el)return;const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top,6)}
