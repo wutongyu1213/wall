@@ -147,10 +147,13 @@
         const done=myVotes.includes(p.id);
         h+='<div class="card">'
           +'<div class="ph"><img src="'+esc(p.photo_url)+'" loading="lazy" alt=""><span class="medal">'+medal+'</span></div>'
+          +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
           +'<div class="vf"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+(done?'disabled':'')+'>'+(done?'已投':'投票')+'</button>'
           +'<span class="ct">'+c+' 票</span></div>'
+          +'</div>'
+          
           +'</div>';
       });
       h+='</div>';
