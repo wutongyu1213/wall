@@ -112,7 +112,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 
 .group.male .card::before{background:linear-gradient(var(--blue),var(--blue-l))}
 .group.female .card::before{background:linear-gradient(var(--pink),var(--pink-l))}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.10)}
-/* 扫码定位高亮 */
+/* 扫码定��高亮 */
 .card.highlight{outline:4px solid var(--rose);outline-offset:2px;box-shadow:0 0 0 8px rgba(255,77,109,.18)}
 .card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
 .card .who{font-size:1rem;font-weight:700}
@@ -389,7 +389,22 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
 <audio id="bgm" loop preload="none"></audio><script>;
 const SUPA_URL="https://dpceuvqtwvhoipxhozxz.supabase.co";
 const SUPA_KEY="sb_publishable_lgsJvhLEHOG9oM1aXH7y1A_pgdmezyA";
-const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+let sb=null;
+(function initSupa(){
+  if(window.supabase&&window.supabase.createClient){ sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); return; }
+  /* CDN 失败兜底：不崩，给出可重试提示，交互降级 */
+  var el=document.getElementById("loadState");
+  if(el){el.style.display="block";el.textContent="加载依赖失败，点击重试";el.classList.add("err");el.onclick=function(){location.reload();};}
+  console.error("supabase-js CDN 未加载，交互不可用");
+})();
+/* null-safe：CDN 失败时所有 sb.xxx 调用返回离线降级对象，避免 TypeError 白屏 */
+if(!sb){
+  (function offline(){
+    var fake=function(){var o={};["select","eq","ilike","limit","order","insert","update","delete","upsert","single"].forEach(function(m){o[m]=function(){return o;};});
+      o.then=function(fn){var p={data:null,error:{message:"supabase offline"}};return fn?Promise.resolve(p).then(function(){return fn(p);}):Promise.resolve(p);};return o;};
+    sb={from:fake,rpc:function(){return Promise.resolve({data:null,error:{message:"supabase offline"}});},channel:function(){return {on:function(){return this;},subscribe:function(){return this;},unsubscribe:function(){}};},auth:{getUser:function(){return Promise.resolve({data:{user:null},error:null});}},storage:{from:function(){return {upload:function(){return Promise.resolve({data:null,error:{message:"offline"}});},getPublicUrl:function(){return {data:{publicUrl:""},error:null};}};}}};
+  })();
+}
 /* Edge 缓存层：优先走 /functions/v1/wall-cache（藏 service key + 60s 缓存），失败自动回退直连数据库 */
 const EDGE_URL=SUPA_URL+"/functions/v1/wall-cache";
 let __edgeOk=true;let __edgeGifts=null;
@@ -453,7 +468,9 @@ try{dislikedSet=new Set(JSON.parse(localStorage.getItem(DLIKED_KEY))||[])}catch(
 function saveDisliked(){localStorage.setItem(DLIKED_KEY,JSON.stringify([...dislikedSet]))}
 let giftByWall={};
 function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<60)return "刚刚";if(s<3600)return Math.floor(s/60)+" 分钟前";if(s<86400)return Math.floor(s/3600)+" 小时前";if(s<86400*7)return Math.floor(s/86400)+" 天前";return new Date(ts).toLocaleDateString("zh-CN")}
-function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function esc(s){return (s||"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])})}
+/* URL scheme 防护：只允许 https/http，防 javascript:/data:/vbscript: 注入 */
+function safeUrl(u){if(!u)return "#";u=String(u);if(/^(https?:|\/|#|mailto:)/i.test(u))return u;if(/^(javascript|data|vbscript):/i.test(u))return "#";return u}
 const GROUP_GICONS={male:"👦",female:"👧"};
 const BAD_WORDS=["傻逼","傻B","操你","操你妈","妈的","妈批","妈卖","妈蛋","妈个","mmp","nmsl","nmzl","cnm","cnmd","尼玛","你妈","去你妈","去死","贱人","滚蛋","智障","脑瘫","鸡巴","死全家","草拟","拟吗","擦你","狗日","狗东西","恶心","辣鸡","垃圾","废物","人渣","不要脸","下贱","fuck","shit","bitch"];
 const INV=String.fromCodePoint(173,8203,8204,8205,8206,8207,8234,8235,8236,8237,8238,8288,8289,8290,8291,8292,65279,160,12288,0x200B,0x200C,0x200D,0x2060,0x202A,0x202B,0x202C,0x202D,0x202E,0xFEFF);
@@ -505,6 +522,20 @@ function bindLikes(){bindCardEvents()}
 function bindShare(){bindCardEvents()}
 function bindReport(){bindCardEvents()}
 function bindPoster(){bindCardEvents()}
+/* 事件委托：一次性绑定到 #wall，幂等（__wallBound），避免每次 render 重建绑定 */
+function bindCardEvents(){
+  var w=document.getElementById("wall");if(!w||w.__wallBound)return;
+  w.__wallBound=true;
+  w.addEventListener("click",function(ev){
+    var t=ev.target;
+    var like=t.closest("[data-like]");if(like){ev.preventDefault();likeItem(like.getAttribute("data-id"),"up");return;}
+    var dis=t.closest("[data-dislike]");if(dis){ev.preventDefault();likeItem(dis.getAttribute("data-id"),"down");return;}
+    var sh=t.closest("[data-share]");if(sh){ev.preventDefault();copyText(SITE_URL+"?post="+sh.getAttribute("data-share"));return;}
+    var rp=t.closest("[data-report]");if(rp){ev.preventDefault();reportPost(rp.getAttribute("data-report"));return;}
+    var pst=t.closest("[data-poster]");if(pst){ev.preventDefault();makePoster(pst.getAttribute("data-poster"));return;}
+    /* data-admin-del 仍由 bindAdminDel() 的 per-element onclick 处理，这里不重复 */
+  });
+}
 
 function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.from("reports").insert({wall_id:Number(id),user_key:uk,reason:v||""}).then(function(){toast("已收到举报，管理方会尽快处理 🙏")}).catch(function(){toast("举报提交失败，稍后再试")})}
 let adminMode=false;let adminPwd="";
