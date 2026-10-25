@@ -454,7 +454,7 @@ const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("cr
 /* 修复 C：统计"署名的人"只算有昵称的，匿名不算重名 */
 function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘人").map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
 async function loadVisits(){try{const {data}=await sb.from("visit_counter").select("total").limit(1);const v=(data&&data[0])?data[0].total:0;document.getElementById("stVisit").textContent=v}catch(e){try{const {count}=await sb.from("visits").select("id",{count:"exact",head:true});document.getElementById("stVisit").textContent=(count||0)}catch(_){}}}
-function recordVisit(){let vk=localStorage.getItem("wallVisitKey");if(!vk){vk="v"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallVisitKey",vk)}try{sb.from("visits").insert({visit_key:vk}).then(function(){}).catch(function(){});}catch(e){}}
+function recordVisit(){let vk=localStorage.getItem("wallVisitKey");if(!vk){vk="v"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallVisitKey",vk)}try{sb.rpc("fn_wall_visit",{p_visit_key:vk,p_ip_hash:"c2"}).then(function(){}).catch(function(){});}catch(e){}}
 function renderHot(){const wrap=document.getElementById("hotWrap");if(wall.length===0){wrap.innerHTML="";return}const hot=wall.slice().sort((a,b)=>(b.likes||0)-(a.likes||0))[0];wrap.innerHTML='<div class="hot-banner"><div class="icon">🏆</div><div class="txt"><div class="lbl">全场最热 · 点赞最多</div><div class="who">'+esc(hot.name)+'<span class="to">→ '+esc(hot.to)+'</span></div></div><div class="likes">'+(hot.likes||0)+'<small>❤ 点赞</small></div></div>'}
 function renderRank(){const rp=document.getElementById("rankPanel");if(!rp)return;const rl=document.getElementById("rankList");if(!wall.length){rl.innerHTML='<div class="rank-empty">还没有表白，快写下第一条</div>';return}
 const top=wall.slice().sort((a,b)=>((b.likes||0)-(b.dislikes||0))-((a.likes||0)-(a.dislikes||0))).slice(0,10);
@@ -463,7 +463,9 @@ rl.querySelectorAll(".rank-item").forEach(el=>{el.onclick=()=>{location.href=SIT
 function bindGiftQ(){document.querySelectorAll("[data-giftq]").forEach(el=>{el.onclick=()=>openGiftQ(el.dataset.giftq)})}
 function openGiftQ(id){ensureGiftQ();document.getElementById("giftQModal").classList.add("show");document.getElementById("giftQTitle").textContent="送一个虚拟礼物给这条表白 🎁";document.querySelectorAll("#giftQGrid .gb").forEach(b=>{b.onclick=()=>sendGiftQ(id,b.dataset.g)})}
 function ensureGiftQ(){if(document.getElementById("giftQModal"))return;const m=document.createElement("div");m.className="giftq-modal";m.id="giftQModal";m.innerHTML='<div class="giftq-box"><h3 id="giftQTitle">送礼物</h3><div class="gg" id="giftQGrid">'+["🌹","❤️","🧸","🎂","⭐","🎈","🍫","🍀"].map(g=>'<button type="button" class="gb" data-g="'+g+'">'+g+'</button>').join("")+'</div><div class="giftq-act"><button id="giftQClose" type="button">取消</button></div></div>';document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.classList.remove("show")};document.getElementById("giftQClose").onclick=()=>m.classList.remove("show")}
-async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const {error}=await sb.from("card_gifts").insert({wall_id:Number(id),user_key:uk,gift:gift});if(error){toast("送出失败："+error.message);return}localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");render()}
+async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const giftRes=await sb.rpc("fn_wall_gift",{p_wall_id:Number(id),p_gift:gift,p_user_key:uk||""});
+if(giftRes.error){toast("送出失败："+giftRes.error.message);return}
+localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();ush(gift);toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");render()}
 let curTag="all",curGender="all",curMajor="all",curYear="all",curClass="all",curSearch="";
 const DLIKED_KEY="wallDisliked";let dislikedSet=new Set();
 try{dislikedSet=new Set(JSON.parse(localStorage.getItem(DLIKED_KEY))||[])}catch(e){dislikedSet=new Set()}
@@ -539,7 +541,7 @@ function bindCardEvents(){
   });
 }
 
-function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.from("reports").insert({wall_id:Number(id),user_key:uk,reason:v||""}).then(function(){toast("已收到举报，管理方会尽快处理 🙏")}).catch(function(){toast("举报提交失败，稍后再试")})}
+function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||""}).then(function(r){if(r.error){toast("举报失败："+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再试")})}
 let adminMode=false;let adminPwd="";
 function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开启 🛡️");bindAdminDel()}
 /* H1: 进管理前先 prompt 收密码，避免 adminPwd 恒空导致删除必 401 */
@@ -620,9 +622,12 @@ const uk=userKey();const lastKey="wallLastPost_"+uk;const lastTs=parseInt(localS
 const elapsed=(Date.now()-lastTs)/1000;
 if(elapsed<POST_MIN_INTERVAL){toast("发布太快，请 "+Math.ceil(POST_MIN_INTERVAL-elapsed)+" 秒后再试");return}
 busy=true;
-const {error}=await sb.from("wall").insert({nickname:name,target_name:to,grade_year:year,class_no:cls,love_tag:tag,sender_gender:fromG,target_gender:toG,love_msg:msg,like_count:0,created_ts:Date.now(),status:"ok",gift:pickedGift||null,user_key:uk});
-busy=false;
-if(error){toast("提交失败："+error.message);return}
+const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name==="")});
+if(postRes.error){const m=postRes.error.message||"";if(/sensitive/i.test(m)){toast("内容含敏感词，请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
+/* 发帖成功：乐观上墙 + 立即直连刷新（bust Edge 缓存） */
+const newId=postRes.data;
+__edgeOk=false;await load();__edgeOk=true;
+toast("表白成功 ❤ 已贴到墙上");celebrate();busy=false;
 localStorage.setItem(lastKey,String(Date.now()));
 document.getElementById("inMsg").value="";document.getElementById("inName").value="";document.getElementById("inTo").value="";pickedGift="";document.querySelectorAll("#giftGrid .gift-btn").forEach(x=>x.classList.remove("on"));
 curTag="all";curGender="all";curYear="all";curClass="all";curSearch="";document.getElementById("inSearch").value="";
