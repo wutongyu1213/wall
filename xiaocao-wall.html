@@ -52,11 +52,11 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;letter-spacing:2px;
 @media(max-width:560px){.row{flex-direction:column}.row input{min-width:0}}
 
 /* === 精致化（投票页 视觉统一 index/主墙） === */
-:root{--card:#fff;--ink:#3a0a1a;--muted:#8a5a68;--radius:16px;--shadow:0 8px 24px rgba(196,0,42,.08)}
-body.dark{--card:#2a1018;--ink:#f5dfe6;--muted:#c79ba8;--shadow:0 8px 24px rgba(0,0,0,.5)}
+:root{--card:#fff;--ink:#0a1a3a;--muted:#5a6a8a;--radius:16px;--shadow:0 8px 24px rgba(59,111,214,.10)}
+body.dark{--card:#0a1020;--ink:#dfe6f5;--muted:#8a98ba;--shadow:0 8px 24px rgba(0,0,0,.5)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
 @media(max-width:680px){.grid{grid-template-columns:repeat(2,1fr);gap:14px}}
-.card{background:var(--card);border:1px solid rgba(196,0,42,.08);border-radius:var(--radius);
+.card{background:var(--card);border:1px solid rgba(59,111,214,.08);border-radius:var(--radius);
   box-shadow:var(--shadow);overflow:hidden;transition:transform .22s cubic-bezier(.2,.7,.3,1.2),box-shadow .22s}
 .card:hover{transform:translateY(-6px) scale(1.012);box-shadow:0 18px 36px rgba(196,0,42,.16)}
 body.dark .card{background:var(--card);border-color:rgba(255,255,255,.08)}
@@ -71,16 +71,16 @@ body.dark .card{background:var(--card);border-color:rgba(255,255,255,.08)}
 .card .ct{font-size:.85rem;font-weight:700;color:var(--rose,#c4002a)}
 body.dark .card .nm{color:#f5dfe6}
 body.dark .card .ms{color:#c79ba8}
-.card .vote{border:none;cursor:pointer;background:linear-gradient(90deg,#c4002a,#ff4d6d);color:#fff;
-  font-weight:700;padding:8px 16px;border-radius:10px;transition:.18s;box-shadow:0 5px 14px rgba(196,0,42,.28)}
+.card .vote{border:none;cursor:pointer;background:linear-gradient(90deg,#3b6fd6,#8fb4ff);color:#fff;
+  font-weight:700;padding:8px 16px;border-radius:10px;transition:.18s;box-shadow:0 5px 14px rgba(59,111,214,.28)}
 .card .vote:hover{transform:translateY(-1px)}
 .card .vote.done,.card .vote.dis{background:#999;opacity:.6;pointer-events:none}
 /* 深色切换钮 */
 .dark-toggle{position:fixed;right:14px;top:14px;z-index:80;width:38px;height:38px;border-radius:50%;
-  border:1px solid rgba(196,0,42,.25);background:var(--card);cursor:pointer;font-size:16px;box-shadow:0 4px 12px rgba(196,0,42,.15)}
+  border:1px solid rgba(59,111,214,.25);background:var(--card);cursor:pointer;font-size:16px;box-shadow:0 4px 12px rgba(196,0,42,.15)}
 /* 深色覆盖面板/输入 */
 body.dark .panel,body.dark .wrap{color:var(--ink)}
-body.dark .btn{background:linear-gradient(90deg,#c4002a,#ff4d6d)}
+body.dark .btn{background:linear-gradient(90deg,#3b6fd6,#8fb4ff)}
 body.dark input{background:#1a0810;color:#f5dfe6;border-color:rgba(255,255,255,.15)}
 /* 空态/加载 */
 .empty{text-align:center;padding:40px 16px;color:var(--muted);font-size:.95rem}
@@ -97,8 +97,10 @@ body.dark input{background:#1a0810;color:#f5dfe6;border-color:rgba(255,255,255,.
 
 
 <div id="app"></div>
-<footer>校草之墙 · 把最帅的他写进墙上 · 每 IP 一票</footer>
+<footer>校草之墙 · 把最帅的他写进墙上 · 每人一票</footer>
 <script>window.WALL_CFG={key:'wall_xiaocao',title:'🌿 校草之墙',accent:'blue'}</script>
 <script src="wall-common.js"></script>
+<button class="dark-toggle" id="darkToggle" aria-label="切换深色">🌙</button>
+<script>(function(){var d=localStorage.getItem("wallDark")==="1";document.body.classList.toggle("dark",d);var b=document.getElementById("darkToggle");if(!b)return;b.textContent=d?"☀️":"🌙";b.onclick=function(){var x=document.body.classList.toggle("dark");localStorage.setItem("wallDark",x?"1":"0");b.textContent=x?"☀️":"🌙"};})();</script>
 </body>
 </html>
