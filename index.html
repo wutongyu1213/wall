@@ -3,35 +3,107 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>重庆第二外国语学校 · 校园表白墙</title><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>"><meta name="description" content="重庆第二外国语学校 · 全校共享的校园表白墙 / 校花校草墙">校园表白 · 校花校草之墙</title>
+<title>重庆第二外国语学校 · 校园表白墙</title>
+<meta name="description" content="重庆第二外国语学校 · 全校共享的校园表白墙 / 校花校草墙">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>">
+<meta property="og:title" content="重庆第二外国语学校 · 校园表白墙">
+<meta property="og:description" content="全校共享的表白墙 / 校花校草之墙">
+<meta property="og:type" content="website">
 <style>
+:root{--rose:#c4002a;--rose-l:#ff4d6d;--pink:#e0498f;--blue:#3b6fd6;--ink:#3a0a1a;--muted:#8a5a68;--card:#fff;--bg1:#fff5f7;--bg2:#ffe9ef;--bg3:#fff0f5;--shadow:0 10px 30px rgba(196,0,42,.10)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:linear-gradient(160deg,#fff5f7,#eaf1ff 55%,#f4f9ff);padding:20px}
-.box{text-align:center;max-width:520px;width:100%}
-h1{font-size:2rem;margin-bottom:8px;letter-spacing:2px;background:linear-gradient(90deg,#e0498f,#3b6fd6);-webkit-background-clip:text;background-clip:text;color:transparent}
-p{color:#667;margin-bottom:28px;letter-spacing:1px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.card{display:block;text-decoration:none;background:#fff;border-radius:18px;padding:26px 20px;box-shadow:0 12px 30px rgba(0,0,0,.07);transition:.2s;text-align:center}
-.card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,.12)}
-.card .ico{font-size:2.2rem;display:block;margin-bottom:10px}
-.card .t{font-weight:800;font-size:1.2rem;letter-spacing:2px}
-.card .d{font-size:.82rem;color:#8a9;margin-top:8px;letter-spacing:1px}
-.card.pink{border-top:4px solid #e0498f}.card.pink .t{color:#e0498f}
-.card.blue{border-top:4px solid #3b6fd6}.card.blue .t{color:#3b6fd6}
-.card.rose{border-top:4px solid #ff4d6d}.card.rose .t{color:#ff4d6d}
+html,body{height:100%}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);
+background:radial-gradient(1200px 600px at 80% -10%,rgba(255,77,109,.20),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(255,143,163,.24),transparent 60%),linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%);
+min-height:100vh;display:flex;flex-direction:column}
+body.dark{--ink:#f5dfe6;--muted:#c79ba8;--card:#2a1018;--bg1:#1a0810;--bg2:#2a0f18;--bg3:#1f0a14;--shadow:0 10px 30px rgba(0,0,0,.5)}
+
+/* 顶部导航 */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.72);backdrop-filter:blur(10px);border-bottom:1px solid rgba(196,0,42,.08);box-shadow:0 2px 14px rgba(196,0,42,.05)}
+body.dark .nav{background:rgba(26,8,16,.72)}
+.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:var(--rose);display:flex;align-items:center;gap:8px;margin-right:auto}
+body.dark .brand{color:#ff8fa3}
+.brand small{font-weight:400;color:var(--muted);font-size:.72rem;letter-spacing:0}
+.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:var(--muted);text-decoration:none;transition:.18s;background:transparent}
+.nav a.nl:hover{background:rgba(196,0,42,.07);color:var(--rose)}
+.nav a.nl.cur{background:linear-gradient(135deg,var(--rose),var(--rose-l));color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}
+
+/* 主区 */
+.wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 18px}
+.hero{width:100%;max-width:760px}
+.hero-eyebrow{text-align:center;color:var(--rose);font-weight:700;letter-spacing:3px;font-size:.8rem;margin-bottom:14px;opacity:.8}
+body.dark .hero-eyebrow{color:#ff8fa3}
+.hero h1{text-align:center;font-size:clamp(2.2rem,7vw,3.4rem);font-weight:800;line-height:1.15;
+background:linear-gradient(135deg,#c4002a 0%,#e0498f 55%,#3b6fd6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:10px}
+.hero p.sub{text-align:center;color:var(--muted);font-size:1rem;margin-bottom:42px}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:680px){.grid{grid-template-columns:1fr;gap:16px}.hero p.sub{margin-bottom:30px}}
+.card{display:block;background:var(--card);border:1px solid rgba(196,0,42,.08);border-radius:22px;padding:30px 22px 26px;text-align:center;text-decoration:none;box-shadow:var(--shadow);transition:transform .25s cubic-bezier(.2,.7,.3,1.2),box-shadow .25s,border-color .25s;position:relative;overflow:hidden}
+.card:hover{transform:translateY(-8px) scale(1.015);box-shadow:0 22px 44px rgba(196,0,42,.18);border-color:rgba(196,0,42,.25)}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--ac);opacity:.9}
+.card.rose{--ac:linear-gradient(90deg,#c4002a,#ff8fa3)}
+.card.pink{--ac:linear-gradient(90deg,#e0498f,#ffb3d1)}
+.card.blue{--ac:linear-gradient(90deg,#3b6fd6,#8fb4ff)}
+.card .ico{font-size:2.6rem;line-height:1;display:block;margin-bottom:14px}
+.card .t{font-size:1.15rem;font-weight:800;color:var(--ink);display:block;margin-bottom:6px}
+body.dark .card .t{color:#f5dfe6}
+.card .d{font-size:.85rem;color:var(--muted);line-height:1.5;display:block}
+.card .go{margin-top:16px;font-size:.82rem;font-weight:700;color:var(--rose);opacity:0;transform:translateY(6px);transition:.25s;display:block}
+.card:hover .go{opacity:1;transform:translateY(0)}
+.card.rose .go{color:#c4002a}.card.pink .go{color:#e0498f}.card.blue .go{color:#3b6fd6}
+
+/* 深色模式覆盖卡片底 */
+body.dark .card{background:#2a1018;border-color:rgba(255,255,255,.08)}
+
+footer{padding:22px 16px 30px;text-align:center;color:var(--muted);font-size:.8rem;line-height:1.7}
+footer b{color:var(--rose)}
+body.dark footer b{color:#ff8fa3}
+.donate{display:inline-block;margin-top:8px;padding:8px 16px;border:1px dashed rgba(196,0,42,.3);border-radius:999px;font-size:.78rem;color:var(--rose)}
+body.dark .donate{border-color:rgba(255,143,163,.3);color:#ff8fa3}
 </style>
+<script>if(localStorage.getItem('wallDark')==='1')document.documentElement.classList.add('dark');</script>
 </head>
 <body>
-<style>.xcw-nav{position:sticky;top:0;z-index:999;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,.06);box-shadow:0 2px 12px rgba(0,0,0,.05);padding:10px 12px}.xcw-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.xcw-brand{font-weight:800;font-size:.95rem;letter-spacing:.5px;color:#333;display:flex;align-items:center;gap:6px}.xcw-nav a.nl{flex:1;text-align:center;text-decoration:none;font-size:.85rem;font-weight:600;padding:7px 10px;border-radius:10px;color:#666;transition:.15s;min-width:56px}.xcw-nav a.nl:hover{background:#f2f2f2;color:#222}.xcw-nav a.nl.cur{background:#111;color:#fff}.xcw-nav a.nl.pink.cur{background:#e0498f}.xcw-nav a.nl.blue.cur{background:#3b6fd6}.xcw-nav a.nl.rose.cur{background:#c4002a}@media(max-width:480px){.xcw-brand{width:100%;justify-content:center;margin-bottom:2px}}</style><nav class="xcw-nav" role="navigation" aria-label="校园墙导航"><div class="xcw-in"><span class="xcw-brand">🏫 校园墙</span><a class="nl  cur" href="index.html">🏠 总入口</a><a class="nl pink" href="xiaohua-wall.html">🌸 校花</a><a class="nl blue" href="xiaocao-wall.html">🌿 校草</a><a class="nl rose" href="love-wall.html">❤ 表白</a></div></nav>
+<nav class="nav"><div class="nav-in">
+  <span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span>
+  <a class="nl cur" href="index.html">🏠 总入口</a>
+  <a class="nl" href="xiaohua-wall.html">🌸 校花</a>
+  <a class="nl" href="xiaocao-wall.html">🌿 校草</a>
+  <a class="nl" href="love-wall.html">❤️ 表白</a>
+</div></nav>
 
-<div class="box">
-  <h1>校园墙</h1>
-  <p>选择你要去的墙</p>
+<div class="wrap"><div class="hero">
+  <div class="hero-eyebrow">CHONGQING NO.2 FOREIGN LANGUAGE SCHOOL</div>
+  <h1>校园表白墙</h1>
+  <p class="sub">选择你要去的墙 · 全校共享 · 匿名文明发言</p>
   <div class="grid">
-    <a class="card rose" href="love-wall.html"><span class="ico">❤️</span><span class="t">表白墙</span><span class="d">把想说的话贴到墙上</span></a>
-    <a class="card pink" href="xiaohua-wall.html"><span class="ico">🌸</span><span class="t">校花之墙</span><span class="d">同学传照片 · 投票排名</span></a>
-    <a class="card blue" href="xiaocao-wall.html"><span class="ico">🌿</span><span class="t">校草之墙</span><span class="d">同学传照片 · 投票排名</span></a>
+    <a class="card rose" href="love-wall.html"><span class="ico">❤️</span><span class="t">表白墙</span><span class="d">把想说的话贴到墙上<br>点赞 · 送礼物 · 实时分享</span><span class="go">进入 →</span></a>
+    <a class="card pink" href="xiaohua-wall.html"><span class="ico">🌸</span><span class="t">校花之墙</span><span class="d">同学传照片 · 投票排名<br>谁是你心中的校花</span><span class="go">进入 →</span></a>
+    <a class="card blue" href="xiaocao-wall.html"><span class="ico">🌿</span><span class="t">校草之墙</span><span class="d">同学传照片 · 投票排名<br>谁是你心中的校草</span><span class="go">进入 →</span></a>
   </div>
-</div>
+</div></div>
+
+<footer>
+  <b>重庆第二外国语学校</b> · 校园墙 · 匿名 / 文明 / 自愿<br>
+  请心怀公德，勿发布侮辱、骚扰内容
+  <div class="donate">💡 有改进建议？点「❤️ 表白墙」内右下角举报/反馈</div>
+</footer>
+
+<script>
+// 深色模式切换按钮（右上角小圆钮）
+(function(){
+  var b=document.createElement('button');
+  b.style.cssText='position:fixed;right:14px;top:64px;z-index:60;width:38px;height:38px;border-radius:50%;border:1px solid rgba(196,0,42,.25);background:var(--card);cursor:pointer;font-size:16px;box-shadow:0 4px 12px rgba(196,0,42,.15)';
+  b.textContent=document.body.classList.contains('dark')?'☀️':'🌙';
+  b.onclick=function(){
+    var d=document.body.classList.toggle('dark');
+    localStorage.setItem('wallDark',d?'1':'0');
+    b.textContent=d?'☀️':'🌙';
+  };
+  document.body.appendChild(b);
+})();
+</script>
 </body>
 </html>
