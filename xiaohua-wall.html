@@ -40,6 +40,9 @@ header .sub{color:var(--muted);margin-top:10px;font-size:.92rem;letter-spacing:4
 .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 20px rgba(0,0,0,.05);border:1px solid rgba(224,73,143,.18);text-align:center;transition:.2s}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(224,73,143,.15)}
 .ph{position:relative;border-radius:12px;overflow:hidden;background:#f6e8ee;margin-bottom:10px}
+.ph .ph-ph{display:none;position:absolute;inset:0;background:repeating-linear-gradient(45deg,#f6e8ee,#f6e8ee 10px,#f0dce6 10px,#f0dce6 20px);color:#c08597;font-size:3rem;align-items:center;justify-content:center;text-align:center;line-height:1.2}
+.ph .ph-ph::after{content:"📷 照片加载中";display:block;font-size:.8rem;color:#c08597;margin-top:6px}
+.ph.empty-photo .ph-ph{display:flex}
 .ph img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
 .ph .medal{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.9);border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700}
 .nm{font-weight:700;font-size:1rem;margin-bottom:4px}
