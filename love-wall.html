@@ -250,7 +250,11 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .giftq-box button.gb:hover{border-color:#ff4d6d;transform:translateY(-2px)}
 .giftq-act{display:flex;gap:8px;justify-content:center}@media(max-width:560px){.compose-body{display:none}.compose.expanded .compose-body{display:block}.compose h2{cursor:pointer;user-select:none}.compose h2::after{content:"展开 ▾";float:right;font-size:.8rem;color:var(--muted);font-weight:normal}.compose.expanded h2::after{content:"收起 ▴"}}
 @media(min-width:561px){.compose-body{display:block!important}}
-.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}</style>
+.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}/* 首屏减负：默认收起"更多选项" */
+.more-opt,.more-opt-chip{display:none}
+body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
+@media(max-width:680px){.opt-toggle{width:100%;text-align:center}}
+</style>
 </head><body>
 <nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
 
@@ -305,7 +309,8 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
       <div class="field"><label>我的性别</label><select id="inFrom"><option value="男">男</option><option value="女">女</option></select></div>
       <div class="field"><label>对象性别</label><select id="inToG"><option value="男">男</option><option value="女">女</option></select></div>
     </div>
-    <div class="gift-pick">
+    <button type="button" class="opt-toggle" id="optToggle" style="border:1px dashed rgba(196,0,42,.35);background:none;color:#c4002a;font-size:12px;padding:6px 12px;border-radius:10px;cursor:pointer;margin:8px 0">▾ 更多选项（礼物/快捷语）</button>
+<div class="gift-pick more-opt">
       <label>附一个虚拟礼物 <span class="hint">（可选，随表白送出）</span></label>
       <div class="gift-grid" id="giftGrid"><button type="button" class="gift-btn" data-gift="🌹">🌹</button><button type="button" class="gift-btn" data-gift="❤️">❤️</button><button type="button" class="gift-btn" data-gift="🧸">🧸</button><button type="button" class="gift-btn" data-gift="🎂">🎂</button><button type="button" class="gift-btn" data-gift="⭐">⭐</button><button type="button" class="gift-btn" data-gift="🎈">🎈</button><button type="button" class="gift-btn" data-gift="🍫">🍫</button><button type="button" class="gift-btn" data-gift="🍀">🍀</button></div>
     </div>
@@ -316,7 +321,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
       <span class="chip">愿未来有你</span>
       <span class="chip">天天开心</span>
       <span class="chip">谢谢你 🌟</span>
-      <span class="chip">想你了 🌙</span>
+      <span class="chip more-opt-chip">想你了 🌙</span>
     </div>
     <div class="consent-row" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 4px;font-size:12px;color:#8a5a68;line-height:1.6"><input type="checkbox" id="inConsent" style="margin-top:2px"><label for="inConsent" style="margin:0">我已了解：本墙公开显示对象的<b>真实姓名</b>与班级，可能被他人看到。请只在<b>自愿</b>情况下发表，勿发布自己或他人的侮辱、骚扰内容；若被表白对象或本人/家长希望下架，可点卡片「⚖️ 申请下架」或举报，管理方会尽快处理并匿名化。</label></div><button class="btn" id="postBtn">贴上表白墙 →</button>
     </div>
@@ -605,6 +610,7 @@ function burst(x,y,n){for(let i=0;i<n;i++){const d=document.createElement("div")
 const st=document.createElement("style");st.textContent="@keyframes rise2{from{transform:translate(0,0);opacity:1}to{transform:translate(var(--dx,0),-120px) scale(.4);opacity:0}}";document.head.appendChild(st);
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 makeFloatLayer();
+(function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
 (function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();Promise.all([load(),loadVisits(),recordVisit()]);
 (function(){try{var ch=sb.channel("love-wall-rt").on("postgres_changes",{event:"*",schema:"public",table:"wall"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"likes"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"card_gifts"},function(){rt()}).subscribe(function(s){console.log("realtime:",s)});window.__wallRt=ch;}catch(e){console.log("realtime init failed, fallback to polling",e)}})();var __rtT=null;function rt(){if(document.hidden)return;if(__rtT)return;__rtT=setTimeout(function(){__rtT=null;load();},3000);}
 setInterval(load,300000);
