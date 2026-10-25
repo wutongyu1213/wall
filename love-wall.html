@@ -400,7 +400,9 @@ const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?loca
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
-const BGM_URLS=["https://cdn.pixabay.com/audio/2022/08/02/audio_8de1a9f2c0.mp3"];BGM_URLS.forEach(function(u,i){fetch(u,{method:"HEAD",mode:"no-cors"}).then(function(r){if(r.status===404||r.status===0){BGM_URLS.splice(i,1)}}).catch(function(){BGM_URLS.splice(i,1)})});
+const BGM_URLS=["https://cdn.pixabay.com/audio/2022/08/02/audio_8de1a9f2c0.mp3"];
+/* BGM 可达性预检：不在迭代中 splice 自身；no-cors 下 status 恒为 0 属正常，仅明确 404/403 才剔除，网络异常保留本地兜底 */
+(function(){var list=BGM_URLS.slice();list.forEach(function(u){fetch(u,{method:"HEAD"}).then(function(r){if(r.status===404||r.status===403||r.status===401){BGM_URLS.splice(BGM_URLS.indexOf(u),1)}}).catch(function(){})})})();
 const bgm=document.getElementById("bgm");bgm.volume=0.35;let bgmIndex=0;
 function tryBgm(){if(bgmIndex>=BGM_URLS.length)return false;bgm.src=BGM_URLS[bgmIndex];return true}
 tryBgm();bgm.addEventListener("error",()=>{bgmIndex++;if(tryBgm())bgm.load();});
@@ -477,7 +479,7 @@ stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPost
 const postParam=new URL(window.location.href).searchParams.get("post");
 if(postParam&&/^[0-9]+$/.test(postParam)){const el=document.querySelector('[data-id="'+postParam+'"]');if(el){el.classList.add("highlight");el.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(()=>el.classList.remove("highlight"),8000)}}}
 /* 修复 A：点赞用原子自增（数据库侧 +1，消除并发丢计数） */
-async // 局部更新：只改单张卡点赞/倒赞数字，不重建整页
+/* 局部更新：只改单张卡点赞/倒赞数字，不重建整页 */
 async function patchCardCount(id){
 const card=document.querySelector('[data-id="'+id+'"]');if(!card)return;
 const c=wall.find(x=>x.id==id);if(!c)return;
