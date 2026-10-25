@@ -30,16 +30,27 @@
 
   let people=[]; let loadErr=false; let loading=true;
 
-  /* ---- 拉候选人（云端） ---- */
+  /* ---- 拉候选人（云端，带 try/catch + 超时兜底，失败可重试） ---- */
+  var loadLock=0;
   async function loadCands(){
-    const s=getSB(); if(!s){ loadErr=true; return; }
-    loadErr=false;
-    const {data,error}=await s.from('wall_candidates')
-      .select('id,nickname,class_no,photo_url,like_count,msg,created_ts')
-      .eq('kind',KIND).eq('status','ok')
-      .order('like_count',{ascending:false}).limit(200);
-    if(error){ loadErr=true; people=[]; loading=false; return; }
-    people=data||[]; loading=false;
+    const s=getSB(); if(!s){ loadErr=true; people=[]; loading=false; return; }
+    loading=true; loadErr=false;
+    const myLock=++loadLock;
+    try{
+      const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
+      const tmo=ctrl?setTimeout(function(){ctrl.abort();},15000):null;
+      const {data,error}=await s.from('wall_candidates')
+        .select('id,nickname,class_no,photo_url,like_count,msg,created_ts')
+        .eq('kind',KIND).eq('status','ok')
+        .order('like_count',{ascending:false}).limit(200);
+      if(tmo)clearTimeout(tmo);
+      if(myLock!==loadLock)return; // 已被更新一次加载取代
+      if(error){ loadErr=true; people=[]; } else { people=data||[]; }
+    }catch(e){
+      if(myLock===loadLock){ console.error('loadCands',e); loadErr=true; people=[]; }
+    }finally{
+      if(myLock===loadLock)loading=false;
+    }
   }
 
   /* ---- 上传照片 → Storage 桶 wall-photos → 写 wall_candidates ---- */
@@ -101,7 +112,7 @@
   }
 
   /* ---- XSS 转义 ---- */
-  function esc(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+  function esc(s){ return (s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]}); }
 
   /* ---- 导航（与 4 页统一 .nav 风格一致） ---- */
   function nav(){
@@ -146,7 +157,7 @@
         const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
         const done=myVotes.includes(p.id);
         h+='<div class="card">'
-          +'<div class="ph"><img src="'+esc(p.photo_url)+'" loading="lazy" alt=""><span class="medal">'+medal+'</span></div>'
+          +'<div class="ph"><img src="'+esc(p.photo_url)+'" loading="lazy" alt="" data-id="'+p.id+'" onerror="this.classList.add(\'broken\');this.parentNode.classList.add(\'empty-photo\');this.style.display=\'none\';"><span class="ph-ph"></span><span class="medal">'+medal+'</span></div>'
           +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
@@ -170,16 +181,19 @@
       const nm=document.getElementById('upName').value.trim();
       const msg=document.getElementById('upMsg').value.trim();
       if(!f){ tip('请选择一张照片'); return; }
+      /* 上传类型/大小校验：防异型/超大文件拖垮 */
+      if(!/^image\/(jpe?g|png|webp)$/.test(f.type)){ tip('只支持 JPG/PNG/WEBP 图片'); return; }
+      if(f.size>15*1024*1024){ tip('图片不能超过 15MB'); return; }
       up.disabled=true; up.textContent='上传中…';
       fileToBlob(f,720).then(function(blob){
-        uploadAndAdd(nm,msg,blob).finally(function(){ up.disabled=false; up.textContent='压缩并上传'; var inp=document.getElementById('upFile'); if(inp)inp.value=''; });
-      });
+        uploadAndAdd(nm,msg,blob).catch(function(e){ tip('上传出错：'+(e&&e.message||e)); }).finally(function(){ up.disabled=false; up.textContent='压缩并上传'; var inp=document.getElementById('upFile'); if(inp)inp.value=''; });
+      }).catch(function(e){ up.disabled=false; up.textContent='压缩并上传'; tip('压缩失败：'+(e&&e.message||e)); });
     }; }
     document.querySelectorAll('[data-vote]').forEach(function(b){
       b.onclick=function(){ vote(b.getAttribute('data-vote')); };
     });
     const rt=document.getElementById('retryLoad');
-    if(rt){ rt.onclick=function(){ loading=false; loadCands().then(function(){ render(); }); }; }
+    if(rt){ rt.onclick=function(){ loading=false; loadCands().then(function(){ render(); }).catch(function(){ render(); }); }; }
     // 深色模式跟随
     if(localStorage.getItem('wallDark')==='1') document.body.classList.add('dark');
   }
@@ -191,7 +205,9 @@
     t.textContent=msg; t.classList.add('show'); clearTimeout(_tipT); _tipT=setTimeout(function(){t.classList.remove('show');},2600);
   }
 
-  window.WALL={ render:render, refresh:function(){ loadCands().then(function(){ render(); }); } };
-  window.addEventListener('storage',function(){ loadCands().then(function(){ render(); }); });
-  loadCands().then(function(){ render(); });
+  window.WALL={ render:render, refresh:function(){ loadCands().then(function(){ render(); }).catch(function(){ render(); }); } };
+  /* storage 事件：跨标签页刷新，带锁 + 不覆盖进行中加载 */
+  window.addEventListener('storage',function(){ loadCands().then(function(){ if(loadLock===loadLock&&!loading){ render(); } }).catch(function(){}); });
+  /* 顶层：未捕获 Promise 兜底，失败仍 render 出重试入口 */
+  loadCands().then(function(){ render(); }).catch(function(e){ console.error('init',e); render(); });
 })();
