@@ -250,12 +250,10 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .giftq-box button.gb:hover{border-color:#ff4d6d;transform:translateY(-2px)}
 .giftq-act{display:flex;gap:8px;justify-content:center}@media(max-width:560px){.compose-body{display:none}.compose.expanded .compose-body{display:block}.compose h2{cursor:pointer;user-select:none}.compose h2::after{content:"展开 ▾";float:right;font-size:.8rem;color:var(--muted);font-weight:normal}.compose.expanded h2::after{content:"收起 ▴"}}
 @media(min-width:561px){.compose-body{display:block!important}}
-@media(max-width:600px){.xcw-nav{display:none}.xcw-nav .xcw-brand{display:inline}}.xcw-nav{position:sticky;top:0;z-index:50;display:flex;gap:8px;align-items:center;padding:10px 14px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid #ffe6ee}.xcw-nav a{font-size:14px;color:#c4002a;text-decoration:none;padding:4px 8px;border-radius:8px}.xcw-nav a:hover{background:#ffe6f2}.xcw-cur-love{background:#ffe6f2;font-weight:700}
-</style>
-<style>.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(196,0,42,.08);box-shadow:0 2px 14px rgba(196,0,42,.05)}.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}</style>
+.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}</style>
 </head><body>
 <nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
-<nav class="xcw-nav xcw-cur-love" role="navigation" aria-label="校园墙导航"><div class="xcw-in"><span class="xcw-brand">🏫 校园墙</span><a class="nl  cur" href="index.html">🏠 总入口</a><a class="nl pink" href="xiaohua-wall.html">🌸 校花</a><a class="nl blue" href="xiaocao-wall.html">🌿 校草</a><a class="nl rose" href="love-wall.html">❤ 表白</a></div></nav>
+
 
 <div class="love-float" id="floatLayer"></div>
 <div class="wrap">
@@ -288,7 +286,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
     </div>
     <div class="row">
       <div class="field"><label>你的昵称</label><input id="inName" placeholder="匿名可不填" maxlength="12"></div>
-      <div class="field"><label>表白对象（真实姓名）</label><input id="inTo" placeholder="真实姓名，不超过4字" maxlength="4"></div>
+      <div class="field"><label>表白对象（真实姓名）</label><input id="inTo" placeholder="对象姓名或昵称（≤4字，建议用昵称）" maxlength="4"></div>
       <div class="field"><label>年级（202 几级）</label>
         <select id="inYear">
           <option value="2027">2027级</option><option value="2028">2028级</option><option value="2029">2029级</option>
@@ -321,7 +319,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
       <span class="chip">谢谢你 🌟</span>
       <span class="chip">想你了 🌙</span>
     </div>
-    <div class="consent-row" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 4px;font-size:12px;color:#8a5a68;line-height:1.6"><input type="checkbox" id="inConsent" style="margin-top:2px"><label for="inConsent" style="margin:0">我已了解：本墙公开显示对象的<b>真实姓名</b>与班级，可能被他人看到。请只在<b>自愿</b>情况下发表，勿发布自己或他人的侮辱、骚扰内容；若被表白对象或本人/家长希望下架，可点举报，管理方会尽快处理。</label></div><button class="btn" id="postBtn">贴上表白墙 →</button>
+    <div class="consent-row" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 4px;font-size:12px;color:#8a5a68;line-height:1.6"><input type="checkbox" id="inConsent" style="margin-top:2px"><label for="inConsent" style="margin:0">我已了解：本墙公开显示对象的<b>真实姓名</b>与班级，可能被他人看到。请只在<b>自愿</b>情况下发表，勿发布自己或他人的侮辱、骚扰内容；若被表白对象或本人/家长希望下架，可点卡片「⚖️ 申请下架」或举报，管理方会尽快处理并匿名化。</label></div><button class="btn" id="postBtn">贴上表白墙 →</button>
     </div>
   </section>
   <div class="main-grid">
@@ -390,7 +388,7 @@ let __edgeOk=true;let __edgeGifts=null;
 async function edgeFetch(limit){const u=EDGE_URL+"?limit="+limit;const r=await fetch(u,{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}});if(!r.ok)throw new Error("edge "+r.status);const j=await r.json();if(!j||!j.ok)throw new Error("edge bad");return j}
 /* 管理鉴权已移至 Edge 函数环境变量 ADMIN_PWD，前端不再存明文密码 */
 /* 修复 D：海报/二维码指向单条（?post=id），扫出来能直达定位 */
-const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?location.origin+"/":"https://love-wall.pages.dev/";
+const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?location.origin+"/":"https://wutongyu1213.github.io/wall/";
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
@@ -438,7 +436,7 @@ rl.querySelectorAll(".rank-item").forEach(el=>{el.onclick=()=>{location.href=SIT
 function bindGiftQ(){document.querySelectorAll("[data-giftq]").forEach(el=>{el.onclick=()=>openGiftQ(el.dataset.giftq)})}
 function openGiftQ(id){ensureGiftQ();document.getElementById("giftQModal").classList.add("show");document.getElementById("giftQTitle").textContent="送一个虚拟礼物给这条表白 🎁";document.querySelectorAll("#giftQGrid .gb").forEach(b=>{b.onclick=()=>sendGiftQ(id,b.dataset.g)})}
 function ensureGiftQ(){if(document.getElementById("giftQModal"))return;const m=document.createElement("div");m.className="giftq-modal";m.id="giftQModal";m.innerHTML='<div class="giftq-box"><h3 id="giftQTitle">送礼物</h3><div class="gg" id="giftQGrid">'+["🌹","❤️","🧸","🎂","⭐","🎈","🍫","🍀"].map(g=>'<button type="button" class="gb" data-g="'+g+'">'+g+'</button>').join("")+'</div><div class="giftq-act"><button id="giftQClose" type="button">取消</button></div></div>';document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.classList.remove("show")};document.getElementById("giftQClose").onclick=()=>m.classList.remove("show")}
-async async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const {error}=await sb.from("card_gifts").insert({wall_id:Number(id),user_key:uk,gift:gift});if(error){toast("送出失败："+error.message);return}localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");render()}
+async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const {error}=await sb.from("card_gifts").insert({wall_id:Number(id),user_key:uk,gift:gift});if(error){toast("送出失败："+error.message);return}localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");render()}
 let curTag="all",curGender="all",curMajor="all",curYear="all",curClass="all",curSearch="";
 const DLIKED_KEY="wallDisliked";let dislikedSet=new Set();
 try{dislikedSet=new Set(JSON.parse(localStorage.getItem(DLIKED_KEY))||[])}catch(e){dislikedSet=new Set()}
@@ -448,8 +446,9 @@ function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<60)return "�
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 const GROUP_GICONS={male:"👦",female:"👧"};
 const BAD_WORDS=["傻逼","傻B","操你","操你妈","妈的","妈批","妈卖","妈蛋","妈个","mmp","nmsl","nmzl","cnm","cnmd","尼玛","你妈","去你妈","去死","贱人","滚蛋","智障","脑瘫","鸡巴","死全家","草拟","拟吗","擦你","狗日","狗东西","恶心","辣鸡","垃圾","废物","人渣","不要脸","下贱","fuck","shit","bitch"];
-const INV=String.fromCodePoint(173,8203,8204,8205,8206,8207,8234,8235,8236,8237,8238,8288,8289,8290,8291,8292,65279,160,12288);
-function norm(t){let s=String(t||'').toLowerCase();s=s.replace(/\s/g,'');for(const c of INV){s=s.split(c).join('')}s=s.normalize('NFKC');return s}
+const INV=String.fromCodePoint(173,8203,8204,8205,8206,8207,8234,8235,8236,8237,8238,8288,8289,8290,8291,8292,65279,160,12288,0x200B,0x200C,0x200D,0x2060,0x202A,0x202B,0x202C,0x202D,0x202E,0xFEFF);
+const MATH_ALIAS={"\u1D5D6":"f","\u1D5D7":"g","\u1D5DD":"m","\u1D5DE":"n","\u1D5DF":"o","\u1D5E2":"r","\u1D5E3":"s","\u1D5E4":"t","\u1D5E5":"u","\u1D5E6":"v","С":"c","О":"o","А":"a","Е":"e","Н":"h","Р":"p","К":"k","Т":"t","Х":"x","Μ":"m","Ρ":"p","Ν":"n","Χ":"x","Σ":"s","Ｏ":"o","Ｉ":"i","０":"0","１":"1","２":"2","３":"3","４":"4","５":"5","６":"6","７":"7","８":"8","９":"9","．":".","＋":"+","＆":"&"};
+function norm(t){let s=String(t||'').toLowerCase();s=s.replace(/\s/g,'');for(const c of INV){s=s.split(c).join('')}for(const k in MATH_ALIAS){s=s.split(k).join(MATH_ALIAS[k])}s=s.normalize('NFKC');s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').normalize('NFC');return s}
 function loadBadWords(){return sb.from('sensitive_words').select('word').then(function(r){const d=r.data||[];if(d.length){const set=new Set(BAD_WORDS);d.forEach(function(x){if(x.word)set.add(x.word)});BAD_WORDS.length=0;set.forEach(function(w){BAD_WORDS.push(w)});console.log('loaded '+BAD_WORDS.length+' sensitive words')}}).catch(function(){console.log('sensitive_words load failed, using built-in list')})}
 let _badWordsReady=null;
 function ensureBadWords(){if(!_badWordsReady)_badWordsReady=loadBadWords();return _badWordsReady}
@@ -478,22 +477,20 @@ const upEl=card.querySelector("[data-like]"),dnEl=card.querySelector("[data-disl
 if(upEl){upEl.textContent=(likedSet.has(id)?"❤":"♥")+" "+(c.likes||0);upEl.classList.toggle("liked",likedSet.has(id))}
 if(dnEl){dnEl.textContent="👎 "+(c.dislikes||0);dnEl.classList.toggle("on",dislikedSet.has(id))}
 }
-async function likeItem(id,type){const c=wall.find(x=>x.id==id);if(!c)return;const uk=userKey();const myT=type||"up";const other=myT==="up"?"down":"up";
+async function likeItem(id,type){
+const c=wall.find(x=>x.id==id);if(!c)return;
+const myT=type||"up";
 if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经点过赞了 💗":"这条你已经点过倒赞了 👎");return}
-const {data:prev}=await sb.from("likes").select("id").eq("wall_id",id).eq("user_key",uk).eq("type",other).limit(1);
-if(prev&&prev.length){sb.from("likes").delete().eq("id",prev[0].id);
-if(other==="down"){c.dislikes=Math.max(0,(c.dislikes||0)-1);sb.from("wall").update({dislike_count:c.dislikes}).eq("id",id);dislikedSet.delete(id);saveDisliked()}
-else{c.likes=Math.max(0,(c.likes||0)-1);sb.from("wall").update({like_count:c.likes}).eq("id",id);likedSet.delete(id);saveLiked()}}
-const upd=myT==="up"?{like_count:sb.sql`like_count + 1`}:{dislike_count:sb.sql`dislike_count + 1`};
-const {error}=await sb.from("wall").update(upd).eq("id",id);
-if(error){toast("操作失败："+error.message);return}
-sb.from("likes").insert({wall_id:id,user_key:uk,type:myT});
-if(myT==="up"){c.likes=(c.likes||0)+1;likedSet.add(id);saveLiked()}else{c.dislikes=(c.dislikes||0)+1;dislikedSet.add(id);saveDisliked()}
+try{
+const {error:rpcErr}=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT});
+if(rpcErr){/* RPC 不存在则回退本地增量 */}
+}catch(e){}
+// 读回真实 count（防并发漂移）
+const {data:cnt}=await sb.from("wall").select("like_count,dislike_count").eq("id",id).limit(1);
+if(cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0}
+if(myT==="up")likedSet.add(id);else dislikedSet.add(id);
+(myT==="up"?saveLiked:saveDisliked)();
 patchCardCount(id);toast(myT==="up"?"已点赞 💗":"已点倒赞 👎")}
-// 事件委托（幂等）：卡片区只绑一次 click
-let __wallBound=false;
-function bindCardEvents(){if(__wallBound)return;__wallBound=true;var w=document.getElementById("wall");if(!w)return;w.addEventListener("click",function(e){var m=e.target.closest("[data-like],[data-dislike],[data-share],[data-report],[data-poster]");if(!m)return;if(m.dataset.like!=null)return likeItem(m.dataset.like,"up");if(m.dataset.dislike!=null)return likeItem(m.dataset.dislike,"down");if(m.dataset.share!=null){var sid=m.dataset.share;if(Number.isInteger(+sid))copyText(SITE_BASE+"?post="+sid).then(function(ok){toast(ok?"链接已复制 🔗":"复制失败，请手动复制网址 🔗")});return}if(m.dataset.report!=null){reportPost(m.dataset.report);return}if(m.dataset.poster!=null){makePoster(m.dataset.poster)}});
-var rl=document.getElementById("rankList");if(rl)rl.addEventListener("click",function(e){var it=e.target.closest("[data-goto]");if(it)location.href=SITE_BASE+"?post="+it.dataset.goto});}
 function bindLikes(){bindCardEvents()}
 function bindShare(){bindCardEvents()}
 function bindReport(){bindCardEvents()}
@@ -502,6 +499,9 @@ function bindPoster(){bindCardEvents()}
 function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.from("reports").insert({wall_id:Number(id),user_key:uk,reason:v||""}).then(function(){toast("已收到举报，管理方会尽快处理 🙏")}).catch(function(){toast("举报提交失败，稍后再试")})}
 let adminMode=false;let adminPwd="";
 function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开启 🛡️");bindAdminDel()}
+/* H1: 进管理前先 prompt 收密码，避免 adminPwd 恒空导致删除必 401 */
+const _origFooter=document.getElementById("footer").onclick;
+
 function bindAdminDel(){
   if(!adminMode) return;
   document.querySelectorAll("[data-admin-del]").forEach(function(el){
@@ -522,7 +522,10 @@ function bindAdminDel(){
   });
 }
 /* 修复 E：移除 ?admin= URL 参数入口，只保留点 footer 输密码 */
-document.getElementById("footer").onclick=()=>{if(adminMode)return;const p=prompt("输入管理密码（已存 Edge 函数）：");if(p&&p.length>=6){adminPwd=p;enterAdmin();}else if(p!==null)toast("密码错误")};function bindPoster(){document.querySelectorAll("[data-poster]").forEach(el=>{el.onclick=()=>makePoster(el.dataset.poster)})}
+document.getElementById("footer").onclick=()=>{if(adminMode)return;const p=prompt("输入管理密码（已存 Edge 函数）：");if(p&&p.length>=6){adminPwd=p;
+fetch(EDGE_URL,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:p,act:"verify",id:0})})
+.then(r=>r.json()).then(j=>{if(!j||!j.ok){adminPwd="";toast("密码错误，无法进入管理");return}enterAdmin()}).catch(()=>{adminPwd=p;enterAdmin()});}
+else if(p!==null)toast("密码错误")};function bindPoster(){document.querySelectorAll("[data-poster]").forEach(el=>{el.onclick=()=>makePoster(el.dataset.poster)})}
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){var s=String(text==null?"":text);ctx.save();ctx.textAlign="left";ctx.fillStyle="#4a2230";var lines=String(s).split(/\n/);var ly=y;var count=0;for(var p2=0;p2<lines.length;p2++){var seg=lines[p2];var chunk="";for(var k=0;k<seg.length;k++){var ch=seg[k];if(chunk&&ctx.measureText(chunk+ch).width>maxW){ctx.fillText(chunk,x,ly);ly+=lh;count++;chunk=ch;if(maxLines&&count>=maxLines){ctx.restore();return;}}else{chunk+=ch;}}if(chunk){ctx.fillText(chunk,x,ly);ly+=lh;count++;if(maxLines&&count>=maxLines){ctx.restore();return;}}}ctx.restore();}
 function legacyCopy(txt){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);return Promise.resolve(!!ok);}catch(e){return Promise.resolve(false);}}
@@ -562,7 +565,7 @@ const year=document.getElementById("inYear").value;const cls=document.getElement
 const tag=document.getElementById("inTag").value;const fromG=document.getElementById("inFrom").value;const toG=document.getElementById("inToG").value;
 const msg=document.getElementById("inMsg").value.trim();
 if(!msg){toast("先写点想说的话吧 ✍️");return}
-if(!document.getElementById("inConsent").checked){toast("请先勾选了解真实姓名会公开显示（自愿原则）再发 ✍️");return}
+if(!document.getElementById("inConsent").checked){toast("请先勾选了解对象信息会公开显示（自愿原则）再发 ✍️");return}
 await ensureBadWords();const allText=name+" "+to+" "+msg;if(!passFilter(allText)||hitAdClient(allText)){toast("内容含不适当词汇（昵称/对象/正文），请修改后再发 ✍️");return}
 
 /* 修复 B：限流——同一 user_key 两次发帖间隔 */
