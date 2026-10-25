@@ -254,7 +254,6 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 </head><body>
 <nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
 
-
 <div class="love-float" id="floatLayer"></div>
 <div class="wrap">
   <header>
@@ -397,7 +396,7 @@ const bgm=document.getElementById("bgm");bgm.volume=0.35;let bgmIndex=0;
 function tryBgm(){if(bgmIndex>=BGM_URLS.length)return false;bgm.src=BGM_URLS[bgmIndex];return true}
 tryBgm();bgm.addEventListener("error",()=>{bgmIndex++;if(tryBgm())bgm.load();});
 function startBgm(){bgmIndex=0;if(tryBgm())bgm.load();return bgm.play().then(function(){setMusicUI(true);return true}).catch(function(){return false})}
-if(localStorage.getItem("wallBgmOn")!=="off"){
+if(localStorage.getItem("wallBgmOn")==="on"){
   startBgm().then(function(ok){
     if(!ok){
       var resumeOnce=function(){startBgm()};
@@ -470,7 +469,7 @@ const postParam=new URL(window.location.href).searchParams.get("post");
 if(postParam&&/^[0-9]+$/.test(postParam)){const el=document.querySelector('[data-id="'+postParam+'"]');if(el){el.classList.add("highlight");el.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(()=>el.classList.remove("highlight"),8000)}}}
 /* 修复 A：点赞用原子自增（数据库侧 +1，消除并发丢计数） */
 async // 局部更新：只改单张卡点赞/倒赞数字，不重建整页
-function patchCardCount(id){
+async function patchCardCount(id){
 const card=document.querySelector('[data-id="'+id+'"]');if(!card)return;
 const c=wall.find(x=>x.id==id);if(!c)return;
 const upEl=card.querySelector("[data-like]"),dnEl=card.querySelector("[data-dislike]");
@@ -525,13 +524,12 @@ function bindAdminDel(){
 document.getElementById("footer").onclick=()=>{if(adminMode)return;const p=prompt("输入管理密码（已存 Edge 函数）：");if(p&&p.length>=6){adminPwd=p;
 fetch(EDGE_URL,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:p,act:"verify",id:0})})
 .then(r=>r.json()).then(j=>{if(!j||!j.ok){adminPwd="";toast("密码错误，无法进入管理");return}enterAdmin()}).catch(()=>{adminPwd=p;enterAdmin()});}
-else if(p!==null)toast("密码错误")};function bindPoster(){document.querySelectorAll("[data-poster]").forEach(el=>{el.onclick=()=>makePoster(el.dataset.poster)})}
+else if(p!==null)toast("密码错误")};
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){var s=String(text==null?"":text);ctx.save();ctx.textAlign="left";ctx.fillStyle="#4a2230";var lines=String(s).split(/\n/);var ly=y;var count=0;for(var p2=0;p2<lines.length;p2++){var seg=lines[p2];var chunk="";for(var k=0;k<seg.length;k++){var ch=seg[k];if(chunk&&ctx.measureText(chunk+ch).width>maxW){ctx.fillText(chunk,x,ly);ly+=lh;count++;chunk=ch;if(maxLines&&count>=maxLines){ctx.restore();return;}}else{chunk+=ch;}}if(chunk){ctx.fillText(chunk,x,ly);ly+=lh;count++;if(maxLines&&count>=maxLines){ctx.restore();return;}}}ctx.restore();}
 function legacyCopy(txt){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);return Promise.resolve(!!ok);}catch(e){return Promise.resolve(false);}}
 function copyText(txt){if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(txt).catch(function(){return legacyCopy(txt);});}return legacyCopy(txt);}
-function bindShare(){document.querySelectorAll("[data-share]").forEach(function(el){el.onclick=function(){var id=el.dataset.share;copyText(SITE_BASE+"?post="+id).then(function(ok){toast(ok?"链接已复制，去粘贴分享吧 🔗":"复制失败，请手动复制网址 🔗");});};});}
-function bindReport(){document.querySelectorAll("[data-report]").forEach(function(el){el.onclick=function(){var id=el.dataset.report;var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return;}var reasons=["辱骂/人身攻击","广告/引流","隐私/联系方式","造谣/不实","其他"];var answer=prompt("请选择举报原因（输入 1-5，回车取消）： 1辱骂 2广告 3隐私 4造谣 5其他");if(answer===null)return;answer=answer.trim();var ri="12345".indexOf(answer);if(ri<0){toast("请选择 1-5 的举报原因");return;}localStorage.setItem(ck,String(Date.now()));sb.from("reports").insert({wall_id:Number(id),reason:reasons[ri],detail:"来自网页举报"}).then(function(r){if(r.error){toast("举报提交失败："+r.error.message);return;}toast("已收到举报 ⚠️ 后台会尽快核查处理");}).catch(function(){toast("举报提交失败，请重试");});};});}
+
 function makePoster(id){if(typeof QRCode==="undefined"){toast("二维码组件未加载，请刷新后再试 📷");return}const c=wall.find(x=>x.id==id);if(!c)return;
 const canvas=document.getElementById("posterCanvas");const ctx=canvas.getContext("2d");
 const W=600,H=800;
