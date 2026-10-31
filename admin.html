@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>表白墙 · 统一后台</title>
+<script src="assets/announce.js?v=1"></script>
 <style>
 :root{--bg1:#fff5f7;--bg2:#ffe9ef;--ink:#3a0a1a;--sub:#8a5a68;--line:#ffd7e0;--acc:#c4002a;--card:#fff;--ok:#1a9d5a;--warn:#b06a00;--info:#3b6fd6;}
 *{box-sizing:border-box}
@@ -159,6 +160,24 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
       </section>
     </div>
 
+    <!-- 公告 -->
+    <div class="panel" data-p="announce">
+      <section>
+        <h2>📢 全站公告 <span class="hint">所有页面打开即显示，用户「知道了」后 15 分钟内不再弹；改后即全站生效</span></h2>
+        <div class="frow">
+          <input id="annTitle" placeholder="标题（可留空）" style="max-width:220px">
+        </div>
+        <div style="margin:8px 0">
+          <textarea id="annContent" rows="4" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:13px;resize:vertical" placeholder="公告正文（≤500 字）"></textarea>
+        </div>
+        <div class="frow">
+          <button class="btn pri sm" onclick="saveAnnounce()">💾 保存公告（全站即时生效）</button>
+          <button class="btn sm" onclick="loadAnnounce();toast('已刷新公告')">↺ 刷新</button>
+        </div>
+        <div id="annState" style="font-size:12px;color:var(--sub);margin-top:8px"></div>
+      </section>
+    </div>
+
     <!-- 敏感词 -->
     <div class="panel" data-p="sens">
       <section>
@@ -213,6 +232,7 @@ const TABS=[
   {id:"cands",label:"🗳️ 候选",n:"cands"},
   {id:"reports",label:"⚠️ 举报",n:"reports"},
   {id:"appeals",label:"📮 申诉",n:"appeals"},
+  {id:"announce",label:"📢 公告",n:"announce"},
   {id:"sens",label:"🚫 敏感词",n:"sens"},
   {id:"quota",label:"📈 配额",n:"quota"},
   {id:"log",label:"🧾 日志",n:"log"}
@@ -268,7 +288,7 @@ function logout(){PWD="";document.getElementById("pwd").value="";
 async function refreshAll(){
   if(busy)return;busy=true;
   try{
-    await Promise.all([loadDash(),loadReview(),loadPosts(),loadCands(),loadReports(),loadAppeals(),loadSens(),loadQuota(),loadLog()]);
+    await Promise.all([loadDash(),loadReview(),loadPosts(),loadCands(),loadReports(),loadAppeals(),loadAnnounce(),loadSens(),loadQuota(),loadLog()]);
   }catch(e){toast("加载失败："+(e.message||e));}
   busy=false;
 }
@@ -530,6 +550,31 @@ async function loadLog(){
   wrap.innerHTML=j.log.map(function(x){
     return '<div class="row"><span class="k">'+esc(x.action||"")+'</span><span>'+esc(x.trigger||"")+'</span><span>表 '+esc(x.table_name||"")+'</span><span>#'+esc(x.row_id||"")+'</span><span>'+fmtTime(x.occurred_at)+'</span><span>'+esc(x.note||"")+'</span></div>';
   }).join("");
+}
+
+/* ---------- 全站公告 ---------- */
+async function loadAnnounce(){
+  const j=await edge("announce_get",{});
+  setTabN("announce", j&&j.ok&&j.current?1:0);
+  const st=document.getElementById("annState");
+  if(!j||!j.ok){ if(st)st.textContent="公告加载失败"; return; }
+  const c=j.current;
+  if(c){
+    const t=document.getElementById("annTitle"), x=document.getElementById("annContent");
+    if(t)t.value=c.title||"";
+    if(x)x.value=c.content||"";
+    if(st)st.innerHTML="当前公告 <span class=\"tag on\">启用中</span> · 更新于 "+fmtTime(c.updated_at)+"（id #"+Number(c.id||0)+"）";
+  } else if(st){ st.innerHTML="暂无启用中的公告 <span class=\"tag\">保存即全站生效</span>"; }
+}
+async function saveAnnounce(){
+  const t=(document.getElementById("annTitle").value||"").trim();
+  const c=(document.getElementById("annContent").value||"").trim();
+  if(!c){toast("公告正文不能为空");return;}
+  busy=true;
+  const j=await edge("announce_set",{title:t,content:c});
+  busy=false;
+  if(j&&j.ok){toast("公告已保存 ✅ 全站即时生效");await loadAnnounce();}
+  else{toast("保存失败："+((j&&j.error)||"未知"));}
 }
 
 /* 首屏：登录态不保留（安全），每次刷新重新登录 */
