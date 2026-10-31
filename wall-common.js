@@ -49,7 +49,10 @@
     }catch(e){ console.warn("sign photos",e); }
     return out;
   }
+  /* S2：身份 = 设备指纹（清缓存不重置）；IP 维度由 wall-fp Edge 提供 */
+  function wallIp(){ try{ return (window.__wallDevice&&window.__wallDevice.ip())||undefined; }catch(e){ return undefined; } }
   function userKey(){
+    if(window.__wallDevice){ try{ var d=window.__wallDevice.id(); if(d) return d; }catch(e){} }
     let uk=localStorage.getItem('wallVoteKey');
     if(!uk){ uk='v'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wallVoteKey',uk); }
     return uk;
@@ -94,7 +97,7 @@
     /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图（PostgREST 需显式传全 6 个参数名） */
     const {data:cand,error:insErr}=await s.rpc('fn_wall_candidate_add',{
       p_kind:KIND, p_nickname:(name||'匿名'), p_class_no:'',
-      p_photo_url:path, p_msg:(msg||''), p_user_key:uk
+      p_photo_url:path, p_msg:(msg||''), p_user_key:uk, p_ip:wallIp()
     });
     if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return; }
     await loadCands(); render(); tip('已上传 ✔ 全校可见');
@@ -108,7 +111,7 @@
     var raw=prompt('你是被拍者/本人？请填写申诉理由（如：我是本人，申请删除照片）：');
     if(raw===null)return;
     var reason=(raw||'申请删除').slice(0,200);
-    var r=await s.rpc('fn_wall_appeal',{p_target_kind:'candidate',p_target_id:Number(cid),p_reason:reason,p_user_key:uk});
+    var r=await s.rpc('fn_wall_appeal',{p_target_kind:'candidate',p_target_id:Number(cid),p_reason:reason,p_user_key:uk,p_ip:wallIp()});
     if(r.error){ tip('申诉未受理：'+((r.error.message||'').replace(/^sensitive:/,'').slice(0,50))); return; }
     tip('申诉已提交 ✅ 管理员会尽快处理（云端受理）');
   }
@@ -116,7 +119,7 @@
     const s=getSB(); if(!s){ tip('云端未连接'); return; }
     const uk=userKey();
     /* 切换到 fn_wall_vote RPC：服务端幂等 + like_count 原子 +1 */
-    const {data:voteRes,error:voteErr}=await s.rpc('fn_wall_vote',{p_candidate_id:Number(cid),p_user_key:uk});
+    const {data:voteRes,error:voteErr}=await s.rpc('fn_wall_vote',{p_candidate_id:Number(cid),p_user_key:uk,p_ip:wallIp()});
     if(voteErr){ tip('投票失败：'+voteErr.message); await loadCands(); render(); return; }
     if(voteRes==='already'){ tip('你已投过这位啦'); }
     else if(voteRes==='not_found'){ tip('候选人不存在'); }
