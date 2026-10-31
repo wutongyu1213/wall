@@ -6,8 +6,11 @@
    - 风险 = Porn + Hentai + Sexy 概率之和；safe(<0.3) 自动通过，其余强制人工预审
 */
 (function(){
-  var NSFW_CDN='https://cdn.jsdelivr.net/npm/@justadudewhohacks/nsfwjs@3.0.0/dist/index.min.js';
+  var NSFW_CDN='https://cdn.jsdelivr.net/npm/nsfwjs@3/dist/index.min.js';
   var TF_CDN='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js';
+  /* 备用 CDN（jsDelivr 大陆偶发不稳时换用）：unpkg / bytecdn */
+  var NSFW_FALLBACKS=['https://unpkg.com/nsfwjs@3/dist/index.min.js','https://cdn.bytecloud.plus/npm/nsfwjs@3/dist/index.min.js'];
+  var TF_FALLBACKS=['https://unpkg.com/@tensorflow/tfjs@4.17.0/dist/tf.min.js'];
   var SAFE=0.3, RISKY=0.6;
   var model=null, loadP=null;
 
@@ -16,14 +19,28 @@
     document.head.appendChild(s);
   }); }
 
+  /* 多源加载 UMD：主源 jsDelivr，失败逐个换备用源；全部失败→抛错（reviewFile 捕获后降级人工） */
+  function loadUmdChain(urls, marker){
+    return (function(){
+      var i=0;
+      function tryNext(){
+        if(i>=urls.length) return Promise.reject(new Error('all UMD sources failed'));
+        var u=urls[i++];
+        return loadScript(u).then(function(){
+          if(typeof window[marker]==='undefined') return tryNext();
+        });
+      }
+      return tryNext();
+    })();
+  }
   function ensure(){
     if(model) return Promise.resolve(model);
     if(loadP) return loadP;
     loadP=(async function(){
-      if(typeof window.tf==='undefined') await loadScript(TF_CDN);
-      if(typeof window.nsfwjs==='undefined') await loadScript(NSFW_CDN);
+      if(typeof window.tf==='undefined') await loadUmdChain([TF_CDN].concat(TF_FALLBACKS),'tf');
+      if(typeof window.nsfwjs==='undefined') await loadUmdChain([NSFW_CDN].concat(NSFW_FALLBACKS),'nsfwjs');
       if(!window.nsfwjs){ model=null; loadP=null; throw new Error('nsfwjs unavailable'); }
-      model=await window.nsfwjs.load();          // 默认 MobileNet 模型
+      model=await window.nsfwjs.load();          // 默认 MobileNet 量化模型（CloudFront 权重）
       return model;
     })().catch(function(e){ model=null; loadP=null; throw e; });
     return loadP;
