@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>表白墙 · 统一后台</title>
-<script src="assets/announce.js?v=1"></script>
+<title>表白�?· 统一后台</title>
+<script src="assets/announce.js?v=2"></script>
 <style>
 :root{--bg1:#fff5f7;--bg2:#ffe9ef;--ink:#3a0a1a;--sub:#8a5a68;--line:#ffd7e0;--acc:#c4002a;--card:#fff;--ok:#1a9d5a;--warn:#b06a00;--info:#3b6fd6;}
 *{box-sizing:border-box}
@@ -55,13 +55,13 @@ section h2 .hint{font-size:12px;color:var(--sub);font-weight:400;margin-left:aut
 .log .row{font-size:12px;color:var(--sub);padding:5px 0;border-bottom:1px dashed var(--line);display:flex;gap:8px;flex-wrap:wrap}
 .log .row:last-child{border-bottom:0}
 .log .k{font-weight:700;color:var(--ink)}
-/* 仪表盘 */
+/* 仪表�?*/
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 @media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;text-align:center}
 .kpi .v{font-size:24px;font-weight:800;color:var(--acc)}
 .kpi .l{font-size:12px;color:var(--sub);margin-top:3px}
-/* 表单行 */
+/* 表单�?*/
 .frow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .frow input{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:13px;flex:1;min-width:120px}
 table.q{width:100%;border-collapse:collapse;font-size:13px}
@@ -78,22 +78,20 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
 </head>
 <body>
 <header>
-  <h1>🛡️ 表白墙 · 统一后台</h1>
-  <span class="badge" id="who">未登录</span>
+  <h1>🛡�?表白�?· 统一后台</h1>
+  <span class="badge" id="who">未登�?/span>
   <span class="sp"></span>
   <button class="btn sm" id="refreshBtn" onclick="refreshAll()">刷新</button>
-  <button class="btn sm" id="logoutBtn" onclick="logout()" style="display:none">退出</button>
+  <button class="btn sm" id="logoutBtn" onclick="logout()" style="display:none">退�?/button>
 </header>
 
 <main>
-  <!-- 登录门 -->
+  <!-- 登录�?-->
   <div id="loginCard">
     <section>
-      <h2>管理员登录</h2>
+      <h2>管理员登�?/h2>
       <div class="note">
-        统一后台通过 <b>云端 Edge 鉴权</b> 运行：管理密码与 service 密钥只存在于 Supabase 服务端，浏览器不落盘。
-        预审、举报、申诉、删除、清理、敏感词、配额全部由数据库 RPC 执行并写入审计日志。各页面不再单独提供管理入口。
-      </div>
+        统一后台通过 <b>云端 Edge 鉴权</b> 运行：管理密码与 service 密钥只存在于 Supabase 服务端，浏览器不落盘�?        预审、举报、申诉、删除、清理、敏感词、配额全部由数据�?RPC 执行并写入审计日志。各页面不再单独提供管理入口�?      </div>
       <label style="font-size:13px;color:var(--sub)">输入管理密码</label>
       <input type="password" id="pwd" placeholder="管理密码（≥6 位）" onkeydown="if(event.key==='Enter')login()">
       <div style="display:flex;gap:10px;margin-top:6px">
@@ -102,19 +100,19 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
     </section>
   </div>
 
-  <!-- 后台区 -->
+  <!-- 后台�?-->
   <div id="consoleArea" style="display:none">
     <div class="tabs" id="tabs"></div>
 
-    <!-- 仪表盘 -->
+    <!-- 仪表�?-->
     <div class="panel" data-p="dash">
       <div class="kpis" id="kpis"></div>
       <section style="margin-top:14px">
-        <h2>🧹 一键清理 <span class="hint">DB 删除态/违规/孤儿数据 + 存储孤儿照片</span></h2>
+        <h2>🧹 一键清�?<span class="hint">DB 删除�?违规/孤儿数据 + 存储孤儿照片</span></h2>
         <div class="frow">
-          <button class="btn warn sm" onclick="runCleanup()">🧹 清理数据库（删除态/孤儿行）</button>
+          <button class="btn warn sm" onclick="runCleanup()">🧹 清理数据库（删除�?孤儿行）</button>
           <button class="btn warn sm" onclick="runOrphan()">📷 清理孤儿照片（存储）</button>
-          <button class="btn ok sm" onclick="runCleanup(true)">全部清理（库 + 照片）</button>
+          <button class="btn ok sm" onclick="runCleanup(true)">全部清理（库 + 照片�?/button>
           <span id="cleanInfo" style="font-size:12px;color:var(--sub);align-self:center">cron 每日 02:00 自动清理</span>
         </div>
       </section>
@@ -123,7 +121,7 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
     <!-- 预审 -->
     <div class="panel" data-p="review">
       <section>
-        <h2>📷 照片预审队列 <span class="hint">新上传先审后显，通过后全校可见</span></h2>
+        <h2>📷 照片预审队列 <span class="hint">新上传先审后显，通过后全校可�?/span></h2>
         <div id="review"></div>
       </section>
     </div>
@@ -131,15 +129,15 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
     <!-- 内容 -->
     <div class="panel" data-p="posts">
       <section>
-        <h2>🗣️ 表白内容 <span class="hint">含已隐藏/已删，可隐藏或删除</span></h2>
+        <h2>🗣�?表白内容 <span class="hint">含已隐藏/已删，可隐藏或删�?/span></h2>
         <div id="posts"></div>
       </section>
     </div>
 
-    <!-- 候选 -->
+    <!-- 候�?-->
     <div class="panel" data-p="cands">
       <section>
-        <h2>🗳️ 候选人 · 全量 <span class="hint">开关投票 / 审核 / 删除</span></h2>
+        <h2>🗳�?候选人 · 全量 <span class="hint">开关投�?/ 审核 / 删除</span></h2>
         <div id="cands"></div>
       </section>
     </div>
@@ -147,7 +145,7 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
     <!-- 举报 -->
     <div class="panel" data-p="reports">
       <section>
-        <h2>⚠️ 举报处置 <span class="hint">卡片「举报」· 隐藏内容或删除或驳回</span></h2>
+        <h2>⚠️ 举报处置 <span class="hint">卡片「举报」�?隐藏内容或删除或驳回</span></h2>
         <div id="reports"></div>
       </section>
     </div>
@@ -155,7 +153,7 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
     <!-- 申诉 -->
     <div class="panel" data-p="appeals">
       <section>
-        <h2>📮 待处理申诉 <span class="hint">被拍者 / 被对象 主动申请</span></h2>
+        <h2>📮 待处理申�?<span class="hint">被拍�?/ 被对�?主动申请</span></h2>
         <div id="appeals"></div>
       </section>
     </div>
@@ -165,26 +163,26 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
       <section>
         <h2>📢 全站公告 <span class="hint">所有页面打开即显示，用户「知道了」后 15 分钟内不再弹；改后即全站生效</span></h2>
         <div class="frow">
-          <input id="annTitle" placeholder="标题（可留空）" style="max-width:220px">
+          <input id="annTitle" placeholder="标题（可留空�? style="max-width:220px">
         </div>
         <div style="margin:8px 0">
           <textarea id="annContent" rows="4" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:13px;resize:vertical" placeholder="公告正文（≤500 字）"></textarea>
         </div>
         <div class="frow">
           <button class="btn pri sm" onclick="saveAnnounce()">💾 保存公告（全站即时生效）</button>
-          <button class="btn sm" onclick="loadAnnounce();toast('已刷新公告')">↺ 刷新</button>
+          <button class="btn sm" onclick="loadAnnounce();toast('已刷新公�?)">�?刷新</button>
         </div>
         <div id="annState" style="font-size:12px;color:var(--sub);margin-top:8px"></div>
       </section>
     </div>
 
-    <!-- 敏感词 -->
+    <!-- 敏感�?-->
     <div class="panel" data-p="sens">
       <section>
-        <h2>🚫 敏感词管理 <span class="hint" id="sensN">0</span></h2>
+        <h2>🚫 敏感词管�?<span class="hint" id="sensN">0</span></h2>
         <div class="frow">
           <input id="sensWord" placeholder="添加敏感词（回车或按钮）" onkeydown="if(event.key==='Enter')sensAdd()">
-          <button class="btn pri sm" onclick="sensAdd()">＋ 添加</button>
+          <button class="btn pri sm" onclick="sensAdd()">�?添加</button>
         </div>
         <div id="sens"></div>
       </section>
@@ -196,16 +194,16 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
         <h2>📈 每日配额 <span class="hint">防刷阈值，保存即时生效</span></h2>
         <div class="frow">
           <button class="btn pri sm" onclick="saveQuota()">💾 保存修改</button>
-          <button class="btn sm" onclick="edge('quota',{}).then(function(j){if(j&&j.quota)window.__q0=JSON.parse(JSON.stringify(j.quota));loadQuota();toast('已恢复默认清单')})">↺ 重置</button>
+          <button class="btn sm" onclick="edge('quota',{}).then(function(j){if(j&&j.quota)window.__q0=JSON.parse(JSON.stringify(j.quota));loadQuota();toast('已恢复默认清�?)})">�?重置</button>
         </div>
-        <table class="q" id="qtab"><thead><tr><th>动作</th><th>设备/日上限</th><th>IP/日上限</th></tr></thead><tbody></tbody></table>
+        <table class="q" id="qtab"><thead><tr><th>动作</th><th>设备/日上�?/th><th>IP/日上�?/th></tr></thead><tbody></tbody></table>
       </section>
     </div>
 
     <!-- 日志 -->
     <div class="panel" data-p="log">
       <section>
-        <h2>🧾 审计日志 <span class="hint">最近 300 条</span></h2>
+        <h2>🧾 审计日志 <span class="hint">最�?300 �?/span></h2>
         <div class="log" id="logwrap"></div>
       </section>
     </div>
@@ -213,9 +211,8 @@ footer{max-width:980px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-s
 </main>
 
 <footer>
-  重庆第二外国语学校 · 共享表白墙 统一后台<br>
-  所有操作走云端 RPC + 审计日志 · 各页面不再单独提供管理入口 · 违规无用内容自动物理删除（cron）
-</footer>
+  重庆第二外国语学�?· 共享表白�?统一后台<br>
+  所有操作走云端 RPC + 审计日志 · 各页面不再单独提供管理入�?· 违规无用内容自动物理删除（cron�?</footer>
 
 <div id="msg"></div>
 <script>
@@ -226,14 +223,14 @@ let PWD=""; let busy=false;
 
 /* 后台 tab 定义 */
 const TABS=[
-  {id:"dash",label:"📊 仪表盘"},
+  {id:"dash",label:"📊 仪表�?},
   {id:"review",label:"📷 预审",n:"review"},
-  {id:"posts",label:"🗣️ 内容",n:"posts"},
-  {id:"cands",label:"🗳️ 候选",n:"cands"},
+  {id:"posts",label:"🗣�?内容",n:"posts"},
+  {id:"cands",label:"🗳�?候�?,n:"cands"},
   {id:"reports",label:"⚠️ 举报",n:"reports"},
   {id:"appeals",label:"📮 申诉",n:"appeals"},
   {id:"announce",label:"📢 公告",n:"announce"},
-  {id:"sens",label:"🚫 敏感词",n:"sens"},
+  {id:"sens",label:"🚫 敏感�?,n:"sens"},
   {id:"quota",label:"📈 配额",n:"quota"},
   {id:"log",label:"🧾 日志",n:"log"}
 ];
@@ -267,20 +264,20 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){retur
 /* ---------- 登录 ---------- */
 async function login(){
   const p=(document.getElementById("pwd").value||"").trim();
-  if(!p||p.length<6){toast("密码至少 6 位");return;}
+  if(!p||p.length<6){toast("密码至少 6 �?);return;}
   PWD=p;
   const j=await edge("verify",{});
   if(j&&j.ok){
-    document.getElementById("who").textContent="已登录 · 管理";
+    document.getElementById("who").textContent="已登�?· 管理";
     document.getElementById("who").style.color="var(--ok)";
     document.getElementById("loginCard").style.display="none";
     document.getElementById("consoleArea").style.display="block";
     document.getElementById("logoutBtn").style.display="inline-block";
     buildTabs(); refreshAll();
-  }else{PWD="";toast("密码错误，无法进入");}
+  }else{PWD="";toast("密码错误，无法进�?);}
 }
 function logout(){PWD="";document.getElementById("pwd").value="";
-  document.getElementById("who").textContent="未登录";document.getElementById("who").style.color="";
+  document.getElementById("who").textContent="未登�?;document.getElementById("who").style.color="";
   document.getElementById("consoleArea").style.display="none";document.getElementById("loginCard").style.display="block";
   document.getElementById("logoutBtn").style.display="none";}
 
@@ -289,45 +286,45 @@ async function refreshAll(){
   if(busy)return;busy=true;
   try{
     await Promise.all([loadDash(),loadReview(),loadPosts(),loadCands(),loadReports(),loadAppeals(),loadAnnounce(),loadSens(),loadQuota(),loadLog()]);
-  }catch(e){toast("加载失败："+(e.message||e));}
+  }catch(e){toast("加载失败�?+(e.message||e));}
   busy=false;
 }
 
-/* ---------- 仪表盘 + 清理 ---------- */
+/* ---------- 仪表�?+ 清理 ---------- */
 async function loadDash(){
   const j=await edge("stats",{});
   const el=document.getElementById("kpis");
   if(j&&j.ok){
     el.innerHTML=
       kpi(j.post_total||0,"表白总数") +
-      kpi(j.open_reports||0,"待处理举报") +
-      kpi(j.pending_appeals||0,"待处理申诉") +
+      kpi(j.open_reports||0,"待处理举�?) +
+      kpi(j.pending_appeals||0,"待处理申�?) +
       kpi((j.cand_total||0),"候选人总数") +
       kpi((j.posts&&j.posts.ok)||0,"可见表白") +
-      kpi((j.candidates&&j.candidates.review)||0,"待预审") +
-      kpi((j.candidates&&j.candidates.rejected)||0,"已拒绝") +
+      kpi((j.candidates&&j.candidates.review)||0,"待预�?) +
+      kpi((j.candidates&&j.candidates.rejected)||0,"已拒�?) +
       kpi(j.visits||0,"累计访问");
     setTabN("review",(j.candidates&&j.candidates.review)||0);
   }else{el.innerHTML='<div class="empty">统计加载失败</div>';}
 }
 function kpi(v,l){return '<div class="kpi"><div class="v">'+Number(v||0)+'</div><div class="l">'+esc(l)+'</div></div>';}
 async function runCleanup(both){
-  if(!confirm((both?"确认执行【数据库 + 孤儿照片】清理？":"确认清理数据库删除态/孤儿数据？")+" 删除操作不可逆（已写入审计）"))return;
-  toast("清理中…");
+  if(!confirm((both?"确认执行【数据库 + 孤儿照片】清理？":"确认清理数据库删除�?孤儿数据�?)+" 删除操作不可逆（已写入审计）"))return;
+  toast("清理中�?);
   const j=await edge("cleanup",{});
-  if(j&&j.ok){toast("数据库清理完成 ✅");}else{toast("库清理失败："+((j&&j.error)||"未知"));}
+  if(j&&j.ok){toast("数据库清理完�?�?);}else{toast("库清理失败："+((j&&j.error)||"未知"));}
   if(both){
     const j2=await edge("orphan_cleanup",{});
-    if(j2&&j2.ok){toast("孤儿照片清理：发现 "+(j2.found||0)+"，删除 "+(j2.deleted||0)+" ✅");}
-    else{toast("照片清理失败："+((j2&&j2.error)||"未知"));}
+    if(j2&&j2.ok){toast("孤儿照片清理：发�?"+(j2.found||0)+"，删�?"+(j2.deleted||0)+" �?);}
+    else{toast("照片清理失败�?+((j2&&j2.error)||"未知"));}
   }
   setTimeout(refreshAll,600);
 }
 async function runOrphan(){
-  if(!confirm("确认清理存储里已无候选指向的孤儿照片？（不可恢复）"))return;
+  if(!confirm("确认清理存储里已无候选指向的孤儿照片？（不可恢复�?))return;
   const j=await edge("orphan_cleanup",{});
-  if(j&&j.ok){toast("孤儿照片：发现 "+(j.found||0)+"，删除 "+(j.deleted||0)+" ✅");}
-  else{toast("失败："+((j&&j.error)||"未知"));}
+  if(j&&j.ok){toast("孤儿照片：发�?"+(j.found||0)+"，删�?"+(j.deleted||0)+" �?);}
+  else{toast("失败�?+((j&&j.error)||"未知"));}
 }
 
 /* ---------- 预审队列 ---------- */
@@ -335,7 +332,7 @@ async function loadReview(){
   const j=await edge("review_queue",{});
   const wrap=document.getElementById("review");
   setTabN("review",j&&j.ok?(j.review||[]).length:0);
-  if(j&&j.ok&&!j.review.length){wrap.innerHTML='<div class="empty">暂无待预审照片 🎉</div>';return;}
+  if(j&&j.ok&&!j.review.length){wrap.innerHTML='<div class="empty">暂无待预审照�?🎉</div>';return;}
   if(!j||!j.ok){wrap.innerHTML='<div class="empty">预审队列加载失败</div>';return;}
   wrap.innerHTML="";
   j.review.forEach(function(c){
@@ -346,21 +343,21 @@ async function loadReview(){
 function candCard(c,mode){
   const on=c.voting_on!==false;
   const st=c.status||"review";
-  const stTag=st==="ok"?'<span class="tag on">可见</span>':(st==="review"?'<span class="tag re">待预审</span>':(st==="rejected"?'<span class="tag off">已拒绝</span>':'<span class="tag">'+esc(st)+'</span>'));
+  const stTag=st==="ok"?'<span class="tag on">可见</span>':(st==="review"?'<span class="tag re">待预�?/span>':(st==="rejected"?'<span class="tag off">已拒�?/span>':'<span class="tag">'+esc(st)+'</span>'));
   const div=document.createElement("div");div.className="card";
   let ph='<img class="photo-thumb" data-cid="'+Number(c.id||0)+'" data-nm="'+esc(c.nickname||"")+'" alt="">';
   div.innerHTML=ph+
     '<div class="body" style="flex:1;min-width:150px">'+
-      '<div class="t">'+esc(c.nickname||"神秘人")+'<span class="tag">'+(c.kind==="xiaohua"?"校花":"校草")+'</span> '+stTag+
-      (on?'<span class="tag on">投票中</span>':'')+'</div>'+
+      '<div class="t">'+esc(c.nickname||"神秘�?)+'<span class="tag">'+(c.kind==="xiaohua"?"校花":"校草")+'</span> '+stTag+
+      (on?'<span class="tag on">投票�?/span>':'')+'</div>'+
       (c.msg?'<div class="d">'+esc(c.msg)+'</div>':'')+
-      (c.reject_reason?'<div class="d" style="color:#c0392b">拒绝原因：'+esc(c.reject_reason)+'</div>':'')+
-      '<div class="meta">#'+Number(c.id||0)+' · 班级 '+esc(c.class_no||"—")+' · 照片 '+(c.photo_url?esc(c.photo_url):"无")+' · '+fmtTime(c.created_ts?c.created_ts/1000:c.created_at||c.created_ts)+'</div>'+
-      +((c.ai_review&&c.ai_review.verdict)?('<span class="tag '+(c.ai_review.verdict==='safe'?'res':(c.ai_review.verdict==='risky'?'off':'re'))+'">AI '+(c.ai_review.verdict==='safe'?'安全':(c.ai_review.verdict==='risky'?'高风险':'可疑'))+' · 风险'+(c.ai_review.risk!=null?Math.round(c.ai_review.risk*100):'—')+'%</span>'):'')+
+      (c.reject_reason?'<div class="d" style="color:#c0392b">拒绝原因�?+esc(c.reject_reason)+'</div>':'')+
+      '<div class="meta">#'+Number(c.id||0)+' · 班级 '+esc(c.class_no||"�?)+' · 照片 '+(c.photo_url?esc(c.photo_url):"�?)+' · '+fmtTime(c.created_ts?c.created_ts/1000:c.created_at||c.created_ts)+'</div>'+
+      +((c.ai_review&&c.ai_review.verdict)?('<span class="tag '+(c.ai_review.verdict==='safe'?'res':(c.ai_review.verdict==='risky'?'off':'re'))+'">AI '+(c.ai_review.verdict==='safe'?'安全':(c.ai_review.verdict==='risky'?'高风�?:'可疑'))+' · 风险'+(c.ai_review.risk!=null?Math.round(c.ai_review.risk*100):'�?)+'%</span>'):'')+
       '<div class="acts">'+
         (mode==="review"||st==="review"
-          ?'<button class="btn ok sm" onclick="reviewCand('+Number(c.id||0)+', \'approve\')">✅ 通过</button><button class="btn warn sm" onclick="reviewCand('+Number(c.id||0)+', \'reject\')">✋ 拒绝</button>':""),
-        (on?'<button class="btn sm" onclick="toggleVote('+Number(c.id||0)+',false)">关闭投票</button>':'<button class="btn sm" onclick="toggleVote('+Number(c.id||0)+',true)">开启投票</button>')+
+          ?'<button class="btn ok sm" onclick="reviewCand('+Number(c.id||0)+', \'approve\')">�?通过</button><button class="btn warn sm" onclick="reviewCand('+Number(c.id||0)+', \'reject\')">�?拒绝</button>':""),
+        (on?'<button class="btn sm" onclick="toggleVote('+Number(c.id||0)+',false)">关闭投票</button>':'<button class="btn sm" onclick="toggleVote('+Number(c.id||0)+',true)">开启投�?/button>')+
         '<button class="btn warn sm" onclick="delCand('+Number(c.id||0)+')">🗑 删除</button>'+
       '</div>'+
     '</div>';
@@ -373,11 +370,11 @@ async function reviewCand(id,action){
   busy=true;
   const j=await edge("review_candidate",{id:id,action:action,reason:reason});
   busy=false;
-  if(j&&j.ok){toast("候选人 #"+id+" 已"+(action==="approve"?"通过并可见":"拒绝"));refreshAll();}
-  else{toast("审核失败："+((j&&j.error)||"未知"));refreshAll();}
+  if(j&&j.ok){toast("候选人 #"+id+" �?+(action==="approve"?"通过并可�?:"拒绝"));refreshAll();}
+  else{toast("审核失败�?+((j&&j.error)||"未知"));refreshAll();}
 }
-function toggleVote(id,on){busy=true;edge("toggle",{id:id,on:on}).then(function(j){busy=false;if(j&&j.ok){toast("候选人 #"+id+" 投票已"+(on?"开启":"关闭"));refreshAll();}else{toast("切换失败："+((j&&j.error)||"未知"));refreshAll();}}).catch(function(){busy=false;});}
-function delCand(id){if(!confirm("确认删除候选人 #"+id+"？（DB 行 + 级联投票，照片将由清理移除）"))return;busy=true;edge("delete_candidate",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("候选人 #"+id+" 已删除 ✅");refreshAll();}else{toast("删除失败："+((j&&j.error)||"未知"));}}).catch(function(){busy=false;});}
+function toggleVote(id,on){busy=true;edge("toggle",{id:id,on:on}).then(function(j){busy=false;if(j&&j.ok){toast("候选人 #"+id+" 投票�?+(on?"开�?:"关闭"));refreshAll();}else{toast("切换失败�?+((j&&j.error)||"未知"));refreshAll();}}).catch(function(){busy=false;});}
+function delCand(id){if(!confirm("确认删除候选人 #"+id+"？（DB �?+ 级联投票，照片将由清理移除）"))return;busy=true;edge("delete_candidate",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("候选人 #"+id+" 已删�?�?);refreshAll();}else{toast("删除失败�?+((j&&j.error)||"未知"));}}).catch(function(){busy=false;});}
 
 /* ---------- 内容 ---------- */
 async function loadPosts(){
@@ -389,11 +386,11 @@ async function loadPosts(){
   wrap.innerHTML="";
   j.posts.forEach(function(w){
     const st=w.status||"ok";
-    const stTag=st==="ok"?'<span class="tag on">可见</span>':(st==="hidden"?'<span class="tag dis">已隐藏</span>':'<span class="tag off">'+esc(st)+'</span>');
+    const stTag=st==="ok"?'<span class="tag on">可见</span>':(st==="hidden"?'<span class="tag dis">已隐�?/span>':'<span class="tag off">'+esc(st)+'</span>');
     const div=document.createElement("div");div.className="card";
-    div.innerHTML='<div class="t">#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' → '+esc(w.target_name||"")+' '+stTag+(w.love_tag?'<span class="tag">'+esc(w.love_tag)+'</span>':'')+'</div>'+
-      '<div class="d">「'+esc((w.love_msg||"").slice(0,120))+'」</div>'+
-      '<div class="meta">'+esc((w.grade_year||"")+"级"+(w.class_no||"")+"班")+' · '+(w.sender_gender||"")+'→'+(w.target_gender||"")+' · ❤'+(w.like_count||0)+' · '+fmtTime(w.created_ts?w.created_ts/1000:w.created_at||w.created_ts)+'</div>'+
+    div.innerHTML='<div class="t">#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' �?'+esc(w.target_name||"")+' '+stTag+(w.love_tag?'<span class="tag">'+esc(w.love_tag)+'</span>':'')+'</div>'+
+      '<div class="d">�?+esc((w.love_msg||"").slice(0,120))+'�?/div>'+
+      '<div class="meta">'+esc((w.grade_year||"")+"�?+(w.class_no||"")+"�?)+' · '+(w.sender_gender||"")+'�?+(w.target_gender||"")+' · �?+(w.like_count||0)+' · '+fmtTime(w.created_ts?w.created_ts/1000:w.created_at||w.created_ts)+'</div>'+
       '<div class="acts">'+
         (st==="ok"?'<button class="btn sm" onclick="hidePost('+Number(w.id||0)+')">🙈 隐藏</button>':'')+
         '<button class="btn warn sm" onclick="delPost('+Number(w.id||0)+')">🗑 彻底删除</button>'+
@@ -401,10 +398,10 @@ async function loadPosts(){
     wrap.appendChild(div);
   });
 }
-function hidePost(id){busy=true;edge("hide",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已隐藏");refreshAll();}else{toast("隐藏失败："+((j&&j.error)||"未知"));}}).catch(function(){busy=false;});}
-function delPost(id){if(!confirm("确认彻底删除帖子 #"+id+"？（DB 行 + 级联点赞/礼物，不可恢复）"))return;busy=true;edge("delete_post",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已删除 ✅");refreshAll();}else{toast("删除失败："+((j&&j.error)||"未知"));}}).catch(function(){busy=false;});}
+function hidePost(id){busy=true;edge("hide",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已隐�?);refreshAll();}else{toast("隐藏失败�?+((j&&j.error)||"未知"));}}).catch(function(){busy=false;});}
+function delPost(id){if(!confirm("确认彻底删除帖子 #"+id+"？（DB �?+ 级联点赞/礼物，不可恢复）"))return;busy=true;edge("delete_post",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已删�?�?);refreshAll();}else{toast("删除失败�?+((j&&j.error)||"未知"));}}).catch(function(){busy=false;});}
 
-/* ---------- 候选全量 ---------- */
+/* ---------- 候选全�?---------- */
 async function loadCands(){
   const j=await edge("candidates",{});
   const wrap=document.getElementById("cands");
@@ -415,12 +412,11 @@ async function loadCands(){
   j.candidates.forEach(function(c){wrap.appendChild(candCard(c,"all"));});
   signPhotosIn(wrap);
 }
-/* 照片白名单：只渲染 https? 或 xiaohua/|xiaocao/ 相对路径（走 wall-photo 签名）；其余一律占位 */
+/* 照片白名单：只渲�?https? �?xiaohua/|xiaocao/ 相对路径（走 wall-photo 签名）；其余一律占�?*/
 function signPhotosIn(wrap){
   wrap.querySelectorAll("img.photo-thumb[data-cid]").forEach(function(img){
     const cid=img.getAttribute("data-cid");
-    // 找对应 photo_url（从已渲染 meta 里拿）
-    const meta=img.closest(".card").querySelector(".meta");
+    // 找对�?photo_url（从已渲�?meta 里拿�?    const meta=img.closest(".card").querySelector(".meta");
     const m=meta?meta.textContent.match(/照片\s+(\S+)/):null;
     let src="";
     if(m){const p=m[1];if(/^https?:/i.test(p))src=p;else if(/^xiaohua\//.test(p)||/^xiaocao\//.test(p)){fetch(SUPA_URL+"/functions/v1/wall-photo?path="+encodeURIComponent(p),{headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY}}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok&&j.signedUrl)img.src=j.signedUrl;else img.style.display="none";}).catch(function(){img.style.display="none";});return;}}
@@ -435,24 +431,24 @@ async function loadReports(){
   setTabN("reports",j&&j.ok?j.reports.filter(function(x){return !x.handled;}).length:0);
   if(!j||!j.ok){wrap.innerHTML='<div class="empty">举报加载失败</div>';return;}
   const pending=(j.reports||[]).filter(function(r){return !r.handled;});
-  if(!pending.length){wrap.innerHTML='<div class="empty">暂无待处理举报 🎉（历史已处理 '+((j.reports||[]).length-pending.length)+' 条）</div>';return;}
+  if(!pending.length){wrap.innerHTML='<div class="empty">暂无待处理举�?🎉（历史已处理 '+((j.reports||[]).length-pending.length)+' 条）</div>';return;}
   wrap.innerHTML="";
   pending.forEach(function(r){
     const w=(j.wall_ctx&&j.wall_ctx[r.wall_id])||null;
     const div=document.createElement("div");div.className="card";
-    div.innerHTML='<div class="t">#'+Number(r.id||0)+' · 举报 表白帖 #'+Number(r.wall_id||0)+' <span class="tag pend">待处理</span></div>'+
-      '<div class="d">举报理由：'+esc(r.detail||r.reason||"（未填写）")+'</div>'+
-      (w?'<div class="d" style="border-left:3px solid var(--line);padding-left:8px;margin-top:4px">被举报：'+esc(w.target_name||"")+' —「'+esc((w.love_msg||"").slice(0,60))+'」 <span class="tag">当前 '+esc(w.status||"?")+'</span></div>':'<div class="d" style="color:#b58ea0">（被举报帖已不存在）</div>')+
+    div.innerHTML='<div class="t">#'+Number(r.id||0)+' · 举报 表白�?#'+Number(r.wall_id||0)+' <span class="tag pend">待处�?/span></div>'+
+      '<div class="d">举报理由�?+esc(r.detail||r.reason||"（未填写�?)+'</div>'+
+      (w?'<div class="d" style="border-left:3px solid var(--line);padding-left:8px;margin-top:4px">被举报：'+esc(w.target_name||"")+' —�?+esc((w.love_msg||"").slice(0,60))+'�?<span class="tag">当前 '+esc(w.status||"?")+'</span></div>':'<div class="d" style="color:#b58ea0">（被举报帖已不存在）</div>')+
       '<div class="acts"><button class="btn sm" onclick="reportRes('+Number(r.id||0)+',\'hide_post\')">🙈 隐藏</button><button class="btn warn sm" onclick="reportRes('+Number(r.id||0)+',\'delete_post\')">🗑 删除</button><button class="btn sm" onclick="reportRes('+Number(r.id||0)+',\'dismiss\')">驳回</button></div>';
     wrap.appendChild(div);
   });
 }
 function reportRes(id,action){
-  if(!confirm("确认"+(action==="hide_post"?"隐藏被举报内容":action==="delete_post"?"彻底删除被举报内容":"驳回")+"？"))return;
+  if(!confirm("确认"+(action==="hide_post"?"隐藏被举报内�?:action==="delete_post"?"彻底删除被举报内�?:"驳回")+"�?))return;
   busy=true;
   edge("report_resolve",{id:id,action:action}).then(function(j){busy=false;
-    if(j&&j.ok){toast("举报 #"+id+" 已处置（"+action+"）");refreshAll();}
-    else{toast("处置失败："+((j&&j.error)||"未知"));refreshAll();}
+    if(j&&j.ok){toast("举报 #"+id+" 已处置（"+action+"�?);refreshAll();}
+    else{toast("处置失败�?+((j&&j.error)||"未知"));refreshAll();}
   }).catch(function(){busy=false;toast("请求失败");});
 }
 
@@ -464,41 +460,41 @@ async function loadAppeals(){
   if(!j||!j.ok){wrap.innerHTML='<div class="empty">申诉加载失败</div>';return;}
   const rows=j.appeals||[];
   const pend=rows.filter(function(x){return x.status==="pending";});
-  if(!pend.length){wrap.innerHTML='<div class="empty">暂无待处理申诉 🎉（历史 '+rows.length+' 条）</div>';return;}
+  if(!pend.length){wrap.innerHTML='<div class="empty">暂无待处理申�?🎉（历�?'+rows.length+' 条）</div>';return;}
   wrap.innerHTML="";
   pend.forEach(function(a){
     const div=document.createElement("div");div.className="card";
-    div.innerHTML='<div class="t">#'+Number(a.id||0)+' · '+(a.target_kind==="candidate"?"候选人":"表白")+' 目标 #'+Number(a.target_id||0)+' <span class="tag pend">待处理</span></div>'+
-      '<div class="d">理由：'+esc(a.reason||"（未填写）")+'</div>'+
+    div.innerHTML='<div class="t">#'+Number(a.id||0)+' · '+(a.target_kind==="candidate"?"候选人":"表白")+' 目标 #'+Number(a.target_id||0)+' <span class="tag pend">待处�?/span></div>'+
+      '<div class="d">理由�?+esc(a.reason||"（未填写�?)+'</div>'+
       '<div class="meta">发起人：'+esc(a.requestor||"匿名")+' · '+fmtTime(a.created_at)+'</div>'+
       '<div class="acts"><button class="btn pri sm" onclick="resolveAppeal('+Number(a.id||0)+',\'remove_photo\')">删除内容/照片</button><button class="btn sm" onclick="resolveAppeal('+Number(a.id||0)+',\'dismiss\')">驳回</button></div>';
     wrap.appendChild(div);
   });
 }
 function resolveAppeal(id,action){
-  if(!confirm((action==="remove_photo"?"确认删除照片/内容？":"确认驳回此申诉？")))return;
+  if(!confirm((action==="remove_photo"?"确认删除照片/内容�?:"确认驳回此申诉？")))return;
   busy=true;
   edge("resolve",{id:id,action:action}).then(function(j){busy=false;
-    if(j&&j.ok){toast("申诉 #"+id+" 已"+(action==="remove_photo"?"处置":"驳回"));refreshAll();}
-    else{toast("处置失败："+((j&&j.error)||"未知"));refreshAll();}
+    if(j&&j.ok){toast("申诉 #"+id+" �?+(action==="remove_photo"?"处置":"驳回"));refreshAll();}
+    else{toast("处置失败�?+((j&&j.error)||"未知"));refreshAll();}
   }).catch(function(){busy=false;toast("请求失败");});
 }
 
-/* ---------- 敏感词 ---------- */
+/* ---------- 敏感�?---------- */
 async function loadSens(){
   const j=await edge("sens_words",{});
   const wrap=document.getElementById("sens");
   setTabN("sens",j&&j.ok?(j.words||[]).length:0);
-  document.getElementById("sensN").textContent=(j&&j.ok?(j.words||[]).length:0)+" 词";
-  if(!j||!j.ok){wrap.innerHTML='<div class="empty">敏感词加载失败</div>';return;}
+  document.getElementById("sensN").textContent=(j&&j.ok?(j.words||[]).length:0)+" �?;
+  if(!j||!j.ok){wrap.innerHTML='<div class="empty">敏感词加载失�?/div>';return;}
   const rows=j.words||[];
-  if(!rows.length){wrap.innerHTML='<div class="empty">暂无敏感词</div>';return;}
+  if(!rows.length){wrap.innerHTML='<div class="empty">暂无敏感�?/div>';return;}
   wrap.innerHTML="";
   rows.forEach(function(w){
     const div=document.createElement("div");div.className="wrow";
     div.innerHTML='<span class="w">'+esc(w.word)+'</span><span class="tag">'+esc(w.status||"active")+'</span>'
       +'<span style="margin-left:auto;color:var(--sub);font-size:12px">'+esc(w.owner||"")+'</span>'
-      +'<button class="btn sm warn" onclick="sensDel(\''+esc(w.word).replace(/'/g,"\\'")+'\')">删</button>';
+      +'<button class="btn sm warn" onclick="sensDel(\''+esc(w.word).replace(/'/g,"\\'")+'\')">�?/button>';
     wrap.appendChild(div);
   });
 }
@@ -508,15 +504,15 @@ function sensAdd(){
   busy=true;
   edge("sens_add",{word:w}).then(function(j){busy=false;
     if(j&&j.ok){toast("已添加："+w);inp.value="";loadSens();}
-    else{toast("添加失败："+((j&&j.error)||"未知"));}
+    else{toast("添加失败�?+((j&&j.error)||"未知"));}
   }).catch(function(){busy=false;toast("请求失败");});
 }
 function sensDel(word){
-  if(!confirm("确认删除敏感词「"+word+"」？"))return;
+  if(!confirm("确认删除敏感词�?+word+"」？"))return;
   busy=true;
   edge("sens_delete",{word:word}).then(function(j){busy=false;
     if(j&&j.ok){toast("已删除："+word);loadSens();}
-    else{toast("删除失败："+((j&&j.error)||"未知"));}
+    else{toast("删除失败�?+((j&&j.error)||"未知"));}
   }).catch(function(){busy=false;toast("请求失败");});
 }
 
@@ -527,10 +523,10 @@ async function loadQuota(){
   if(!j||!j.ok){tb.innerHTML='<tr><td colspan="3" class="empty">配额加载失败</td></tr>';return;}
   const q={};(j.quota||[]).forEach(function(x){q[x.action]=Number(x.daily_max)||0;});
   window.__q0=window.__q0||q;
-  const pairs=[["vote","投票"],["post","发帖"],["like","点赞"],["gift","送礼"],["report","举报"],["visit","访问"],["candidate","上传候选"],["appeal","申诉"]];
+  const pairs=[["vote","投票"],["post","发帖"],["like","点赞"],["gift","送礼"],["report","举报"],["visit","访问"],["candidate","上传候�?],["appeal","申诉"]];
   tb.innerHTML=pairs.map(function(p){
     const dev=q[p[0]],ip=q[p[0]+"_ip"];
-    return '<tr><td>'+p[1]+'</td><td><input data-q="'+p[0]+'" value="'+Number(dev||0)+'"></td><td>'+(ip!==undefined?'<input data-q="'+p[0]+"_ip"+'" value="'+ip+'">':'<span style="color:var(--sub)">—</span>')+'</td></tr>';
+    return '<tr><td>'+p[1]+'</td><td><input data-q="'+p[0]+'" value="'+Number(dev||0)+'"></td><td>'+(ip!==undefined?'<input data-q="'+p[0]+"_ip"+'" value="'+ip+'">':'<span style="color:var(--sub)">�?/span>')+'</td></tr>';
   }).join("");
 }
 function saveQuota(){
@@ -538,7 +534,7 @@ function saveQuota(){
   if(!rows.length){toast("没有可保存项");return;}
   busy=true;
   const jobs=[];rows.forEach(function(inp){jobs.push(edge("quota_set",{action:inp.dataset.q,max:Math.max(0,parseInt(inp.value||"0",10))}));});
-  Promise.all(jobs).then(function(){busy=false;toast("配额已保存 ✅ 即时生效");loadQuota();}).catch(function(){busy=false;toast("保存失败");});
+  Promise.all(jobs).then(function(){busy=false;toast("配额已保�?�?即时生效");loadQuota();}).catch(function(){busy=false;toast("保存失败");});
 }
 
 /* ---------- 日志 ---------- */
@@ -548,7 +544,7 @@ async function loadLog(){
   setTabN("log",j&&j.ok?(j.log||[]).length:0);
   if(!j||!j.ok||!j.log.length){wrap.innerHTML='<div class="empty">暂无审计记录</div>';return;}
   wrap.innerHTML=j.log.map(function(x){
-    return '<div class="row"><span class="k">'+esc(x.action||"")+'</span><span>'+esc(x.trigger||"")+'</span><span>表 '+esc(x.table_name||"")+'</span><span>#'+esc(x.row_id||"")+'</span><span>'+fmtTime(x.occurred_at)+'</span><span>'+esc(x.note||"")+'</span></div>';
+    return '<div class="row"><span class="k">'+esc(x.action||"")+'</span><span>'+esc(x.trigger||"")+'</span><span>�?'+esc(x.table_name||"")+'</span><span>#'+esc(x.row_id||"")+'</span><span>'+fmtTime(x.occurred_at)+'</span><span>'+esc(x.note||"")+'</span></div>';
   }).join("");
 }
 
@@ -563,8 +559,8 @@ async function loadAnnounce(){
     const t=document.getElementById("annTitle"), x=document.getElementById("annContent");
     if(t)t.value=c.title||"";
     if(x)x.value=c.content||"";
-    if(st)st.innerHTML="当前公告 <span class=\"tag on\">启用中</span> · 更新于 "+fmtTime(c.updated_at)+"（id #"+Number(c.id||0)+"）";
-  } else if(st){ st.innerHTML="暂无启用中的公告 <span class=\"tag\">保存即全站生效</span>"; }
+    if(st)st.innerHTML="当前公告 <span class=\"tag on\">启用�?/span> · 更新�?"+fmtTime(c.updated_at)+"（id #"+Number(c.id||0)+"�?;
+  } else if(st){ st.innerHTML="暂无启用中的公告 <span class=\"tag\">保存即全站生�?/span>"; }
 }
 async function saveAnnounce(){
   const t=(document.getElementById("annTitle").value||"").trim();
@@ -573,11 +569,11 @@ async function saveAnnounce(){
   busy=true;
   const j=await edge("announce_set",{title:t,content:c});
   busy=false;
-  if(j&&j.ok){toast("公告已保存 ✅ 全站即时生效");await loadAnnounce();}
-  else{toast("保存失败："+((j&&j.error)||"未知"));}
+  if(j&&j.ok){toast("公告已保�?�?全站即时生效");await loadAnnounce();}
+  else{toast("保存失败�?+((j&&j.error)||"未知"));}
 }
 
-/* 首屏：登录态不保留（安全），每次刷新重新登录 */
+/* 首屏：登录态不保留（安全），每次刷新重新登�?*/
 buildTabs();
 </script>
 <script src="assets/bgm.js?v=2"></script>
