@@ -196,6 +196,8 @@
         navR.items.map(function(a){ return '<a class="nl'+(a.on?' cur':'')+'" href="'+a.f+'">'+a.t+'</a>'; }).join('')+
         '</div></nav>';
     }
+    // 主视觉 hero（CSS 由各页提供）
+    h+='<header class="hero"><h1>'+esc(C.title||'校园墙')+'</h1><p class="hero-sub">全校实时共享 · 每人一票 · 文明投票</p></header>';
     // 统计
     const total=people.reduce(function(s,p){return s+(p.like_count||0);},0);
     h+='<div class="stats"><span>📸 候选人 '+people.length+'</span><span>🗳️ 累计 '+total+' 票</span><span>☁️ 全校实时共享</span></div>';
@@ -207,8 +209,8 @@
       +'<p class="note">照片上传到云端，全校实时可见。请仅上传本人或获得授权的素材，勿传他人隐私。</p>'
       +'</div>';
     // 投票墙
-    h+='<h3 class="sec-title">🗳️ 投票（每人一票 · 全校共享排名）</h3>';
-      h+='<div class="note" style="font-size:12px;color:#8a5a68;line-height:1.6;margin-bottom:8px">📌 投票与肖像须知：每人一票，请理性参与、勿对特定同学施加舆论压力；照片请仅上传本人或已获授权的素材，被拍者可联系管理申请删除。</div>';
+    h+='<h3 class="sec-title">🗳️ 投票 · 全校共享排名</h3>';
+      h+='<div class="notice-box"><span class="nb-ico">📌</span>投票与肖像须知：每人一票，请理性参与、勿对特定同学施加舆论压力；照片请仅上传本人或已获授权的素材，被拍者可用卡片「申诉」申请删除。</div>';
     if(loading){
       h+='<div class="empty"><div class="loading-spin"></div>加载中…</div>';
     } else if(loadErr){
@@ -231,8 +233,8 @@
           +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
-          +'<div class="vf"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+((done||p.voting_on===false)?'disabled':'')+' style="margin-right:6px">'+(p.voting_on===false?'投票已关闭':(done?'已投':'投票'))+'</button>'
-          +'<button class="vote" data-appeal="'+p.id+'" style="margin-right:6px;opacity:.85">申诉</button>'
+          +'<div class="vf"><div class="vf-btns"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+((done||p.voting_on===false)?'disabled':'')+'>'+(p.voting_on===false?'投票已关闭':(done?'已投':'投票'))+'</button>'
+          +'<button class="vote appeal" data-appeal="'+p.id+'">申诉</button></div>'
           +'<span class="ct">'+c+' 票</span></div>'
           +'</div>'
           
