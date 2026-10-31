@@ -161,6 +161,7 @@
       +'</div>';
     // 投票墙
     h+='<h3 class="sec-title">🗳️ 投票（每人一票 · 全校共享排名）</h3>';
+      h+='<div class="note" style="font-size:12px;color:#8a5a68;line-height:1.6;margin-bottom:8px">📌 投票与肖像须知：每人一票，请理性参与、勿对特定同学施加舆论压力；照片请仅上传本人或已获授权的素材，被拍者可联系管理申请删除。</div>';
     if(loading){
       h+='<div class="empty"><div class="loading-spin"></div>加载中…</div>';
     } else if(loadErr){
