@@ -87,8 +87,8 @@
   }
 
   /* ---- 上传照片 → Storage 桶 wall-photos → 写 wall_candidates ---- */
-  async function uploadAndAdd(name,msg,file){
-    const s=getSB(); if(!s){ tip('云端未连接'); return; }
+  async function uploadAndAdd(name,msg,file,autoReview){
+    const s=getSB(); if(!s){ tip('云端未连接'); return false; }
     const uk=userKey();
     const path=KIND+'/'+Date.now()+'_'+uk+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
     const {error:upErr}=await s.storage.from('wall-photos').upload(path,file,{contentType:'image/jpeg'});
@@ -97,10 +97,12 @@
     /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图（PostgREST 需显式传全 6 个参数名） */
     const {data:cand,error:insErr}=await s.rpc('fn_wall_candidate_add',{
       p_kind:KIND, p_nickname:(name||'匿名'), p_class_no:'',
-      p_photo_url:path, p_msg:(msg||''), p_user_key:uk, p_ip:wallIp()
+      p_photo_url:path, p_msg:(msg||''), p_user_key:uk, p_ip:wallIp(), p_auto_review:(autoReview||'')
     });
-    if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return; }
-    await loadCands(); render(); tip('已上传 ✔ 全校可见');
+    if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return false; }
+    await loadCands(); render();
+    tip(autoReview==='pass'?'已上传 ✔ 自动通过，全校可见':(autoReview==='review'?'已上传，进入预审队列，管理员复核后全校可见':'已上传 ✔ 全校可见'));
+    return true;
   }
 
   /* ---- 投票（云端，DB unique 兜底一人一票） ---- */
@@ -152,6 +154,27 @@
     const arr=new Uint8Array(bin.length);
     for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
     return new Blob([arr],{type:'image/jpeg'});
+  }
+
+  /* P1：本地预审（格式/大小/尺寸/比例）→ 决定 auto_review：pass=直接可见 / review=进人工队列 */
+  function preReview(file){
+    var out={ok:true,reason:'',pass:false};
+    if(!/^image\/(jpe?g|png|webp)$/i.test(file.type||'')){ out.ok=false; out.reason='格式需为 JPG / PNG / WEBP'; return Promise.resolve(out); }
+    if(file.size>15*1024*1024){ out.ok=false; out.reason='图片不能超过 15MB'; return Promise.resolve(out); }
+    return new Promise(function(res){
+      var url; try{url=URL.createObjectURL(file);}catch(e){out.ok=false;out.reason='无法读取文件';res(out);return;}
+      var im=new Image();
+      im.onload=function(){
+        try{URL.revokeObjectURL(url);}catch(e){}
+        var longest=Math.max(im.width,im.height);
+        var ratio=Math.min(im.width/Math.max(im.height,1),im.height/Math.max(im.width,1));
+        if(longest<300){ out.ok=false; out.reason='图片太小（边长需≥300px）'; res(out); return; }
+        if(ratio<0.4||ratio>2.5){ out.pass=false; out.reason='图片比例异常，需人工复核'; res(out); return; }
+        out.pass=true; res(out);
+      };
+      im.onerror=function(){ out.ok=false; out.reason='图片无法读取（可能已损坏）'; try{URL.revokeObjectURL(url);}catch(e){} res(out); };
+      im.src=url;
+    });
   }
 
   /* ---- XSS 转义 ---- */
@@ -208,8 +231,10 @@
     h+='<div class="panel">'
       +'<h3>📷 上传'+esc(C.title)+'照片（全校可见）</h3>'
       +'<div class="row"><input id="upName" maxlength="12" placeholder="展示昵称（可匿名）"><input id="upMsg" maxlength="40" placeholder="一句话介绍（可选）"></div>'
-      +'<div class="row"><input id="upFile" type="file" accept="image/*"><button class="btn" id="upGo">压缩并上传</button></div>'
-      +'<p class="note">照片上传到云端，全校实时可见。请仅上传本人或获得授权的素材，勿传他人隐私。</p>'
+      +'<div id="upDrop" class="up-drop"><input id="upFile" type="file" accept="image/*" capture="environment" class="up-file"><div id="upHint">点选或拖拽照片到这里<br><small>支持 JPG / PNG / WEBP · ≤15MB · 自动压缩 + 预审</small></div><img id="upPrev" alt=""></div>'
+      +'<div id="upProg"><i></i></div>'
+      +'<div class="row"><button class="btn" id="upGo">上传（自动压缩 + 预审）</button><button class="btn" id="upCancel">重选</button></div>'
+      +'<p class="note">照片先本地预审 + 云端人工复核后全校可见。请仅上传本人或已获授权的素材，勿传他人隐私。</p>'
       +'</div>';
     // 投票墙
     h+='<h3 class="sec-title">🗳️ 投票 · 全校共享排名</h3>';
@@ -252,18 +277,35 @@
 
   function bind(){
     const up=document.getElementById('upGo');
+    const upFile=document.getElementById('upFile'), upPrev=document.getElementById('upPrev'), upHint=document.getElementById('upHint'),
+      upDrop=document.getElementById('upDrop'), upCancel=document.getElementById('upCancel'), upProg=document.getElementById('upProg');
+    function prog(p){ if(upProg){ upProg.firstElementChild.style.width=p+'%'; } }
+    function showPrev(file){ if(!file||!upPrev)return; var u; try{u=URL.createObjectURL(file);}catch(e){return;} upPrev._u=u; upPrev.src=u; upPrev.style.display='block'; if(upHint)upHint.style.display='none'; if(upCancel)upCancel.style.display='inline-block'; }
+    function clearPrev(){ if(upFile)upFile.value=''; if(upPrev){ try{if(upPrev._u)URL.revokeObjectURL(upPrev._u);}catch(e){} upPrev.src=''; upPrev.style.display='none'; } if(upHint)upHint.style.display=''; if(upCancel)upCancel.style.display='none'; prog(0); }
+    if(upFile) upFile.onchange=function(){ showPrev(upFile.files[0]); };
+    if(upCancel) upCancel.onclick=function(){ clearPrev(); };
+    if(upDrop){ upDrop.onclick=function(){ upFile&&upFile.click(); };
+      ['dragenter','dragover'].forEach(function(ev){ upDrop.addEventListener(ev,function(e){ e.preventDefault(); upDrop.classList.add('drag'); }); });
+      ['dragleave','drop'].forEach(function(ev){ upDrop.addEventListener(ev,function(e){ e.preventDefault(); upDrop.classList.remove('drag'); }); });
+      upDrop.addEventListener('drop',function(e){ var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f){ try{var dt=new DataTransfer(); dt.items.add(f); upFile.files=dt.files;}catch(_){} showPrev(f); } });
+    }
     if(up){ up.onclick=function(){
-      const f=document.getElementById('upFile').files[0];
-      const nm=document.getElementById('upName').value.trim();
-      const msg=document.getElementById('upMsg').value.trim();
+      var f=upFile?upFile.files[0]:null;
+      var nmEl=document.getElementById('upName'), msgEl=document.getElementById('upMsg');
+      var nm=nmEl?nmEl.value.trim():'', msg=msgEl?msgEl.value.trim():'';
       if(!f){ tip('请选择一张照片'); return; }
-      /* 上传类型/大小校验：防异型/超大文件拖垮 */
-      if(!/^image\/(jpe?g|png|webp)$/.test(f.type)){ tip('只支持 JPG/PNG/WEBP 图片'); return; }
-      if(f.size>15*1024*1024){ tip('图片不能超过 15MB'); return; }
-      up.disabled=true; up.textContent='上传中…';
-      fileToBlob(f,720).then(function(blob){
-        uploadAndAdd(nm,msg,blob).catch(function(e){ tip('上传出错：'+(e&&e.message||e)); }).finally(function(){ up.disabled=false; up.textContent='压缩并上传'; var inp=document.getElementById('upFile'); if(inp)inp.value=''; });
-      }).catch(function(e){ up.disabled=false; up.textContent='压缩并上传'; tip('压缩失败：'+(e&&e.message||e)); });
+      preReview(f).then(function(rv){
+        if(!rv.ok){ tip(rv.reason); return; }
+        up.disabled=true; up.textContent='上传中…'; prog(20);
+        fileToBlob(f,720).then(function(blob){
+          prog(55);
+          uploadAndAdd(nm,msg,blob,rv.pass?'pass':'review').then(function(ok){
+            prog(ok?100:0);
+            up.disabled=false; up.textContent='上传（自动压缩 + 预审）';
+            if(ok)setTimeout(clearPrev,600);
+          }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('上传出错：'+(e&&e.message||e)); });
+        }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('压缩失败：'+(e&&e.message||e)); });
+      });
     }; }
     document.querySelectorAll('[data-vote]').forEach(function(b){
       b.onclick=function(){ vote(b.getAttribute('data-vote')); };
