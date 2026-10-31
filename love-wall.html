@@ -370,7 +370,7 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
   <div class="wall" id="wall"><div class="loading" id="loadState"><span class="spin"></span>正在加载表白墙…</div></div>
     </div>
   </div>
-  <footer id="footer">把爱说出来 · 全校共享的表白墙（点我可进入管理）</footer>
+  <footer id="footer">把爱说出来 · 全校共享的表白墙（内容问题点卡片「举报 / 申请下架」，管理员在统一后台处置）</footer>
 <button id="composeFloat" style="position:fixed;right:16px;bottom:18px;z-index:60;display:none;background:#c4002a;color:#fff;border:none;border-radius:24px;padding:10px 18px;font-size:14px;box-shadow:0 6px 18px rgba(196,0,42,.35);cursor:pointer">✍️ 写表白</button>
 </div>
 <div class="poster-modal" id="posterModal">
@@ -497,7 +497,7 @@ const groups=[];["male","female"].forEach(g=>{const items=visible.filter(x=>grou
 let html='<div class="groups">'+groups.map(({g,items})=>{const isMale=g==="male";const label=isMale?"男 → 男 / 男 → 女":"女 → 男 / 女 → 女";
 return '<div class="group '+g+'"><div class="ghead"><span class="gicon">'+GROUP_GICONS[g]+'</span>'+label+'<span class="gcount">'+items.length+' 条</span></div>'+
 items.map(c=>{const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"人");const ul=likedSet.has(c.id);const dl=dislikedSet.has(c.id);
-return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><span class="admin-del" data-admin-del="'+c.id+'">🗑</span><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
+return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><!-- 页内不再提供删除：删除/隐藏统一走 admin.html 后台 --><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
 if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还有 '+(list.length-shownCount)+' 条）</button>'}
 wallEl.innerHTML=html;const lm=document.getElementById("loadMore");if(lm){lm.onclick=()=>{shownCount+=PAGE;render()}}
 stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPoster();renderHot();renderRank();
@@ -567,7 +567,7 @@ function bindCardEvents(){
     var rp=t.closest("[data-report]");if(rp){ev.preventDefault();reportPost(rp.getAttribute("data-report"));return;}
     var ap=t.closest("[data-appeal]");if(ap){ev.preventDefault();appealPost(ap.getAttribute("data-appeal"));return;}
     var pst=t.closest("[data-poster]");if(pst){ev.preventDefault();makePoster(pst.getAttribute("data-poster"));return;}
-    /* data-admin-del 仍由 bindAdminDel() 的 per-element onclick 处理，这里不重复 */
+    /* P1：页内不再有 data-admin-del 删除按钮；删除/隐藏统一走 admin.html 后台 */
   });
 }
 
@@ -580,17 +580,7 @@ function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");t
 const _origFooter=document.getElementById("footer").onclick;
 
 function bindAdminDel(){
-  if(!adminMode) return;
-  /* 事件委托到 #wall，重渲染后仍生效（不再 per-element onclick） */
-  var w=document.getElementById("wall");
-  if(!w||w.__adminBound)return;
-  w.__adminBound=true;
-  w.addEventListener("click",function(ev){
-    var el=ev.target.closest("[data-admin-del]");
-    if(!el)return;
-    ev.preventDefault();
-    hideWall(el.dataset.adminDel);
-  });
+  /* P1：页内删除/隐藏入口已撤，统一走 admin.html 后台（删帖/删候选/清理/审核）。此函数保留名以兼容初始化调用链，无操作。 */
 }
 async function hideWall(id){
   if(!confirm("确定隐藏这条表白？"))return;
@@ -603,11 +593,8 @@ async function hideWall(id){
     toast("已隐藏这条表白 🗑️");
   }catch(err){toast("隐藏请求失败，请重试");}
 }
-/* 修复 E：移除 ?admin= URL 参数入口，只保留点 footer 输密码 */
-document.getElementById("footer").onclick=()=>{if(adminMode)return;const p=prompt("输入管理密码（已存 Edge 函数）：");if(p&&p.length>=6){adminPwd=p;
-fetch(EDGE_ADMIN,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:p,act:"verify"})})
-.then(r=>r.json()).then(j=>{if(!j||!j.ok){adminPwd="";toast("密码错误，无法进入管理");return}enterAdmin()}).catch(()=>{adminPwd=p;enterAdmin()});}
-else if(p!==null)toast("密码错误")};
+/* P1 统一后台：页内不再提供"点 footer 输密码进管理"入口；隐藏/删除/清理一律走 admin.html 墙后台。普通用户仅可用卡片「举报 / 申请下架」。enterAdmin/adminMode/hideWall 保留定义以兼容旧引用，但无任何触发入口。 */
+
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){var s=String(text==null?"":text);ctx.save();ctx.textAlign="left";ctx.fillStyle="#4a2230";var lines=String(s).split(/\n/);var ly=y;var count=0;for(var p2=0;p2<lines.length;p2++){var seg=lines[p2];var chunk="";for(var k=0;k<seg.length;k++){var ch=seg[k];if(chunk&&ctx.measureText(chunk+ch).width>maxW){ctx.fillText(chunk,x,ly);ly+=lh;count++;chunk=ch;if(maxLines&&count>=maxLines){ctx.restore();return;}}else{chunk+=ch;}}if(chunk){ctx.fillText(chunk,x,ly);ly+=lh;count++;if(maxLines&&count>=maxLines){ctx.restore();return;}}}ctx.restore();}
 function legacyCopy(txt){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);return Promise.resolve(!!ok);}catch(e){return Promise.resolve(false);}}
