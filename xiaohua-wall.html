@@ -101,6 +101,20 @@ body.dark .notice-box{background:#241608;border-color:#4a3410;color:#d8b26a}
 body.dark .card .vote.appeal{border-color:rgba(255,143,163,.25);color:#ff8fa3}
 @media(max-width:680px){.grid{grid-template-columns:repeat(2,1fr);gap:12px}.wrap{padding:4px 12px 40px}}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.card .ph{aspect-ratio:3/4}}
+
+/* P1 上传面板 */
+.up-drop{border:2px dashed var(--line);border-radius:14px;padding:16px;cursor:pointer;text-align:center;background:rgba(255,245,247,.4);transition:.18s;margin-bottom:10px}
+body.dark .up-drop{background:rgba(255,255,255,.04)}
+.up-drop:hover,.up-drop.drag{border-color:var(--accent);background:rgba(255,182,199,.18)}
+body.dark .up-drop:hover,body.dark .up-drop.drag{background:rgba(111,155,255,.12)}
+.up-drop.drag{transform:scale(1.01)}
+#upFile{display:none}
+#upHint{color:var(--muted);font-size:.82rem;line-height:1.6}
+#upHint small{color:var(--muted);opacity:.85;font-size:.72rem}
+#upPrev{display:none;max-width:180px;max-height:200px;object-fit:cover;border-radius:12px;margin:0 auto;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+#upProg{height:6px;background:rgba(255,215,224,.6);border-radius:3px;overflow:hidden;margin:6px 0 12px}
+body.dark #upProg{background:rgba(255,255,255,.12)}
+#upProg i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
 </style>
 <script src="assets/supabase.js?v=1"></script><script src="assets/device-fp.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
 </head>
@@ -109,7 +123,7 @@ body.dark .card .vote.appeal{border-color:rgba(255,143,163,.25);color:#ff8fa3}
 <div id="app"></div>
 <footer>校花之墙 · 把最美的她写进墙上 · 每人一票 · 文明投票</footer>
 <script>window.WALL_CFG={key:'wall_xiaohua',title:'🌸 校花之墙',accent:'pink'}</script>
-<script src="wall-common.js?v=7"></script>
+<script src="wall-common.js?v=8"></script>
 <button class="dark-toggle" id="darkToggle" aria-label="切换深色">🌙</button>
 <script>(function(){var d=localStorage.getItem("wallDark")==="1";document.body.classList.toggle("dark",d);var b=document.getElementById("darkToggle");if(!b)return;b.textContent=d?"☀️":"🌙";b.onclick=function(){var x=document.body.classList.toggle("dark");localStorage.setItem("wallDark",x?"1":"0");b.textContent=x?"☀️":"🌙"};})();</script>
 <script src="assets/bgm.js?v=2"></script>
