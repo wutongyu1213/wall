@@ -645,7 +645,7 @@ const elapsed=(Date.now()-lastTs)/1000;
 if(elapsed<POST_MIN_INTERVAL){toast("发布太快，请 "+Math.ceil(POST_MIN_INTERVAL-elapsed)+" 秒后再试");return}
 busy=true;
 const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name===""),p_gift:(typeof pickedGift!=="undefined")?pickedGift:"",p_ip:wallIp()});
-if(postRes.error){const m=postRes.error.message||"";if(/sensitive/i.test(m)){toast("内容含敏感词，请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
+if(postRes.error){const m=postRes.error.message||"";if(/sensitive|semantic_blocked/i.test(m)){toast("内容含不当信息（敏感词 / 联系方式 / 变体粗口），请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
 /* 发帖成功：乐观上墙 + 立即直连刷新（bust Edge 缓存） */
 const newId=postRes.data;
 busy=false;__edgeOk=false;await load();__edgeOk=true;
