@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的专属表白墙</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js" defer></script>
+<script src="assets/supabase.js"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
+<script src="assets/qrcode.js"></script><script>if(typeof QRCode==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"><\/script>')}</script>
 <style>
 :root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
 
@@ -435,7 +435,7 @@ if(localStorage.getItem("wallBgmOn")==="on"){
 
 let wall=[];let busy=false;const PAGE=40;let shownCount=PAGE;
 const LIKED_KEY="wallLiked";let likedSet=new Set();
-try{likedSet=new Set(JSON.parse(localStorage.getItem(LIKED_KEY))||[])}catch(e){likedSet=new Set()}
+try{likedSet=new Set((JSON.parse(localStorage.getItem(LIKED_KEY))||[]).map(Number))}catch(e){likedSet=new Set()}
 function saveLiked(){localStorage.setItem(LIKED_KEY,JSON.stringify([...likedSet]))}
 function userKey(){let k=localStorage.getItem("wallUserKey");if(!k){k="u"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallUserKey",k)}return k}
 function keyOf(c){return c.fromG+c.toG}
@@ -468,7 +468,7 @@ if(giftRes.error){toast("送出失败："+giftRes.error.message);return}
 localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();celebrate();toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");}
 let curTag="all",curGender="all",curMajor="all",curYear="all",curClass="all",curSearch="";
 const DLIKED_KEY="wallDisliked";let dislikedSet=new Set();
-try{dislikedSet=new Set(JSON.parse(localStorage.getItem(DLIKED_KEY))||[])}catch(e){dislikedSet=new Set()}
+try{dislikedSet=new Set((JSON.parse(localStorage.getItem(DLIKED_KEY))||[]).map(Number))}catch(e){dislikedSet=new Set()}
 function saveDisliked(){localStorage.setItem(DLIKED_KEY,JSON.stringify([...dislikedSet]))}
 let giftByWall={};
 function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<60)return "刚刚";if(s<3600)return Math.floor(s/60)+" 分钟前";if(s<86400)return Math.floor(s/3600)+" 小时前";if(s<86400*7)return Math.floor(s/86400)+" 天前";return new Date(ts).toLocaleDateString("zh-CN")}
@@ -528,7 +528,7 @@ if(dnEl){dnEl.textContent="👎 "+(c.dislikes||0);dnEl.classList.toggle("on",dis
 }
 /* 点赞/倒赞互斥锁：同卡片 in-flight 时拒绝下一个点击，防 up+down 或同方向连点双发 */
 const __cardBusy=new Set();
-async function likeItem(id,type){
+async function likeItem(id,type){id=Number(id);
 const c=wall.find(x=>x.id==id);if(!c)return;
 const myT=type||"up";
 if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经点过赞了 💗":"这条你已经点过倒赞了 👎");return}
@@ -649,7 +649,7 @@ const uk=userKey();const lastKey="wallLastPost_"+uk;const lastTs=parseInt(localS
 const elapsed=(Date.now()-lastTs)/1000;
 if(elapsed<POST_MIN_INTERVAL){toast("发布太快，请 "+Math.ceil(POST_MIN_INTERVAL-elapsed)+" 秒后再试");return}
 busy=true;
-const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name==="")});
+const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name===""),p_gift:(typeof pickedGift!=="undefined")?pickedGift:""});
 if(postRes.error){const m=postRes.error.message||"";if(/sensitive/i.test(m)){toast("内容含敏感词，请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
 /* 发帖成功：乐观上墙 + 立即直连刷新（bust Edge 缓存） */
 const newId=postRes.data;
@@ -660,7 +660,7 @@ document.getElementById("inMsg").value="";document.getElementById("inName").valu
 curTag="all";curGender="all";curYear="all";curClass="all";curSearch="";document.getElementById("inSearch").value="";
 shownCount=PAGE;syncTabs();syncGenderTabs();syncYearTabs();syncClassTabs();
 /* 发帖后 bust Edge 缓存（60s），新帖立即可见 */
-__edgeOk=false;await load();__edgeOk=true;toast("表白成功 ❤ 已贴到墙上");celebrate()};
+/* 发帖成功的一次 load+toast+celebrate 已在上方执行，此处仅收尾（去掉重复的第二次） */};
 document.querySelectorAll("#quickChips .chip").forEach(ch=>{ch.onclick=()=>{const t=document.getElementById("inMsg");t.value=(t.value?"\n":"")+ch.textContent}});
 document.getElementById("inSearch").oninput=function(){curSearch=this.value.trim();shownCount=PAGE;render()};
 document.getElementById("tabs").onclick=(e)=>{const t=e.target.closest(".tab");if(!t)return;curTag=t.dataset.t;shownCount=PAGE;syncTabs();render()};
