@@ -13,9 +13,9 @@
   function getEnv(){
     if(/micromessenger/i.test(ua))return{t:'wechat',ios:/iphone|ipad/i.test(ua)};
     if(/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return{t:'ios'};
-    if(/oapp|oppo|coloros|realme|rmx|heytap/i.test(ua))return{t:'oppo',brand:'OPPO 自带浏览器',good:0};
+    if(/oapp|oppo|coloros|realme|rmx|heytap|peam|pdrm|pcdm|pacm|paam/i.test(ua))return{t:'oppo',brand:'OPPO 自带浏览器',good:0};
     if(/vivo|iqoo|originos|funtouch/i.test(ua))return{t:'vivo',brand:'vivo 自带浏览器',good:0};
-    if(/xiaomi|redmi|miui|mi [0-9]/i.test(ua))return{t:'xiaomi',brand:'小米自带浏览器',good:0};
+    if(/xiaomi|redmi|miui|mi [0-9]|_mi/i.test(ua))return{t:'xiaomi',brand:'小米自带浏览器',good:0};
     if(/huawei|harmonyos|honor|huaweibrowser|hbbrowser/i.test(ua))return{t:'huawei',brand:'华为自带浏览器',good:0};
     if(/samsung|sm-[a-z0-9]+/i.test(ua))return{t:'samsung',brand:'三星浏览器',good:1};
     if(/baidubrowser|baiduapp/i.test(ua))return{t:'baidu',brand:'百度浏览器',good:1};
