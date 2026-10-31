@@ -16,7 +16,7 @@
   function css(){
     var s = document.createElement("style");
     s.textContent = [
-      ".wa-banner{position:sticky;top:0;z-index:9999;box-sizing:border-box;",
+      ".wa-banner{position:relative;z-index:9999;box-sizing:border-box;",
       "  display:flex;align-items:center;gap:10px;",
       "  padding:10px 14px;max-width:100%;",
       "  background:linear-gradient(135deg,#fff5f7,#ffe9ef);",
