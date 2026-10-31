@@ -49,6 +49,31 @@
     }catch(e){ console.warn("sign photos",e); }
     return out;
   }
+  /* 批量签名任意 url 数组（主照 + 挂照共用） */
+  async function signUrls(list){
+    var out={};
+    var rels=(list||[]).filter(function(u){return u&&u.trim()!==''&&!/^https?:/.test(u);});
+    (list||[]).forEach(function(u){ if(u&&/^https?:/.test(u)) out[u]=u; });
+    if(!rels.length) return out;
+    var s2=getSB(); if(!s2) return out;
+    try{
+      var r=await s2.storage.from("wall-photos").createSignedUrls(rels,900);
+      if(r.error){
+        for(var i=0;i<rels.length;i++){
+          var one=await s2.storage.from("wall-photos").createSignedUrl(rels[i],900);
+          if(one.error)continue;
+          var u0=(one.data&&one.data.signedUrl)||'';
+          if(u0&&!/^https?:/.test(u0))u0=SUPA_URL+"/storage/v1"+u0;
+          if(u0)out[rels[i]]=u0;
+        }
+      }else{
+        (r.data||[]).forEach(function(d){ var u=d.signedUrl||""; if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u; out[d.path]=u; });
+      }
+      lastSignTime=Date.now();
+    }catch(e){ console.warn("signUrls",e); }
+    return out;
+  }
+
   /* S2：身份 = 设备指纹（清缓存不重置）；IP 维度由 wall-fp Edge 提供 */
   function wallIp(){ try{ return (window.__wallDevice&&window.__wallDevice.ip())||undefined; }catch(e){ return undefined; } }
   function userKey(){
@@ -78,7 +103,23 @@
         .order('like_count',{ascending:false}).limit(200);
       if(tmo)clearTimeout(tmo);
       if(myLock!==loadLock)return; // 已被更新一次加载取代
-      if(error){ loadErr=true; people=[]; } else { people=data||[]; var _pm=await signPhotos(people); people.forEach(function(p){ if(p&&_pm[p.photo_url]) p._src=_pm[p.photo_url]; }); }
+      if(error){ loadErr=true; people=[]; } else {
+        people=data||[];
+        var _pm=await signPhotos(people); people.forEach(function(p){ if(p&&_pm[p.photo_url]) p._src=_pm[p.photo_url]; });
+        /* P3：同名多照 —— 拉 candidate_photos 挂照（status=ok），签名后挂到各自候选 */
+        var ids=people.map(function(x){return x.id;});
+        var gmap={};
+        if(ids.length){
+          var ph=await s.from('candidate_photos').select('candidate_id,photo_url,seq').eq('status','ok').in('candidate_id',ids).order('seq');
+          (ph.data||[]).forEach(function(r){ (gmap[r.candidate_id]=gmap[r.candidate_id]||[]).push(r.photo_url); });
+          var extraUrls=[];
+          Object.keys(gmap).forEach(function(cid){ (gmap[cid]||[]).forEach(function(u){ if(u&&u.trim()!==''&&extraUrls.indexOf(u)<0) extraUrls.push(u); }); });
+          var _pm2=await signUrls(extraUrls);
+          people.forEach(function(p){
+            p._photos=((gmap[p.id]||[]).map(function(u){return _pm2[u];}).filter(function(u){return u;})).filter(function(u,ix,all){return all.indexOf(u)===ix;});
+          });
+        }
+      }
     }catch(e){
       if(myLock===loadLock){ console.error('loadCands',e); loadErr=true; people=[]; }
     }finally{
@@ -233,11 +274,11 @@
     // 上传（匿名也可传，带昵称/一句话）
     h+='<div class="panel">'
       +'<h3>📷 上传'+esc(C.title)+'照片（全校可见）</h3>'
-      +'<div class="row"><input id="upName" maxlength="12" placeholder="展示昵称（可匿名）"><input id="upMsg" maxlength="40" placeholder="一句话介绍（可选）"></div>'
-      +'<div id="upDrop" class="up-drop"><input id="upFile" type="file" accept="image/*" capture="environment" class="up-file"><div id="upHint">点选或拖拽照片到这里<br><small>支持 JPG / PNG / WEBP · ≤15MB · 自动压缩 + 预审</small></div><img id="upPrev" alt=""></div>'
+      +'<div class="row"><input id="upName" maxlength="12" placeholder="* 请填写真实姓名"><input id="upMsg" maxlength="40" placeholder="一句话介绍（可选）"></div>'
+      +'<div id="upDrop" class="up-drop"><input id="upFile" type="file" accept="image/*" multiple class="up-file"><div id="upHint">点选或拖拽照片到这里<br><small>支持 JPG / PNG / WEBP · 每张≤15MB · 每次最多 3 张 · 自动压缩 + 预审</small></div><div id="upPrev"></div></div>'
       +'<div id="upProg"><i></i></div>'
-      +'<div class="row"><button class="btn" id="upGo">上传（自动压缩 + 预审）</button><button class="btn" id="upCancel">重选</button></div>'
-      +'<p class="note">照片先本地预审 + 云端人工复核后全校可见。请仅上传本人或已获授权的素材，勿传他人隐私。</p>'
+      +'<div class="row"><button class="btn" id="upGo">上传（自动压缩 + 预审）</button></div>'
+      +'<p class="note">照片先本地预审 + AI 图像预审 + 云端人工复核后全校可见。同名照片自动归组为同一人。请仅上传本人或已获授权的素材，勿传他人隐私。</p>'
       +'</div>';
     // 投票墙
     h+='<h3 class="sec-title">🗳️ 投票 · 全校共享排名</h3>';
@@ -259,10 +300,15 @@
         const phHTML=noPhoto
           ? avatarEl(p.id,p.nickname).outerHTML
           : '<img src="'+esc(p._src)+'" loading="lazy" alt="" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'" onerror="window.__phFail(this)">';
-        h+='<div class="card">'
-          +'<div class="ph" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'">'+phHTML+'<span class="medal">'+medal+'</span></div>'
+        var thumbsHTML='';
+        if(p._photos&&p._photos.length){
+          thumbsHTML='<div class="ph-thumbs">'+p._photos.map(function(u){return '<img class="ph-thumb" src="'+esc(u)+'" loading="lazy" alt="">';}).join('')+'</div>';
+        }
+        h+='<div class="card" '+(p._photos&&p._photos.length?'data-multi="1"':'')+'>'
+          +'<div class="ph" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'">'+phHTML+'<span class="medal">'+medal+'</span>'+(p._photos&&p._photos.length?'<span class="ph-more">+'+p._photos.length+'</span>':'')+'</div>'
+          +thumbsHTML
           +'<div class="body">'
-          +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
+          +'<div class="nm">'+esc(p.nickname||'匿名')+(p._photos&&p._photos.length?' <span class="tag-photo">'+(p._photos.length+1)+' 张照片</span>':'')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
           +'<div class="vf"><div class="vf-btns"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+((done||p.voting_on===false)?'disabled':'')+'>'+(p.voting_on===false?'投票已关闭':(done?'已投':'投票'))+'</button>'
           +'<button class="vote appeal" data-appeal="'+p.id+'">申诉</button></div>'
@@ -281,41 +327,72 @@
   function bind(){
     const up=document.getElementById('upGo');
     const upFile=document.getElementById('upFile'), upPrev=document.getElementById('upPrev'), upHint=document.getElementById('upHint'),
-      upDrop=document.getElementById('upDrop'), upCancel=document.getElementById('upCancel'), upProg=document.getElementById('upProg');
-    function prog(p){ if(upProg){ upProg.firstElementChild.style.width=p+'%'; } }
-    function showPrev(file){ if(!file||!upPrev)return; var u; try{u=URL.createObjectURL(file);}catch(e){return;} upPrev._u=u; upPrev.src=u; upPrev.style.display='block'; if(upHint)upHint.style.display='none'; if(upCancel)upCancel.style.display='inline-block'; }
-    function clearPrev(){ if(upFile)upFile.value=''; if(upPrev){ try{if(upPrev._u)URL.revokeObjectURL(upPrev._u);}catch(e){} upPrev.src=''; upPrev.style.display='none'; } if(upHint)upHint.style.display=''; if(upCancel)upCancel.style.display='none'; prog(0); }
-    if(upFile) upFile.onchange=function(){ showPrev(upFile.files[0]); };
-    if(upCancel) upCancel.onclick=function(){ clearPrev(); };
-    if(upDrop){ upDrop.onclick=function(){ upFile&&upFile.click(); };
+      upDrop=document.getElementById('upDrop'), upProg=document.getElementById('upProg');
+    let selFiles=[]; let prevUrls=[];
+    function prog(p){ if(upProg){ upProg.firstElementChild.style.width=Math.min(100,Math.round(p))+'%'; } }
+    function showPrevs(files){
+      selFiles=Array.from(files||[]).slice(0,3);
+      prevUrls.forEach(function(u){try{URL.revokeObjectURL(u);}catch(_){}}); prevUrls=[];
+      if(upPrev) upPrev.innerHTML='';
+      if(!selFiles.length){ if(upHint)upHint.style.display=''; return; }
+      if(upHint)upHint.style.display='none';
+      selFiles.forEach(function(f){
+        var u; try{u=URL.createObjectURL(f);}catch(e){return;}
+        prevUrls.push(u);
+        var img=document.createElement('img');
+        img.src=u; img.className='up-prev-img'; img.title='点我更换照片';
+        img.addEventListener('click',function(){ upFile&&upFile.click(); });
+        upPrev.appendChild(img);
+      });
+    }
+    function clearSel(){ selFiles=[]; prevUrls.forEach(function(u){try{URL.revokeObjectURL(u);}catch(_){}}); prevUrls=[]; if(upFile)upFile.value=''; if(upPrev)upPrev.innerHTML=''; if(upHint)upHint.style.display=''; prog(0); }
+    if(upFile) upFile.onchange=function(){ if(upFile.files.length>3) tip('一次最多 3 张，已取前 3 张'); showPrevs(upFile.files); };
+    if(upDrop){
+      upDrop.onclick=function(){ if(!selFiles.length) upFile&&upFile.click(); };
       ['dragenter','dragover'].forEach(function(ev){ upDrop.addEventListener(ev,function(e){ e.preventDefault(); upDrop.classList.add('drag'); }); });
       ['dragleave','drop'].forEach(function(ev){ upDrop.addEventListener(ev,function(e){ e.preventDefault(); upDrop.classList.remove('drag'); }); });
-      upDrop.addEventListener('drop',function(e){ var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f){ try{var dt=new DataTransfer(); dt.items.add(f); upFile.files=dt.files;}catch(_){} showPrev(f); } });
+      upDrop.addEventListener('drop',function(e){ var fl=e.dataTransfer&&e.dataTransfer.files; if(fl&&fl.length){ showPrevs(fl); try{var dt=new DataTransfer(); Array.from(fl).slice(0,3).forEach(function(f){dt.items.add(f);}); upFile.files=dt.files;}catch(_){} } });
     }
     if(up){ up.onclick=function(){
-      var f=upFile?upFile.files[0]:null;
       var nmEl=document.getElementById('upName'), msgEl=document.getElementById('upMsg');
       var nm=nmEl?nmEl.value.trim():'', msg=msgEl?msgEl.value.trim():'';
-      if(!f){ tip('请选择一张照片'); return; }
-      preReview(f).then(function(rv){
-        if(!rv.ok){ tip(rv.reason); return; }
-        var autoReview=rv.pass?'pass':'review';
-        up.disabled=true; up.textContent='AI 图像预审中…'; prog(25);
-        var aiRun=(window.__nsfw&&window.__nsfw.reviewFile)?window.__nsfw.reviewFile(f):Promise.resolve({ok:false,verdict:'unknown',autoReview:'review'});
-        aiRun.then(function(ai){
-          var aiRes=(ai&&ai.ok===true)?ai:null;
-          if(aiRes && aiRes.autoReview!=='pass'){ autoReview='review'; }
-          prog(55); up.textContent='上传中…';
-          fileToBlob(f,720).then(function(blob){
-            uploadAndAdd(nm,msg,blob,autoReview,aiRes).then(function(ok){
-              prog(ok?100:0);
-              up.disabled=false; up.textContent='上传（自动压缩 + 预审）';
-              if(ok)setTimeout(clearPrev,600);
-            }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('上传出错：'+(e&&e.message||e)); });
-          }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('压缩失败：'+(e&&e.message||e)); });
-        });
+      if(!nm){ tip('请填写真实姓名（必填）'); if(nmEl)nmEl.focus(); return; }
+      var files=upFile?upFile.files:null;
+      if(files&&files.length){ selFiles=Array.from(files).slice(0,3); showPrevs(files); }
+      if(!selFiles.length){ tip('请选择照片（最多 3 张）'); return; }
+      var n=selFiles.length, done=0;
+      up.disabled=true; up.textContent='预审 '+n+' 张照片…';
+      var jobs=selFiles.map(function(f,ix){
+        return preReview(f).then(function(rv){
+          if(!rv.ok){ tip('第'+(ix+1)+'张：'+rv.reason); done++; prog((done/n)*100); return; }
+          var autoReview=rv.pass?'pass':'review';
+          var aiRun=(window.__nsfw&&window.__nsfw.reviewFile)?window.__nsfw.reviewFile(f):Promise.resolve({ok:false,verdict:'unknown',autoReview:'review'});
+          return aiRun.then(function(ai){
+            var aiRes=(ai&&ai.ok===true)?ai:null;
+            if(aiRes&&aiRes.autoReview!=='pass')autoReview='review';
+            return fileToBlob(f,720).then(function(blob){
+              return uploadAndAdd(nm,msg,blob,autoReview,aiRes);
+            }).then(function(){ done++; prog((done/n)*100); }).catch(function(e){ done++; prog((done/n)*100); tip('第'+(ix+1)+'张上传出错：'+(e&&e.message||e)); });
+          });
+        }).catch(function(e){ done++; prog((done/n)*100); });
+      });
+      Promise.all(jobs).then(function(){
+        up.disabled=false; up.textContent='上传（自动压缩 + 预审）';
+        tip('已上传 ✅ 同名照片自动归组，预审通过即全校可见');
+        setTimeout(clearSel,800);
+        loadCands().then(function(){ render(); }).catch(function(){ render(); });
       });
     }; }
+    /* P3：卡片照片缩略条 —— 点击缩略图换主图 */
+    document.querySelectorAll('.card[data-multi] .ph-thumb').forEach(function(t){
+      t.onclick=function(){
+        var card=t.closest('.card'); var main=card&&card.querySelector('.ph > img');
+        if(!main)return;
+        main.src=t.src;
+        card.querySelectorAll('.ph-thumb').forEach(function(x){x.classList.remove('on');});
+        t.classList.add('on');
+      };
+    });
     document.querySelectorAll('[data-vote]').forEach(function(b){
       b.onclick=function(){ vote(b.getAttribute('data-vote')); };
     });
