@@ -407,6 +407,8 @@ if(!sb){
 }
 /* Edge 缓存层：优先走 /functions/v1/wall-cache（藏 service key + 60s 缓存），失败自动回退直连数据库 */
 const EDGE_URL=SUPA_URL+"/functions/v1/wall-cache";
+/* 管理入口/隐藏操作走 wall-admin（service-key 代理 + 管理密码门禁）；wall-cache 只做读缓存 */
+const EDGE_ADMIN=SUPA_URL+"/functions/v1/wall-admin";
 let __edgeOk=true;let __edgeGifts=null;
 async function edgeFetch(limit){const u=EDGE_URL+"?limit="+limit;const r=await fetch(u,{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}});if(!r.ok)throw new Error("edge "+r.status);const j=await r.json();if(!j||!j.ok)throw new Error("edge bad");return j}
 /* 管理鉴权已移至 Edge 函数环境变量 ADMIN_PWD，前端不再存明文密码 */
@@ -587,9 +589,9 @@ function bindAdminDel(){
 async function hideWall(id){
   if(!confirm("确定隐藏这条表白？"))return;
   try{
-    var r=await fetch(EDGE_URL,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:adminPwd,act:"hide",id:id})});
+    var r=await fetch(EDGE_ADMIN,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:adminPwd,act:"hide",id:id})});
     var j=await r.json();
-    if(!j||!j.ok){toast("隐藏失败：需在 Edge 配置 ADMIN_PWD");return;}
+    if(!j||!j.ok){toast("隐藏失败：" + ((j&&j.error)||"需在 Edge 配置管理密码"));return;}
     wall=wall.filter(function(x){return x.id!=id;});
     render();
     toast("已隐藏这条表白 🗑️");
@@ -597,7 +599,7 @@ async function hideWall(id){
 }
 /* 修复 E：移除 ?admin= URL 参数入口，只保留点 footer 输密码 */
 document.getElementById("footer").onclick=()=>{if(adminMode)return;const p=prompt("输入管理密码（已存 Edge 函数）：");if(p&&p.length>=6){adminPwd=p;
-fetch(EDGE_URL,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:p,act:"verify",id:0})})
+fetch(EDGE_ADMIN,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:p,act:"verify"})})
 .then(r=>r.json()).then(j=>{if(!j||!j.ok){adminPwd="";toast("密码错误，无法进入管理");return}enterAdmin()}).catch(()=>{adminPwd=p;enterAdmin()});}
 else if(p!==null)toast("密码错误")};
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
