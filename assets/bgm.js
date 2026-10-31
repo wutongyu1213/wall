@@ -1,15 +1,14 @@
 /* wall-bgm.js — 校园墙通用背景音乐模块
-   · 音乐托管 Supabase 云端（公开桶 wall-audio），本地 assets/bgm.mp3 兜底
+   · 音乐托管 Supabase 云端（公开桶 wall-audio）为唯一音源（本地 Pages 已移除 mp3）
    · 右下角悬浮 ♪ 开关；点击开始/停止；状态记 localStorage，回页自动续播
    · 自动播放受浏览器策略限制：需用户点过一次，否则静默待命，点一下即响
    · 页面 <body> 末尾引入： <script src="assets/bgm.js?v=1"></script>
 */
 (function(){
   var SUPA="https://dpceuvqtwvhoipxhozxz.supabase.co";
-  // 云端优先（Supabase 公开桶），本地兜底（GitHub Pages）
+  // 云端唯一音源（Supabase 公开桶 wall-audio）
   var BGM_CLOUD=SUPA+"/storage/v1/object/public/wall-audio/bgm.mp3";
-  var BGM_LOCAL="assets/bgm.mp3";
-  var BGM_URLS=[BGM_CLOUD,BGM_LOCAL];
+  var BGM_URLS=[BGM_CLOUD];
   var KEY="wallBgmOn";
 
   if(window.__wallBgmLoaded)return; window.__wallBgmLoaded=true;
