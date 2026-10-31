@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的专属表白墙</title>
-<script src="assets/supabase.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
+<script src="assets/supabase.js?v=1"></script><script src="assets/device-fp.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
 <script src="assets/qrcode.js?v=1"></script><script>if(typeof QRCode==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"><\/script>')}</script>
 <style>
 :root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
@@ -441,7 +441,8 @@ let wall=[];let busy=false;const PAGE=40;let shownCount=PAGE;
 const LIKED_KEY="wallLiked";let likedSet=new Set();
 try{likedSet=new Set((JSON.parse(localStorage.getItem(LIKED_KEY))||[]).map(Number).filter(function(n){return n>0}))}catch(e){likedSet=new Set()}
 function saveLiked(){localStorage.setItem(LIKED_KEY,JSON.stringify([...likedSet]))}
-function userKey(){let k=localStorage.getItem("wallUserKey");if(!k){k="u"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallUserKey",k)}return k}
+function userKey(){if(window.__wallDevice){try{var d=window.__wallDevice.id();if(d)return d}catch(e){}}let k=localStorage.getItem("wallUserKey");if(!k){k="u"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallUserKey",k)}return k}
+function wallIp(){try{return(window.__wallDevice&&window.__wallDevice.ip())||undefined}catch(e){return undefined}}
 function keyOf(c){return c.fromG+c.toG}
 function groupOf(c){return c.fromG==="男"?"male":"female"}
 function loadState(msg,spin){const el=document.getElementById("loadState");if(!el)return;el.className="loading"+(spin?"":" error");el.innerHTML=(spin?'<span class="spin"></span>':'')+msg}
@@ -458,7 +459,7 @@ const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("cr
 /* 修复 C：统计"署名的人"只算有昵称的，匿名不算重名 */
 function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘人").map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
 async function loadVisits(){try{const {data}=await sb.from("visit_counter").select("total").limit(1);const v=(data&&data[0])?data[0].total:0;document.getElementById("stVisit").textContent=v}catch(e){try{const {count}=await sb.from("visits").select("id",{count:"exact",head:true});document.getElementById("stVisit").textContent=(count||0)}catch(_){}}}
-function recordVisit(){let vk=localStorage.getItem("wallVisitKey");if(!vk){vk="v"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallVisitKey",vk)}try{sb.rpc("fn_wall_visit",{p_visit_key:vk,p_ip_hash:"c2"}).then(function(){}).catch(function(){});}catch(e){}}
+function recordVisit(){let vk=localStorage.getItem("wallVisitKey");if(!vk){vk="v"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallVisitKey",vk)}try{sb.rpc("fn_wall_visit",{p_visit_key:vk,p_ip_hash:wallIp()||undefined}).then(function(){}).catch(function(){});}catch(e){}}
 function renderHot(){const wrap=document.getElementById("hotWrap");if(wall.length===0){wrap.innerHTML="";return}const hot=wall.slice().sort((a,b)=>(b.likes||0)-(a.likes||0))[0];wrap.innerHTML='<div class="hot-banner"><div class="icon">🏆</div><div class="txt"><div class="lbl">全场最热 · 点赞最多</div><div class="who">'+esc(hot.name)+'<span class="to">→ '+esc(hot.to)+'</span></div></div><div class="likes">'+(hot.likes||0)+'<small>❤ 点赞</small></div></div>'}
 function renderRank(){const rp=document.getElementById("rankPanel");if(!rp)return;const rl=document.getElementById("rankList");if(!wall.length){rl.innerHTML='<div class="rank-empty">还没有表白，快写下第一条</div>';return}
 const top=wall.slice().sort((a,b)=>((b.likes||0)-(b.dislikes||0))-((a.likes||0)-(a.dislikes||0))).slice(0,10);
@@ -467,7 +468,7 @@ rl.querySelectorAll(".rank-item").forEach(el=>{el.onclick=()=>{location.href=SIT
 function bindGiftQ(){document.querySelectorAll("[data-giftq]").forEach(el=>{el.onclick=()=>openGiftQ(el.dataset.giftq)})}
 function openGiftQ(id){ensureGiftQ();document.getElementById("giftQModal").classList.add("show");document.getElementById("giftQTitle").textContent="送一个虚拟礼物给这条表白 🎁";document.querySelectorAll("#giftQGrid .gb").forEach(b=>{b.onclick=()=>sendGiftQ(id,b.dataset.g)})}
 function ensureGiftQ(){if(document.getElementById("giftQModal"))return;const m=document.createElement("div");m.className="giftq-modal";m.id="giftQModal";m.innerHTML='<div class="giftq-box"><h3 id="giftQTitle">送礼物</h3><div class="gg" id="giftQGrid">'+["🌹","❤️","🧸","🎂","⭐","🎈","🍫","🍀"].map(g=>'<button type="button" class="gb" data-g="'+g+'">'+g+'</button>').join("")+'</div><div class="giftq-act"><button id="giftQClose" type="button">取消</button></div></div>';document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.classList.remove("show")};document.getElementById("giftQClose").onclick=()=>m.classList.remove("show")}
-async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const giftRes=await sb.rpc("fn_wall_gift",{p_wall_id:Number(id),p_gift:gift,p_user_key:uk||""});
+async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const giftRes=await sb.rpc("fn_wall_gift",{p_wall_id:Number(id),p_gift:gift,p_user_key:uk||"",p_ip:wallIp()});
 if(giftRes.error){toast("送出失败："+giftRes.error.message);return}
 localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();celebrate();toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");}
 let curTag="all",curGender="all",curMajor="all",curYear="all",curClass="all",curSearch="";
@@ -540,7 +541,7 @@ if(__cardBusy.has(id)){return}
 __cardBusy.add(id);
 try{
   try{
-    const {error:rpcErr}=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT});
+    const {error:rpcErr}=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT,p_ip:wallIp()});
     if(rpcErr){/* RPC 不存在则回退本地增量 */}
   }catch(e){}
   const {data:cnt}=await sb.from("wall").select("like_count,dislike_count").eq("id",id).limit(1);
@@ -570,9 +571,9 @@ function bindCardEvents(){
   });
 }
 
-function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||""}).then(function(r){if(r.error){toast("举报失败："+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再试")})}
+function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("举报失败："+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再试")})}
 /* 申请下架：走 fn_wall_appeal(target_kind='wall')，云端受理 + 24h 限流 5 次 + 审计，处置台可处置 */
-function appealPost(id){var uk=userKey();var ck="wallAppeal_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}var v=prompt("申请下架这条表白（请填写你的身份，如：我是被表白对象/我本人，申请删除）：");if(v===null)return;var reason=(v&&v.trim()?v.trim():"申请下架").slice(0,120);localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason,p_user_key:uk||""}).then(function(r){if(r.error){toast("申请未受理："+(r.error.message||"").slice(0,40))}else{toast("已提交下架申请 ✅ 管理员会尽快处置")}}).catch(function(){toast("申请提交失败，稍后再试")})}
+function appealPost(id){var uk=userKey();var ck="wallAppeal_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}var v=prompt("申请下架这条表白（请填写你的身份，如：我是被表白对象/我本人，申请删除）：");if(v===null)return;var reason=(v&&v.trim()?v.trim():"申请下架").slice(0,120);localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason,p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("申请未受理："+(r.error.message||"").slice(0,40))}else{toast("已提交下架申请 ✅ 管理员会尽快处置")}}).catch(function(){toast("申请提交失败，稍后再试")})}
 let adminMode=false;let adminPwd="";
 function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开启 🛡️");bindAdminDel()}
 /* H1: 进管理前先 prompt 收密码，避免 adminPwd 恒空导致删除必 401 */
@@ -656,7 +657,7 @@ const uk=userKey();const lastKey="wallLastPost_"+uk;const lastTs=parseInt(localS
 const elapsed=(Date.now()-lastTs)/1000;
 if(elapsed<POST_MIN_INTERVAL){toast("发布太快，请 "+Math.ceil(POST_MIN_INTERVAL-elapsed)+" 秒后再试");return}
 busy=true;
-const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name===""),p_gift:(typeof pickedGift!=="undefined")?pickedGift:""});
+const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name===""),p_gift:(typeof pickedGift!=="undefined")?pickedGift:"",p_ip:wallIp()});
 if(postRes.error){const m=postRes.error.message||"";if(/sensitive/i.test(m)){toast("内容含敏感词，请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
 /* 发帖成功：乐观上墙 + 立即直连刷新（bust Edge 缓存） */
 const newId=postRes.data;
