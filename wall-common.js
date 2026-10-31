@@ -192,7 +192,7 @@
       b.onclick=function(){ vote(b.getAttribute('data-vote')); };
     });
     const rt=document.getElementById('retryLoad');
-    if(rt){ rt.onclick=function(){ loading=false; loadCands().then(function(){ render(); }).catch(function(){ render(); }); }; }
+    if(rt){ rt.onclick=function(){ if(typeof window.supabase==='undefined'){ location.reload(); return; } loading=false; loadCands().then(function(){ render(); }).catch(function(){ render(); }); }; }
     // 深色模式跟随
     if(localStorage.getItem('wallDark')==='1') document.body.classList.add('dark');
   }
