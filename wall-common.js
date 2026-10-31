@@ -29,11 +29,22 @@
     var s2=getSB(); if(!s2) return out;
     try{
       var r=await s2.storage.from("wall-photos").createSignedUrls(list,900);
-      (r.data||[]).forEach(function(d){
-        var u=d.signedUrl||"";
-        if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u;
-        out[d.path]=u;
-      });
+      if(r.error){
+        /* 批签失败（如批内含坏路径）→ 逐张降级签名，避免单条坏路径拖垮整批真实照片 */
+        for(var i=0;i<list.length;i++){
+          var one=await s2.storage.from("wall-photos").createSignedUrl(list[i],900);
+          if(one.error)continue;
+          var u0=(one.data&&one.data.signedUrl)||"";
+          if(u0&&!/^https?:/.test(u0))u0=SUPA_URL+"/storage/v1"+u0;
+          if(u0)out[list[i]]=u0;
+        }
+      }else{
+        (r.data||[]).forEach(function(d){
+          var u=d.signedUrl||"";
+          if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u;
+          out[d.path]=u;
+        });
+      }
       lastSignTime=Date.now();
     }catch(e){ console.warn("sign photos",e); }
     return out;
@@ -151,15 +162,40 @@
       {t:'🌿 校草', f:'xiaocao-wall.html', on:KIND==='xiaocao'},
       {t:'❤️ 表白', f:'love-wall.html', on:false}
     ];
-    return '<span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span>'+
-      items.map(function(a){ return '<a class="nl'+(a.on?' cur':'')+'" href="'+a.f+'">'+a.t+'</a>'; }).join('');
+    // 复用页面自带 .nav/.nav-in 样式；页面若已静态渲染导航则不重复注入
+    const existed=document.querySelector('nav.nav')?true:false;
+    return {items:items, existed:existed};
   }
 
+  /* 无照片 / 照片加载失败 → 昵称首字彩色头像占位（不再是永远"照片加载中"） */
+  function avatarEl(cid,nm){
+    var ch=String(nm||'匿').trim().charAt(0).toUpperCase()||'?';
+    var phs=['#e0498f','#c4002a','#8a4dbf','#3b6fd6','#f4743b','#2a9d6f'];
+    var bg=phs[(Number(cid)||0)%phs.length];
+    var d=document.createElement('div');
+    d.className='ph-ava';
+    d.style.background='linear-gradient(150deg,'+bg+' 0%,#fff5f7 160%)';
+    d.innerHTML='<span class="ph-ava-ch">'+esc(ch)+'</span><span class="ph-ava-sub">📷 未展示照片</span>';
+    return d;
+  }
+  /* 全局钩子：img onerror 调这里，换成头像占位 */
+  window.__phFail=function(img){
+    var ph=img?img.parentNode:null;
+    if(!ph||ph.getAttribute('data-ava')==='1')return;
+    ph.setAttribute('data-ava','1');
+    if(img.parentNode)img.remove();
+    ph.insertBefore(avatarEl(ph.getAttribute('data-cid'),ph.getAttribute('data-nm')),ph.firstChild);
+  };
   function render(){
     const app=document.getElementById('app'); if(!app) return;
     const myVotes=votedIds();
     let h='<div class="wrap">';
-    h+='<nav class="wall-nav"><div class="wall-nav-in">'+nav()+'</div></nav>';
+    const navR=nav();
+    if(!navR.existed){
+      h+='<nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span>'+
+        navR.items.map(function(a){ return '<a class="nl'+(a.on?' cur':'')+'" href="'+a.f+'">'+a.t+'</a>'; }).join('')+
+        '</div></nav>';
+    }
     // 统计
     const total=people.reduce(function(s,p){return s+(p.like_count||0);},0);
     h+='<div class="stats"><span>📸 候选人 '+people.length+'</span><span>🗳️ 累计 '+total+' 票</span><span>☁️ 全校实时共享</span></div>';
@@ -186,8 +222,12 @@
         const rank=i+1;
         const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
         const done=myVotes.includes(p.id);
+        const noPhoto=!p._src;
+        const phHTML=noPhoto
+          ? avatarEl(p.id,p.nickname).outerHTML
+          : '<img src="'+esc(p._src)+'" loading="lazy" alt="" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'" onerror="window.__phFail(this)">';
         h+='<div class="card">'
-          +'<div class="ph"><img src="'+esc(p._src||"")+'" loading="lazy" alt="" data-id="'+p.id+'" onerror="this.classList.add(\'broken\');this.parentNode.classList.add(\'empty-photo\');this.style.display=\'none\';"><span class="ph-ph"></span><span class="medal">'+medal+'</span></div>'
+          +'<div class="ph" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'">'+phHTML+'<span class="medal">'+medal+'</span></div>'
           +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
@@ -228,6 +268,13 @@
     });
     const rt=document.getElementById('retryLoad');
     if(rt){ rt.onclick=function(){ if(typeof window.supabase==='undefined'){ location.reload(); return; } loading=false; loadCands().then(function(){ render(); }).catch(function(){ render(); }); }; }
+    /* 照片看门狗：12s 内未成功/未失败的图片 → 自动换头像占位，杜绝永远"加载中" */
+    document.querySelectorAll('img[data-cid]').forEach(function(img){
+      if(img.complete && img.naturalWidth>0)return;
+      setTimeout(function(){
+        if(!img.complete || img.naturalWidth===0){ window.__phFail(img); }
+      },12000);
+    });
     // 深色模式跟随
     if(localStorage.getItem('wallDark')==='1') document.body.classList.add('dark');
   }
