@@ -160,10 +160,10 @@ function renderAppeals(rows){
     const st=a.status;
     const stTag=st==="pending"?'<span class="tag pend">待处理</span>':(st==="resolved"?'<span class="tag res">已处置</span>':'<span class="tag dis">已驳回</span>');
     const div=document.createElement("div");div.className="card";
-    div.innerHTML='<div class="t">#'+a.id+' · '+(a.target_kind==="candidate"?"候选人":"表白")+' <span class="tag">'+a.target_kind+'</span> <span style="color:var(--sub);font-weight:400;font-size:12px">目标 #'+a.target_id+'</span> '+stTag+'</div>'
+    div.innerHTML='<div class="t">#'+Number(a.id||0)+' · '+(a.target_kind==="candidate"?"候选人":"表白")+' <span class="tag">'+esc(a.target_kind||"")+'</span> <span style="color:var(--sub);font-weight:400;font-size:12px">目标 #'+Number(a.target_id||0)+'</span> '+stTag+'</div>'
       +'<div class="d">理由：'+esc(a.reason||"（未填写）")+'</div>'
-      +'<div class="meta">发起人：'+esc(a.requestor||"匿名")+' · 提交 '+fmtTime(a.created_at)+(a.resolved_action?' · 处置 '+a.resolved_action:'')+(a.resolved_at?' @ '+fmtTime(a.resolved_at):'')+'</div>'
-      +(st==="pending"?'<div class="acts"><button class="btn sm pri" onclick="resolve('+a.id+',\'remove_photo\')">删除照片/内容</button><button class="btn sm" onclick="resolve('+a.id+',\'dismiss\')">驳回</button></div>':'');
+      +'<div class="meta">发起人：'+esc(a.requestor||"匿名")+' · 提交 '+fmtTime(a.created_at)+(a.resolved_action?' · 处置 '+esc(a.resolved_action):'')+(a.resolved_at?' @ '+fmtTime(a.resolved_at):'')+'</div>'
+      +(st==="pending"?'<div class="acts"><button class="btn sm pri" onclick="resolve('+Number(a.id||0)+',\'remove_photo\')">删除照片/内容</button><button class="btn sm" onclick="resolve('+Number(a.id||0)+',\'dismiss\')">驳回</button></div>':'');
     wrap.appendChild(div);
   });
 }
@@ -186,15 +186,16 @@ function renderCands(rows){
     const div=document.createElement("div");div.className="card";
     let ph="";
     if(c.photo_url){
-      if(/^https?:/.test(c.photo_url))ph='<img class="photo-thumb" src="'+esc(c.photo_url)+'" alt="">';
-      else ph='<img class="photo-thumb" data-sig="'+esc(c.photo_url)+'" alt="">';
+      if(/^https?:/i.test(c.photo_url))ph='<img class="photo-thumb" src="'+esc(c.photo_url)+'" alt="">';
+      else if((/^xiaohua\//.test(c.photo_url)||/^xiaocao\//.test(c.photo_url)))ph='<img class="photo-thumb" data-sig="'+esc(c.photo_url)+'" alt="">';
+      // 其他路径（含 javascript: 等伪协议）一律不渲染
     }
     div.innerHTML=ph
       +'<div class="t" style="margin-top:6px">'+esc(c.nickname||"神秘人")+'<span class="tag">'+(c.kind==="xiaohua"?"校花":"校草")+'</span>'
       +(on?'<span class="tag on">投票中</span>':'<span class="tag off">投票已关</span>')
       +' <span style="color:var(--sub);font-weight:400;font-size:12px">🗳️ '+(c.like_count||0)+' 票</span></div>'
-      +'<div class="meta">#'+c.id+' · 班级 '+(esc(c.class_no||"—")+' · 状态 '+c.status)+'</div>'
-      +'<div class="acts">'+(on?'<button class="btn sm" onclick="toggle('+c.id+',false)">关闭投票</button>':'<button class="btn sm pri" onclick="toggle('+c.id+',true)">开启投票</button>')+'</div>';
+      +'<div class="meta">#'+Number(c.id||0)+' · 班级 '+(esc(c.class_no||"—")+' · 状态 '+esc(c.status||""))+'</div>'
+      +'<div class="acts">'+(on?'<button class="btn sm" onclick="toggle('+Number(c.id||0)+',false)">关闭投票</button>':'<button class="btn sm pri" onclick="toggle('+Number(c.id||0)+',true)">开启投票</button>')+'</div>';
     wrap.appendChild(div);
   });
   // 签名照片（相对路径 → Edge 签名）
@@ -230,11 +231,11 @@ function renderReports(rows,ctx){
   pending.forEach(function(r){
     const w=(ctx&&ctx[r.wall_id])||null;
     const div=document.createElement("div");div.className="card";
-    div.innerHTML='<div class="t">#'+r.id+' · 举报 表白帖 #'+r.wall_id+' <span class="tag pend">待处理</span></div>'
+    div.innerHTML='<div class="t">#'+Number(r.id||0)+' · 举报 表白帖 #'+Number(r.wall_id||0)+' <span class="tag pend">待处理</span></div>'
       +'<div class="d">举报理由：'+esc(r.detail||r.reason||"（未填写）")+'</div>'
-      +(w?'<div class="d" style="border-left:3px solid var(--line);padding-left:8px;margin-top:4px">被举报内容：'+esc(w.target_name||"")+' — 「'+esc((w.love_msg||w.msg||"").slice(0,60))+'」 <span class="tag">当前 '+(w.status||"?")+'</span></div>':'<div class="d" style="color:#b58ea0">（被举报帖已不存在或不在当前集合）</div>')
+      +(w?'<div class="d" style="border-left:3px solid var(--line);padding-left:8px;margin-top:4px">被举报内容：'+esc(w.target_name||"")+' — 「'+esc((w.love_msg||w.msg||"").slice(0,60))+'」 <span class="tag">当前 '+esc(w.status||"?")+'</span></div>':'<div class="d" style="color:#b58ea0">（被举报帖已不存在或不在当前集合）</div>')
       +'<div class="meta">提交 '+fmtTime(r.created_at)+'</div>'
-      +'<div class="acts"><button class="btn sm pri" onclick="resolveReport('+r.id+',\'hide_post\')">隐藏内容</button><button class="btn sm" onclick="resolveReport('+r.id+',\'dismiss\')">驳回</button></div>';
+      +'<div class="acts"><button class="btn sm pri" onclick="resolveReport('+Number(r.id||0)+',\'hide_post\')">隐藏内容</button><button class="btn sm" onclick="resolveReport('+Number(r.id||0)+',\'dismiss\')">驳回</button></div>';
     wrap.appendChild(div);
   });
 }
