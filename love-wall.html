@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我的专属表白墙</title>
+<title>我的专属表白�?/title>
 <script src="assets/supabase.js?v=1"></script><script src="assets/device-fp.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
 <script src="assets/qrcode.js?v=1"></script><script>if(typeof QRCode==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"><\/script>')}</script>
-<script src="assets/announce.js?v=1"></script>
+<script src="assets/announce.js?v=2"></script>
 <style>
 :root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
 
@@ -62,7 +62,7 @@ label{display:block;font-size:.72rem;color:var(--muted);margin-bottom:6px;letter
 input,select,textarea{width:100%;padding:11px 14px;border-radius:12px;border:1px solid #ffd7e0;font-size:.95rem;background:var(--card);color:var(--ink);outline:none;transition:.2s;font-family:inherit}
 textarea{min-height:90px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(255,77,109,.12)}
-/* 匿名开关 */
+/* 匿名开�?*/
 .anon-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.88rem;color:var(--muted)}
 .anon-row input{width:auto}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -113,7 +113,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 
 .group.male .card::before{background:linear-gradient(var(--blue),var(--blue-l))}
 .group.female .card::before{background:linear-gradient(var(--pink),var(--pink-l))}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.10)}
-/* 扫码定��高亮 */
+/* 扫码定��高�?*/
 .card.highlight{outline:4px solid var(--rose);outline-offset:2px;box-shadow:0 0 0 8px rgba(255,77,109,.18)}
 .card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
 .card .who{font-size:1rem;font-weight:700}
@@ -212,7 +212,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .nbtn.solid{border:none;background:linear-gradient(135deg,#ff5f73,#ff2e63);color:#fff;font-weight:600;box-shadow:0 6px 16px rgba(255,46,99,.3)}
 .nbtn.solid:hover{transform:translateY(-1px)}
 @media(max-width:520px){.notice-card{padding:20px 16px}}
-/* 主区双栏 + 左侧排行榜 */
+/* 主区双栏 + 左侧排行�?*/
 .main-grid{display:grid;grid-template-columns:1fr;gap:18px}
 @media(min-width:900px){.main-grid{grid-template-columns:300px minmax(0,1fr)}.rank-panel{position:sticky;top:14px;align-self:start}}
 .rank-panel{background:var(--card,#fff);border:1px solid var(--line,#ffd6e0);border-radius:18px;padding:16px}
@@ -228,7 +228,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .rank-item .rw{font-size:.85rem;font-weight:600;color:#3a0a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rank-item .rs{font-size:.7rem;color:#999}
 .rank-empty{color:#bbb;font-size:.85rem;padding:12px 0}
-/* 表白墙 男左女右 双栏 */
+/* 表白�?男左女右 双栏 */
 .groups{display:grid;grid-template-columns:1fr;gap:18px}
 @media(min-width:760px){.groups{grid-template-columns:1fr 1fr}}
 .group:only-child{grid-column:1/-1}
@@ -239,7 +239,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .dmb.on-m{border-color:#4d96ff;background:#eaf2ff;color:#1d5fd6}
 .dmb.on-f{border-color:#ff4d6d;background:#fff0f4;color:#d61c4e}
 .dir-sub{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-/* 倒赞 / 送礼物快按 */
+/* 倒赞 / 送礼物快�?*/
 .dislike-btn{cursor:pointer;color:#9aa;font-size:14px}
 .dislike-btn.on{color:#5a6b8c;font-weight:700}
 .giftq-btn{cursor:pointer;font-size:14px;border:1px solid #ffd6e0;background:#fff;border-radius:9px;padding:1px 8px;color:#c4002a}
@@ -251,9 +251,9 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .giftq-box .gg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
 .giftq-box button.gb{width:50px;height:50px;font-size:24px;background:#fff7f9;border:2px solid #ffd6e0;border-radius:12px;cursor:pointer;padding:0}
 .giftq-box button.gb:hover{border-color:#ff4d6d;transform:translateY(-2px)}
-.giftq-act{display:flex;gap:8px;justify-content:center}@media(max-width:560px){.compose-body{display:none}.compose.expanded .compose-body{display:block}.compose h2{cursor:pointer;user-select:none}.compose h2::after{content:"展开 ▾";float:right;font-size:.8rem;color:var(--muted);font-weight:normal}.compose.expanded h2::after{content:"收起 ▴"}}
+.giftq-act{display:flex;gap:8px;justify-content:center}@media(max-width:560px){.compose-body{display:none}.compose.expanded .compose-body{display:block}.compose h2{cursor:pointer;user-select:none}.compose h2::after{content:"展开 �?;float:right;font-size:.8rem;color:var(--muted);font-weight:normal}.compose.expanded h2::after{content:"收起 �?}}
 @media(min-width:561px){.compose-body{display:block!important}}
-.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}/* 首屏减负：默认收起"更多选项" */
+.nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}/* 首屏减负：默认收�?更多选项" */
 .more-opt,.more-opt-chip{display:none}
 body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
 @media(max-width:680px){.opt-toggle{width:100%;text-align:center}}
@@ -261,18 +261,18 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
 @keyframes hlflash{0%{outline:3px solid rgba(196,0,42,.7);outline-offset:3px}100%{outline:3px solid transparent}}
 </style>
 </head><body>
-<nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
+<nav class="nav"><div class="nav-in"><span class="brand">🏫 校园�?small>· 重庆第二外国语学�?/small></span><a class="nl" href="index.html">🏠 总入�?/a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
 
 <div class="love-float" id="floatLayer"></div>
 <div class="wrap">
   <header>
     <div class="heart-badge">❤️</div>
-    <h1>我的专属表白墙</h1>
+    <h1>我的专属表白�?/h1>
     <div class="sub">LOVE WALL · 把想说的话，贴到墙上</div>
   </header>
     <div class="toggle-bar">
     <button class="toggle-btn" id="themeBtn">🌙 深色模式</button>
-    <button class="toggle-btn" id="musicBtn">🎵 开启音乐</button>
+    <button class="toggle-btn" id="musicBtn">🎵 开启音�?/button>
   </div>
   <div class="stats">
     <div class="stat"><div class="num" id="stMsg">0</div><div class="lbl">表白留言</div></div>
@@ -282,26 +282,26 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
   </div>
   <div id="hotWrap"></div>
   <div class="legend">
-    <div class="lg"><span class="dotb"></span>男 → 男 / 男 → 女（蓝色区）</div>
-    <div class="lg"><span class="dotp"></span>女 → 男 / 女 → 女（粉色区）</div>
+    <div class="lg"><span class="dotb"></span>�?�?�?/ �?�?女（蓝色区）</div>
+    <div class="lg"><span class="dotp"></span>�?�?�?/ �?�?女（粉色区）</div>
   </div>
   <section class="compose">
-    <h2 id="composeToggle"><span class="dot"></span>写一条表白</h2>
+    <h2 id="composeToggle"><span class="dot"></span>写一条表�?/h2>
     <div class="compose-body" id="composeBody">
     <div class="anon-row">
       <input type="checkbox" id="inAnon">
-      <label for="inAnon" style="margin:0">完全匿名（署名显示为"神秘人"）</label>
+      <label for="inAnon" style="margin:0">完全匿名（署名显示为"神秘�?�?/label>
     </div>
     <div class="row">
-      <div class="field"><label>你的昵称</label><input id="inName" placeholder="匿名可不填" maxlength="12"></div>
-      <div class="field"><label>表白对象（昵称，勿用真实全名）</label><input id="inTo" placeholder="对象昵称（≤4字，建议匿名昵称）" maxlength="4"></div>
-      <div class="field"><label>年级（202 几级）</label>
+      <div class="field"><label>你的昵称</label><input id="inName" placeholder="匿名可不�? maxlength="12"></div>
+      <div class="field"><label>表白对象（昵称，勿用真实全名�?/label><input id="inTo" placeholder="对象昵称（≤4字，建议匿名昵称�? maxlength="4"></div>
+      <div class="field"><label>年级�?02 几级�?/label>
         <select id="inYear">
-          <option value="2027">2027级</option><option value="2028">2028级</option><option value="2029">2029级</option>
+          <option value="2027">2027�?/option><option value="2028">2028�?/option><option value="2029">2029�?/option>
         </select>
       </div>
       <div class="field"><label>班级</label>
-        <select id="inClass"><option value="1">1班</option><option value="2">2班</option><option value="3">3班</option><option value="4">4班</option><option value="5">5班</option><option value="6">6班</option><option value="7">7班</option><option value="8">8班</option><option value="9">9班</option><option value="10">10班</option><option value="11">11班</option><option value="12">12班</option><option value="13">13班</option><option value="14">14班</option><option value="15">15班</option><option value="16">16班</option><option value="17">17班</option><option value="18">18班</option><option value="19">19班</option><option value="20">20班</option><option value="21">21班</option><option value="22">22班</option><option value="23">23班</option><option value="24">24班</option><option value="25">25班</option></select>
+        <select id="inClass"><option value="1">1�?/option><option value="2">2�?/option><option value="3">3�?/option><option value="4">4�?/option><option value="5">5�?/option><option value="6">6�?/option><option value="7">7�?/option><option value="8">8�?/option><option value="9">9�?/option><option value="10">10�?/option><option value="11">11�?/option><option value="12">12�?/option><option value="13">13�?/option><option value="14">14�?/option><option value="15">15�?/option><option value="16">16�?/option><option value="17">17�?/option><option value="18">18�?/option><option value="19">19�?/option><option value="20">20�?/option><option value="21">21�?/option><option value="22">22�?/option><option value="23">23�?/option><option value="24">24�?/option><option value="25">25�?/option></select>
       </div>
       <div class="field"><label>标签</label>
         <select id="inTag">
@@ -311,32 +311,32 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
       </div>
     </div>
     <div class="row">
-      <div class="field"><label>我的性别</label><select id="inFrom"><option value="男">男</option><option value="女">女</option></select></div>
-      <div class="field"><label>对象性别</label><select id="inToG"><option value="男">男</option><option value="女">女</option></select></div>
+      <div class="field"><label>我的性别</label><select id="inFrom"><option value="�?>�?/option><option value="�?>�?/option></select></div>
+      <div class="field"><label>对象性别</label><select id="inToG"><option value="�?>�?/option><option value="�?>�?/option></select></div>
     </div>
-    <button type="button" class="opt-toggle" id="optToggle" style="border:1px dashed rgba(196,0,42,.35);background:none;color:#c4002a;font-size:12px;padding:6px 12px;border-radius:10px;cursor:pointer;margin:8px 0">▾ 更多选项（礼物/快捷语）</button>
+    <button type="button" class="opt-toggle" id="optToggle" style="border:1px dashed rgba(196,0,42,.35);background:none;color:#c4002a;font-size:12px;padding:6px 12px;border-radius:10px;cursor:pointer;margin:8px 0">�?更多选项（礼�?快捷语）</button>
 <div class="gift-pick more-opt">
-      <label>附一个虚拟礼物 <span class="hint">（可选，随表白送出）</span></label>
-      <div class="gift-grid" id="giftGrid"><button type="button" class="gift-btn" data-gift="🌹">🌹</button><button type="button" class="gift-btn" data-gift="❤️">❤️</button><button type="button" class="gift-btn" data-gift="🧸">🧸</button><button type="button" class="gift-btn" data-gift="🎂">🎂</button><button type="button" class="gift-btn" data-gift="⭐">⭐</button><button type="button" class="gift-btn" data-gift="🎈">🎈</button><button type="button" class="gift-btn" data-gift="🍫">🍫</button><button type="button" class="gift-btn" data-gift="🍀">🍀</button></div>
+      <label>附一个虚拟礼�?<span class="hint">（可选，随表白送出�?/span></label>
+      <div class="gift-grid" id="giftGrid"><button type="button" class="gift-btn" data-gift="🌹">🌹</button><button type="button" class="gift-btn" data-gift="❤️">❤️</button><button type="button" class="gift-btn" data-gift="🧸">🧸</button><button type="button" class="gift-btn" data-gift="🎂">🎂</button><button type="button" class="gift-btn" data-gift="�?>�?/button><button type="button" class="gift-btn" data-gift="🎈">🎈</button><button type="button" class="gift-btn" data-gift="🍫">🍫</button><button type="button" class="gift-btn" data-gift="🍀">🍀</button></div>
     </div>
-    <textarea id="inMsg" placeholder="在这里写下你想说的话…" maxlength="200"></textarea>
+    <textarea id="inMsg" placeholder="在这里写下你想说的话�? maxlength="200"></textarea>
     <div class="chips" id="quickChips">
-      <span class="chip">我喜欢你 ❤</span>
-      <span class="chip">遇见你真好</span>
-      <span class="chip">愿未来有你</span>
-      <span class="chip">天天开心</span>
-      <span class="chip">谢谢你 🌟</span>
-      <span class="chip more-opt-chip">想你了 🌙</span>
+      <span class="chip">我喜欢你 �?/span>
+      <span class="chip">遇见你真�?/span>
+      <span class="chip">愿未来有�?/span>
+      <span class="chip">天天开�?/span>
+      <span class="chip">谢谢�?🌟</span>
+      <span class="chip more-opt-chip">想你�?🌙</span>
     </div>
-    <div class="consent-row" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 4px;font-size:12px;color:#8a5a68;line-height:1.6"><input type="checkbox" id="inConsent" style="margin-top:2px"><label for="inConsent" style="margin:0">我已了解：本墙公开显示对象的<b>真实姓名</b>与班级，可能被他人看到。请只在<b>自愿</b>情况下发表，勿发布自己或他人的侮辱、骚扰内容；若被表白对象或本人/家长希望下架，可点卡片「⚖️ 申请下架」或举报，管理方会尽快处理并匿名化。</label></div><button class="btn" id="postBtn">贴上表白墙 →</button>
+    <div class="consent-row" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 4px;font-size:12px;color:#8a5a68;line-height:1.6"><input type="checkbox" id="inConsent" style="margin-top:2px"><label for="inConsent" style="margin:0">我已了解：本墙公开显示对象�?b>真实姓名</b>与班级，可能被他人看到。请只在<b>自愿</b>情况下发表，勿发布自己或他人的侮辱、骚扰内容；若被表白对象或本�?家长希望下架，可点卡片「⚖�?申请下架」或举报，管理方会尽快处理并匿名化�?/label></div><button class="btn" id="postBtn">贴上表白�?�?/button>
     </div>
   </section>
   <div class="main-grid">
-    <aside class="rank-panel" id="rankPanel"><h3>🏆 人气排行榜</h3><div class="rank-list" id="rankList"><div class="rank-empty">还没有表白，快写下第一条</div></div></aside>
+    <aside class="rank-panel" id="rankPanel"><h3>🏆 人气排行�?/h3><div class="rank-list" id="rankList"><div class="rank-empty">还没有表白，快写下第一�?/div></div></aside>
     <div class="wall-main">
   <div class="toolbar">
     <div class="search-bar">
-      <input id="inSearch" placeholder="🔍 搜索昵称、对象或内容…">
+      <input id="inSearch" placeholder="🔍 搜索昵称、对象或内容�?>
     </div>
     <div class="tabs" id="tabs">
       <span class="tab on" data-t="all">全部</span>
@@ -347,32 +347,32 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
       <span class="tab" data-t="思念">思念</span>
     </div>
     <div class="subtabs" id="yearTabs">
-      <span class="lbl">年级：</span>
+      <span class="lbl">年级�?/span>
       <span class="stab on-all" data-y="all">全部年级</span>
-      <span class="stab" data-y="2027">2027级</span>
-      <span class="stab" data-y="2028">2028级</span>
-      <span class="stab" data-y="2029">2029级</span>
+      <span class="stab" data-y="2027">2027�?/span>
+      <span class="stab" data-y="2028">2028�?/span>
+      <span class="stab" data-y="2029">2029�?/span>
     </div>
     <div class="subtabs" id="classTabs">
-      <span class="lbl">班级：</span>
+      <span class="lbl">班级�?/span>
       <span class="stab on-all" data-c="all">全部班级</span>
-      <span class="stab" data-c="1">1班</span><span class="stab" data-c="2">2班</span><span class="stab" data-c="3">3班</span><span class="stab" data-c="4">4班</span><span class="stab" data-c="5">5班</span><span class="stab" data-c="6">6班</span><span class="stab" data-c="7">7班</span><span class="stab" data-c="8">8班</span><span class="stab" data-c="9">9班</span><span class="stab" data-c="10">10班</span><span class="stab" data-c="11">11班</span><span class="stab" data-c="12">12班</span><span class="stab" data-c="13">13班</span><span class="stab" data-c="14">14班</span><span class="stab" data-c="15">15班</span><span class="stab" data-c="16">16班</span><span class="stab" data-c="17">17班</span><span class="stab" data-c="18">18班</span><span class="stab" data-c="19">19班</span><span class="stab" data-c="20">20班</span><span class="stab" data-c="21">21班</span><span class="stab" data-c="22">22班</span><span class="stab" data-c="23">23班</span><span class="stab" data-c="24">24班</span><span class="stab" data-c="25">25班</span>
+      <span class="stab" data-c="1">1�?/span><span class="stab" data-c="2">2�?/span><span class="stab" data-c="3">3�?/span><span class="stab" data-c="4">4�?/span><span class="stab" data-c="5">5�?/span><span class="stab" data-c="6">6�?/span><span class="stab" data-c="7">7�?/span><span class="stab" data-c="8">8�?/span><span class="stab" data-c="9">9�?/span><span class="stab" data-c="10">10�?/span><span class="stab" data-c="11">11�?/span><span class="stab" data-c="12">12�?/span><span class="stab" data-c="13">13�?/span><span class="stab" data-c="14">14�?/span><span class="stab" data-c="15">15�?/span><span class="stab" data-c="16">16�?/span><span class="stab" data-c="17">17�?/span><span class="stab" data-c="18">18�?/span><span class="stab" data-c="19">19�?/span><span class="stab" data-c="20">20�?/span><span class="stab" data-c="21">21�?/span><span class="stab" data-c="22">22�?/span><span class="stab" data-c="23">23�?/span><span class="stab" data-c="24">24�?/span><span class="stab" data-c="25">25�?/span>
     </div>
     <div class="subtabs" id="genderTabs">
-      <span class="lbl">方向：</span>
+      <span class="lbl">方向�?/span>
       <div class="dir-major" id="dirMajor">
         <span class="dmb on-a" data-major="all">全部</span>
-        <span class="dmb" data-major="男">男</span>
-        <span class="dmb" data-major="女">女</span>
+        <span class="dmb" data-major="�?>�?/span>
+        <span class="dmb" data-major="�?>�?/span>
       </div>
       <div class="dir-sub" id="dirSub"></div>
     </div>
   </div>
-  <div class="wall" id="wall"><div class="loading" id="loadState"><span class="spin"></span>正在加载表白墙…</div></div>
+  <div class="wall" id="wall"><div class="loading" id="loadState"><span class="spin"></span>正在加载表白墙�?/div></div>
     </div>
   </div>
-  <footer id="footer">把爱说出来 · 全校共享的表白墙（内容问题点卡片「举报 / 申请下架」，管理员在统一后台处置）</footer>
-<button id="composeFloat" style="position:fixed;right:16px;bottom:18px;z-index:60;display:none;background:#c4002a;color:#fff;border:none;border-radius:24px;padding:10px 18px;font-size:14px;box-shadow:0 6px 18px rgba(196,0,42,.35);cursor:pointer">✍️ 写表白</button>
+  <footer id="footer">把爱说出�?· 全校共享的表白墙（内容问题点卡片「举�?/ 申请下架」，管理员在统一后台处置�?/footer>
+<button id="composeFloat" style="position:fixed;right:16px;bottom:18px;z-index:60;display:none;background:#c4002a;color:#fff;border:none;border-radius:24px;padding:10px 18px;font-size:14px;box-shadow:0 6px 18px rgba(196,0,42,.35);cursor:pointer">✍️ 写表�?/button>
 </div>
 <div class="poster-modal" id="posterModal">
   <div class="poster-box">
@@ -395,10 +395,10 @@ let sb=null;
   if(window.supabase&&window.supabase.createClient){ sb=window.supabase.createClient(SUPA_URL,SUPA_KEY); return; }
   /* CDN 失败兜底：不崩，给出可重试提示，交互降级 */
   var el=document.getElementById("loadState");
-  if(el){el.style.display="block";el.textContent="加载依赖失败，点击重试";el.classList.add("err");el.onclick=function(){location.reload();};}
-  console.error("supabase-js CDN 未加载，交互不可用");
+  if(el){el.style.display="block";el.textContent="加载依赖失败，点击重�?;el.classList.add("err");el.onclick=function(){location.reload();};}
+  console.error("supabase-js CDN 未加载，交互不可�?);
 })();
-/* null-safe：CDN 失败时所有 sb.xxx 调用返回离线降级对象，避免 TypeError 白屏 */
+/* null-safe：CDN 失败时所�?sb.xxx 调用返回离线降级对象，避�?TypeError 白屏 */
 if(!sb){
   (function offline(){
     var fake=function(){var o={};["select","eq","ilike","limit","order","insert","update","delete","upsert","single"].forEach(function(m){o[m]=function(){return o;};});
@@ -406,22 +406,22 @@ if(!sb){
     sb={from:fake,rpc:function(){return Promise.resolve({data:null,error:{message:"supabase offline"}});},channel:function(){return {on:function(){return this;},subscribe:function(){return this;},unsubscribe:function(){}};},auth:{getUser:function(){return Promise.resolve({data:{user:null},error:null});}},storage:{from:function(){return {upload:function(){return Promise.resolve({data:null,error:{message:"offline"}});},getPublicUrl:function(){return {data:{publicUrl:""},error:null};}};}}};
   })();
 }
-/* Edge 缓存层：优先走 /functions/v1/wall-cache（藏 service key + 60s 缓存），失败自动回退直连数据库 */
+/* Edge 缓存层：优先�?/functions/v1/wall-cache（藏 service key + 60s 缓存），失败自动回退直连数据�?*/
 const EDGE_URL=SUPA_URL+"/functions/v1/wall-cache";
-/* 管理入口/隐藏操作走 wall-admin（service-key 代理 + 管理密码门禁）；wall-cache 只做读缓存 */
+/* 管理入口/隐藏操作�?wall-admin（service-key 代理 + 管理密码门禁）；wall-cache 只做读缓�?*/
 const EDGE_ADMIN=SUPA_URL+"/functions/v1/wall-admin";
 let __edgeOk=true;let __edgeGifts=null;
 async function edgeFetch(limit){const u=EDGE_URL+"?limit="+limit;const r=await fetch(u,{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}});if(!r.ok)throw new Error("edge "+r.status);const j=await r.json();if(!j||!j.ok)throw new Error("edge bad");return j}
-/* 管理鉴权已移至 Edge 函数环境变量 ADMIN_PWD，前端不再存明文密码 */
-/* 修复 D：海报/二维码指向单条（?post=id），扫出来能直达定位 */
+/* 管理鉴权已移�?Edge 函数环境变量 ADMIN_PWD，前端不再存明文密码 */
+/* 修复 D：海�?二维码指向单条（?post=id），扫出来能直达定位 */
 const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?location.origin+"/":"https://wutongyu1213.github.io/wall/";
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
-/* BGM 云端唯一音源：Supabase 公开桶 wall-audio（告白气球·周杰伦）；本地 Pages 已移除 mp3 */
+/* BGM 云端唯一音源：Supabase 公开�?wall-audio（告白气球·周杰伦）；本地 Pages 已移�?mp3 */
 const BGM_CLOUD="https://dpceuvqtwvhoipxhozxz.supabase.co/storage/v1/object/public/wall-audio/bgm.mp3";
 const BGM_URLS=[BGM_CLOUD];
-/* BGM 可达性预检：不在迭代中 splice 自身；no-cors 下 status 恒为 0 属正常，仅明确 404/403 才剔除，网络异常保留本地兜底 */
+/* BGM 可达性预检：不在迭代中 splice 自身；no-cors �?status 恒为 0 属正常，仅明�?404/403 才剔除，网络异常保留本地兜底 */
 (function(){var list=BGM_URLS.slice();list.forEach(function(u){fetch(u,{method:"HEAD"}).then(function(r){if(r.status===404||r.status===403||r.status===401){BGM_URLS.splice(BGM_URLS.indexOf(u),1)}}).catch(function(){})})})();
 const bgm=document.getElementById("bgm");bgm.volume=0.35;let bgmIndex=0;
 function tryBgm(){if(bgmIndex>=BGM_URLS.length)return false;bgm.src=BGM_URLS[bgmIndex];return true}
@@ -445,46 +445,46 @@ function saveLiked(){localStorage.setItem(LIKED_KEY,JSON.stringify([...likedSet]
 function userKey(){if(window.__wallDevice){try{var d=window.__wallDevice.id();if(d)return d}catch(e){}}let k=localStorage.getItem("wallUserKey");if(!k){k="u"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallUserKey",k)}return k}
 function wallIp(){try{return(window.__wallDevice&&window.__wallDevice.ip())||undefined}catch(e){return undefined}}
 function keyOf(c){return c.fromG+c.toG}
-function groupOf(c){return c.fromG==="男"?"male":"female"}
+function groupOf(c){return c.fromG==="�??"male":"female"}
 function loadState(msg,spin){const el=document.getElementById("loadState");if(!el)return;el.className="loading"+(spin?"":" error");el.innerHTML=(spin?'<span class="spin"></span>':'')+msg}
 async function load(){if(busy)return;busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
-wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
-/* gifts：merge 而非全量替换，防止送礼后并发 load 覆盖本地 push */
+wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"�?,toG:r.target_gender||"�?,msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
+/* gifts：merge 而非全量替换，防止送礼后并�?load 覆盖本地 push */
 if((j.gifts||[]).length){(j.gifts).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)})}
 /* badWords：与内置词合并去重（而非替换），Edge 返回小列表不会清空内置词 */
 if((j.badWords||[]).length){j.badWords.forEach(function(w){if(w&&BAD_WORDS.indexOf(w)<0)BAD_WORDS.push(w)})}
 const vse=document.getElementById("stVisit");if(vse&&j.visitCount!=null)vse.textContent=j.visitCount;
 busy=false;shownCount=PAGE;render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
-const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);giftByWall={};(gq.data||[]).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)});shownCount=PAGE;render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
-/* 修复 C：统计"署名的人"只算有昵称的，匿名不算重名 */
-function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘人").map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
+const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重�?,false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"�?,toG:r.target_gender||"�?,msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);giftByWall={};(gq.data||[]).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)});shownCount=PAGE;render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
+/* 修复 C：统�?署名的人"只算有昵称的，匿名不算重�?*/
+function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘�?).map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
 async function loadVisits(){try{const {data}=await sb.from("visit_counter").select("total").limit(1);const v=(data&&data[0])?data[0].total:0;document.getElementById("stVisit").textContent=v}catch(e){try{const {count}=await sb.from("visits").select("id",{count:"exact",head:true});document.getElementById("stVisit").textContent=(count||0)}catch(_){}}}
 function recordVisit(){let vk=localStorage.getItem("wallVisitKey");if(!vk){vk="v"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("wallVisitKey",vk)}try{sb.rpc("fn_wall_visit",{p_visit_key:vk,p_ip_hash:wallIp()||undefined}).then(function(){}).catch(function(){});}catch(e){}}
-function renderHot(){const wrap=document.getElementById("hotWrap");if(wall.length===0){wrap.innerHTML="";return}const hot=wall.slice().sort((a,b)=>(b.likes||0)-(a.likes||0))[0];wrap.innerHTML='<div class="hot-banner"><div class="icon">🏆</div><div class="txt"><div class="lbl">全场最热 · 点赞最多</div><div class="who">'+esc(hot.name)+'<span class="to">→ '+esc(hot.to)+'</span></div></div><div class="likes">'+(hot.likes||0)+'<small>❤ 点赞</small></div></div>'}
-function renderRank(){const rp=document.getElementById("rankPanel");if(!rp)return;const rl=document.getElementById("rankList");if(!wall.length){rl.innerHTML='<div class="rank-empty">还没有表白，快写下第一条</div>';return}
+function renderHot(){const wrap=document.getElementById("hotWrap");if(wall.length===0){wrap.innerHTML="";return}const hot=wall.slice().sort((a,b)=>(b.likes||0)-(a.likes||0))[0];wrap.innerHTML='<div class="hot-banner"><div class="icon">🏆</div><div class="txt"><div class="lbl">全场最�?· 点赞最�?/div><div class="who">'+esc(hot.name)+'<span class="to">�?'+esc(hot.to)+'</span></div></div><div class="likes">'+(hot.likes||0)+'<small>�?点赞</small></div></div>'}
+function renderRank(){const rp=document.getElementById("rankPanel");if(!rp)return;const rl=document.getElementById("rankList");if(!wall.length){rl.innerHTML='<div class="rank-empty">还没有表白，快写下第一�?/div>';return}
 const top=wall.slice().sort((a,b)=>((b.likes||0)-(b.dislikes||0))-((a.likes||0)-(a.dislikes||0))).slice(0,10);
-rl.innerHTML=top.map((c,i)=>'<div class="rank-item" data-goto="'+c.id+'"><span class="rk">'+(i+1)+'</span><div class="rt"><div class="rw">'+esc(c.name)+' → '+esc(c.to)+'</div><div class="rs">'+esc(c.year)+'级'+esc(c.cls)+'班 · ❤'+(c.likes||0)+(c.dislikes?' · 👎'+c.dislikes:'')+'</div></div></div>').join("");
+rl.innerHTML=top.map((c,i)=>'<div class="rank-item" data-goto="'+c.id+'"><span class="rk">'+(i+1)+'</span><div class="rt"><div class="rw">'+esc(c.name)+' �?'+esc(c.to)+'</div><div class="rs">'+esc(c.year)+'�?+esc(c.cls)+'�?· �?+(c.likes||0)+(c.dislikes?' · 👎'+c.dislikes:'')+'</div></div></div>').join("");
 rl.querySelectorAll(".rank-item").forEach(el=>{el.onclick=()=>{location.href=SITE_BASE+"?post="+el.dataset.goto}})}
 function bindGiftQ(){document.querySelectorAll("[data-giftq]").forEach(el=>{el.onclick=()=>openGiftQ(el.dataset.giftq)})}
 function openGiftQ(id){ensureGiftQ();document.getElementById("giftQModal").classList.add("show");document.getElementById("giftQTitle").textContent="送一个虚拟礼物给这条表白 🎁";document.querySelectorAll("#giftQGrid .gb").forEach(b=>{b.onclick=()=>sendGiftQ(id,b.dataset.g)})}
-function ensureGiftQ(){if(document.getElementById("giftQModal"))return;const m=document.createElement("div");m.className="giftq-modal";m.id="giftQModal";m.innerHTML='<div class="giftq-box"><h3 id="giftQTitle">送礼物</h3><div class="gg" id="giftQGrid">'+["🌹","❤️","🧸","🎂","⭐","🎈","🍫","🍀"].map(g=>'<button type="button" class="gb" data-g="'+g+'">'+g+'</button>').join("")+'</div><div class="giftq-act"><button id="giftQClose" type="button">取消</button></div></div>';document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.classList.remove("show")};document.getElementById("giftQClose").onclick=()=>m.classList.remove("show")}
-async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍等 20 秒");return}const giftRes=await sb.rpc("fn_wall_gift",{p_wall_id:Number(id),p_gift:gift,p_user_key:uk||"",p_ip:wallIp()});
-if(giftRes.error){toast("送出失败："+giftRes.error.message);return}
-localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();celebrate();toast("礼物送出 🎁 已贴到这条表白下面");document.getElementById("giftQModal").classList.remove("show");}
+function ensureGiftQ(){if(document.getElementById("giftQModal"))return;const m=document.createElement("div");m.className="giftq-modal";m.id="giftQModal";m.innerHTML='<div class="giftq-box"><h3 id="giftQTitle">送礼�?/h3><div class="gg" id="giftQGrid">'+["🌹","❤️","🧸","🎂","�?,"🎈","🍫","🍀"].map(g=>'<button type="button" class="gb" data-g="'+g+'">'+g+'</button>').join("")+'</div><div class="giftq-act"><button id="giftQClose" type="button">取消</button></div></div>';document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.classList.remove("show")};document.getElementById("giftQClose").onclick=()=>m.classList.remove("show")}
+async function sendGiftQ(id,gift){const uk=userKey();const lk="wallGiftQ_"+uk;const lt=parseInt(localStorage.getItem(lk)||"0",10);if((Date.now()-lt)/1000<20){toast("送礼物太频繁，稍�?20 �?);return}const giftRes=await sb.rpc("fn_wall_gift",{p_wall_id:Number(id),p_gift:gift,p_user_key:uk||"",p_ip:wallIp()});
+if(giftRes.error){toast("送出失败�?+giftRes.error.message);return}
+localStorage.setItem(lk,String(Date.now()));(giftByWall[id]=giftByWall[id]||[]).push(gift);render();celebrate();toast("礼物送出 🎁 已贴到这条表白下�?);document.getElementById("giftQModal").classList.remove("show");}
 let curTag="all",curGender="all",curMajor="all",curYear="all",curClass="all",curSearch="";
 const DLIKED_KEY="wallDisliked";let dislikedSet=new Set();
 try{dislikedSet=new Set((JSON.parse(localStorage.getItem(DLIKED_KEY))||[]).map(Number).filter(function(n){return n>0}))}catch(e){dislikedSet=new Set()}
 function saveDisliked(){localStorage.setItem(DLIKED_KEY,JSON.stringify([...dislikedSet]))}
 let giftByWall={};
-function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<60)return "刚刚";if(s<3600)return Math.floor(s/60)+" 分钟前";if(s<86400)return Math.floor(s/3600)+" 小时前";if(s<86400*7)return Math.floor(s/86400)+" 天前";return new Date(ts).toLocaleDateString("zh-CN")}
+function timeAgo(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<60)return "刚刚";if(s<3600)return Math.floor(s/60)+" 分钟�?;if(s<86400)return Math.floor(s/3600)+" 小时�?;if(s<86400*7)return Math.floor(s/86400)+" 天前";return new Date(ts).toLocaleDateString("zh-CN")}
 function esc(s){return (s||"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])})}
 /* URL scheme 防护：只允许 https/http，防 javascript:/data:/vbscript: 注入 */
 function safeUrl(u){if(!u)return "#";u=String(u);if(/^(https?:|\/|#|mailto:)/i.test(u))return u;if(/^(javascript|data|vbscript):/i.test(u))return "#";return u}
 const GROUP_GICONS={male:"👦",female:"👧"};
-const BAD_WORDS=["傻逼","傻B","操你","操你妈","妈的","妈批","妈卖","妈蛋","妈个","mmp","nmsl","nmzl","cnm","cnmd","尼玛","你妈","去你妈","去死","贱人","滚蛋","智障","脑瘫","鸡巴","死全家","草拟","拟吗","擦你","狗日","狗东西","恶心","辣鸡","垃圾","废物","人渣","不要脸","下贱","fuck","shit","bitch"];
+const BAD_WORDS=["傻�?,"傻B","操你","操你�?,"妈的","妈批","妈卖","妈蛋","妈个","mmp","nmsl","nmzl","cnm","cnmd","尼玛","你妈","去你�?,"去死","贱人","滚蛋","智障","脑瘫","鸡巴","死全�?,"草拟","拟吗","擦你","狗日","狗东�?,"恶心","辣鸡","垃圾","废物","人渣","不要�?,"下贱","fuck","shit","bitch"];
 const INV=String.fromCodePoint(173,8203,8204,8205,8206,8207,8234,8235,8236,8237,8238,8288,8289,8290,8291,8292,65279,160,12288,0x200B,0x200C,0x200D,0x2060,0x202A,0x202B,0x202C,0x202D,0x202E,0xFEFF);
-const MATH_ALIAS={"\u1D5D6":"f","\u1D5D7":"g","\u1D5DD":"m","\u1D5DE":"n","\u1D5DF":"o","\u1D5E2":"r","\u1D5E3":"s","\u1D5E4":"t","\u1D5E5":"u","\u1D5E6":"v","С":"c","О":"o","А":"a","Е":"e","Н":"h","Р":"p","К":"k","Т":"t","Х":"x","Μ":"m","Ρ":"p","Ν":"n","Χ":"x","Σ":"s","Ｏ":"o","Ｉ":"i","０":"0","１":"1","２":"2","３":"3","４":"4","５":"5","６":"6","７":"7","８":"8","９":"9","．":".","＋":"+","＆":"&"};
+const MATH_ALIAS={"\u1D5D6":"f","\u1D5D7":"g","\u1D5DD":"m","\u1D5DE":"n","\u1D5DF":"o","\u1D5E2":"r","\u1D5E3":"s","\u1D5E4":"t","\u1D5E5":"u","\u1D5E6":"v","С":"c","О":"o","А":"a","Е":"e","Н":"h","Р":"p","К":"k","Т":"t","Х":"x","Μ":"m","Ρ":"p","Ν":"n","Χ":"x","Σ":"s","�?:"o","�?:"i","�?:"0","�?:"1","�?:"2","�?:"3","�?:"4","�?:"5","�?:"6","�?:"7","�?:"8","�?:"9","�?:".","�?:"+","�?:"&"};
 function norm(t){let s=String(t||'').toLowerCase();s=s.replace(/\s/g,'');for(const c of INV){s=s.split(c).join('')}for(const k in MATH_ALIAS){s=s.split(k).join(MATH_ALIAS[k])}s=s.normalize('NFKC');s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').normalize('NFC');return s}
 function loadBadWords(){return sb.from('sensitive_words').select('word').then(function(r){const d=r.data||[];if(d.length){const set=new Set(BAD_WORDS);d.forEach(function(x){if(x.word)set.add(x.word)});BAD_WORDS.length=0;set.forEach(function(w){BAD_WORDS.push(w)});console.log('loaded '+BAD_WORDS.length+' sensitive words')}}).catch(function(){console.log('sensitive_words load failed, using built-in list')})}
 let _badWordsReady=null;
@@ -495,49 +495,49 @@ const wallEl=document.getElementById("wall");
 if(list.length===0){wallEl.innerHTML='<div class="empty"><div class="e">🥀</div>没有符合条件的表白，快写下第一条吧</div>';return}
 const visible=list.slice(0,shownCount);
 const groups=[];["male","female"].forEach(g=>{const items=visible.filter(x=>groupOf(x)===g);if(items.length)groups.push({g,items})});
-let html='<div class="groups">'+groups.map(({g,items})=>{const isMale=g==="male";const label=isMale?"男 → 男 / 男 → 女":"女 → 男 / 女 → 女";
-return '<div class="group '+g+'"><div class="ghead"><span class="gicon">'+GROUP_GICONS[g]+'</span>'+label+'<span class="gcount">'+items.length+' 条</span></div>'+
-items.map(c=>{const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"人");const ul=likedSet.has(c.id);const dl=dislikedSet.has(c.id);
-return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><!-- 页内不再提供删除：删除/隐藏统一走 admin.html 后台 --><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
-if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还有 '+(list.length-shownCount)+' 条）</button>'}
+let html='<div class="groups">'+groups.map(({g,items})=>{const isMale=g==="male";const label=isMale?"�?�?�?/ �?�?�?:"�?�?�?/ �?�?�?;
+return '<div class="group '+g+'"><div class="ghead"><span class="gicon">'+GROUP_GICONS[g]+'</span>'+label+'<span class="gcount">'+items.length+' �?/span></div>'+
+items.map(c=>{const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"�?);const ul=likedSet.has(c.id);const dl=dislikedSet.has(c.id);
+return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘�?/span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'�?+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'�?/span><span class="b-class">'+esc(c.cls)+'�?/span></div></div><div class="to">表白�?'+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><!-- 页内不再提供删除：删�?隐藏统一�?admin.html 后台 --><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"�?:"�?)+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
+if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还�?'+(list.length-shownCount)+' 条）</button>'}
 wallEl.innerHTML=html;const lm=document.getElementById("loadMore");if(lm){lm.onclick=()=>{shownCount+=PAGE;render()}}
 stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPoster();renderHot();renderRank();
-/* 修复 D：如果 URL 带 ?post=id，自动定位并高亮那条；目标被过滤/截断/删除则重置筛选重渲染再定位 */
+/* 修复 D：如�?URL �??post=id，自动定位并高亮那条；目标被过滤/截断/删除则重置筛选重渲染再定�?*/
 function postFocus(){
   var postParam=new URL(window.location.href).searchParams.get("post");
   if(!postParam||!/^[0-9]+$/.test(postParam))return;
   var el=document.querySelector('[data-id="'+postParam+'"]');
-  if(el){el.classList.add("hl-flash");el.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(function(){el.classList.remove("hl-flash")},2500);return;}
-  /* 卡片不在当前渲染里：先查是否被过滤/截断/删除 */
+  if(el){el.classList.add("hl-flash");el.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 �?);setTimeout(function(){el.classList.remove("hl-flash")},2500);return;}
+  /* 卡片不在当前渲染里：先查是否被过�?截断/删除 */
   var target=wall.find(function(x){return String(x.id)==String(postParam);});
   if(target){
     curTag="all";curGender="all";curMajor="all";curYear="all";curClass="all";curSearch="";
     shownCount=wall.length;render();
     requestAnimationFrame(function(){
       var el2=document.querySelector('[data-id="'+postParam+'"]');
-      if(el2){el2.classList.add("hl-flash");el2.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 ✨");setTimeout(function(){el2.classList.remove("hl-flash")},2500);}
-      else{toast("该条表白正在加载，稍候自动定位");}
+      if(el2){el2.classList.add("hl-flash");el2.scrollIntoView({behavior:"smooth",block:"center"});toast("已定位到这条表白 �?);setTimeout(function(){el2.classList.remove("hl-flash")},2500);}
+      else{toast("该条表白正在加载，稍候自动定�?);}
     });
   }else{
     toast("未找到该条表白，可能已被删除");
   }
 }
 if(document.readyState!=="loading"){postFocus()}else{document.addEventListener("DOMContentLoaded",postFocus)}}
-/* 修复 A：点赞用原子自增（数据库侧 +1，消除并发丢计数） */
-/* 局部更新：只改单张卡点赞/倒赞数字，不重建整页 */
+/* 修复 A：点赞用原子自增（数据库�?+1，消除并发丢计数�?*/
+/* 局部更新：只改单张卡点�?倒赞数字，不重建整页 */
 async function patchCardCount(id){
 const card=document.querySelector('[data-id="'+id+'"]');if(!card)return;
 const c=wall.find(x=>x.id==id);if(!c)return;
 const upEl=card.querySelector("[data-like]"),dnEl=card.querySelector("[data-dislike]");
-if(upEl){upEl.textContent=(likedSet.has(id)?"❤":"♥")+" "+(c.likes||0);upEl.classList.toggle("liked",likedSet.has(id))}
+if(upEl){upEl.textContent=(likedSet.has(id)?"�?:"�?)+" "+(c.likes||0);upEl.classList.toggle("liked",likedSet.has(id))}
 if(dnEl){dnEl.textContent="👎 "+(c.dislikes||0);dnEl.classList.toggle("on",dislikedSet.has(id))}
 }
-/* 点赞/倒赞互斥锁：同卡片 in-flight 时拒绝下一个点击，防 up+down 或同方向连点双发 */
+/* 点赞/倒赞互斥锁：同卡�?in-flight 时拒绝下一个点击，�?up+down 或同方向连点双发 */
 const __cardBusy=new Set();
 async function likeItem(id,type){id=Number(id);
 const c=wall.find(x=>x.id==id);if(!c)return;
 const myT=type||"up";
-if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经点过赞了 💗":"这条你已经点过倒赞了 👎");return}
+if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经点过赞�?💗":"这条你已经点过倒赞�?👎");return}
 if(__cardBusy.has(id)){return}
 __cardBusy.add(id);
 try{
@@ -549,7 +549,7 @@ try{
   if(cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0}
   if(myT==="up")likedSet.add(id);else dislikedSet.add(id);
   (myT==="up"?saveLiked:saveDisliked)();
-  patchCardCount(id);toast(myT==="up"?"已点赞 💗":"已点倒赞 👎")
+  patchCardCount(id);toast(myT==="up"?"已点�?💗":"已点倒赞 👎")
 }finally{__cardBusy.delete(id);}
 }
 function bindLikes(){bindCardEvents()}
@@ -568,77 +568,77 @@ function bindCardEvents(){
     var rp=t.closest("[data-report]");if(rp){ev.preventDefault();reportPost(rp.getAttribute("data-report"));return;}
     var ap=t.closest("[data-appeal]");if(ap){ev.preventDefault();appealPost(ap.getAttribute("data-appeal"));return;}
     var pst=t.closest("[data-poster]");if(pst){ev.preventDefault();makePoster(pst.getAttribute("data-poster"));return;}
-    /* P1：页内不再有 data-admin-del 删除按钮；删除/隐藏统一走 admin.html 后台 */
+    /* P1：页内不再有 data-admin-del 删除按钮；删�?隐藏统一�?admin.html 后台 */
   });
 }
 
-function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("举报失败："+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再试")})}
-/* 申请下架：走 fn_wall_appeal(target_kind='wall')，云端受理 + 24h 限流 5 次 + 审计，处置台可处置 */
-function appealPost(id){var uk=userKey();var ck="wallAppeal_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}var v=prompt("申请下架这条表白（请填写你的身份，如：我是被表白对象/我本人，申请删除）：");if(v===null)return;var reason=(v&&v.trim()?v.trim():"申请下架").slice(0,120);localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason,p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("申请未受理："+(r.error.message||"").slice(0,40))}else{toast("已提交下架申请 ✅ 管理员会尽快处置")}}).catch(function(){toast("申请提交失败，稍后再试")})}
+function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍�?60 秒再�?);return}var v=prompt("举报这条（可选填写原因）�?);if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("举报失败�?+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再�?)})}
+/* 申请下架：走 fn_wall_appeal(target_kind='wall')，云端受�?+ 24h 限流 5 �?+ 审计，处置台可处�?*/
+function appealPost(id){var uk=userKey();var ck="wallAppeal_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}var v=prompt("申请下架这条表白（请填写你的身份，如：我是被表白对象/我本人，申请删除）：");if(v===null)return;var reason=(v&&v.trim()?v.trim():"申请下架").slice(0,120);localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason,p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("申请未受理："+(r.error.message||"").slice(0,40))}else{toast("已提交下架申�?�?管理员会尽快处置")}}).catch(function(){toast("申请提交失败，稍后再�?)})}
 let adminMode=false;let adminPwd="";
-function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开启 🛡️");bindAdminDel()}
-/* H1: 进管理前先 prompt 收密码，避免 adminPwd 恒空导致删除必 401 */
+function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开�?🛡�?);bindAdminDel()}
+/* H1: 进管理前�?prompt 收密码，避免 adminPwd 恒空导致删除�?401 */
 const _origFooter=document.getElementById("footer").onclick;
 
 function bindAdminDel(){
-  /* P1：页内删除/隐藏入口已撤，统一走 admin.html 后台（删帖/删候选/清理/审核）。此函数保留名以兼容初始化调用链，无操作。 */
+  /* P1：页内删�?隐藏入口已撤，统一�?admin.html 后台（删�?删候�?清理/审核）。此函数保留名以兼容初始化调用链，无操作�?*/
 }
 async function hideWall(id){
-  if(!confirm("确定隐藏这条表白？"))return;
+  if(!confirm("确定隐藏这条表白�?))return;
   try{
     var r=await fetch(EDGE_ADMIN,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({admin:adminPwd,act:"hide",id:id})});
     var j=await r.json();
-    if(!j||!j.ok){toast("隐藏失败：" + ((j&&j.error)||"需在 Edge 配置管理密码"));return;}
+    if(!j||!j.ok){toast("隐藏失败�? + ((j&&j.error)||"需�?Edge 配置管理密码"));return;}
     wall=wall.filter(function(x){return x.id!=id;});
     render();
-    toast("已隐藏这条表白 🗑️");
+    toast("已隐藏这条表�?🗑�?);
   }catch(err){toast("隐藏请求失败，请重试");}
 }
-/* P1 统一后台：页内不再提供"点 footer 输密码进管理"入口；隐藏/删除/清理一律走 admin.html 墙后台。普通用户仅可用卡片「举报 / 申请下架」。enterAdmin/adminMode/hideWall 保留定义以兼容旧引用，但无任何触发入口。 */
+/* P1 统一后台：页内不再提�?�?footer 输密码进管理"入口；隐�?删除/清理一律走 admin.html 墙后台。普通用户仅可用卡片「举�?/ 申请下架」。enterAdmin/adminMode/hideWall 保留定义以兼容旧引用，但无任何触发入口�?*/
 
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){var s=String(text==null?"":text);ctx.save();ctx.textAlign="left";ctx.fillStyle="#4a2230";var lines=String(s).split(/\n/);var ly=y;var count=0;for(var p2=0;p2<lines.length;p2++){var seg=lines[p2];var chunk="";for(var k=0;k<seg.length;k++){var ch=seg[k];if(chunk&&ctx.measureText(chunk+ch).width>maxW){ctx.fillText(chunk,x,ly);ly+=lh;count++;chunk=ch;if(maxLines&&count>=maxLines){ctx.restore();return;}}else{chunk+=ch;}}if(chunk){ctx.fillText(chunk,x,ly);ly+=lh;count++;if(maxLines&&count>=maxLines){ctx.restore();return;}}}ctx.restore();}
 function legacyCopy(txt){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);return Promise.resolve(!!ok);}catch(e){return Promise.resolve(false);}}
 function copyText(txt){if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(txt).catch(function(){return legacyCopy(txt);});}return legacyCopy(txt);}
 
-function makePoster(id){if(typeof QRCode==="undefined"){toast("二维码组件未加载，请刷新后再试 📷");return}const c=wall.find(x=>x.id==id);if(!c)return;
+function makePoster(id){if(typeof QRCode==="undefined"){toast("二维码组件未加载，请刷新后再�?📷");return}const c=wall.find(x=>x.id==id);if(!c)return;
 const canvas=document.getElementById("posterCanvas");const ctx=canvas.getContext("2d");
 const W=600,H=800;
 const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#fff5f7");g.addColorStop(1,"#ffe9ef");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-ctx.textAlign="center";ctx.fillStyle="#c4002a";ctx.font="bold 40px 'Microsoft YaHei'";ctx.fillText("❤ 我的表白 ❤",W/2,80);
-ctx.font="15px 'Microsoft YaHei'";ctx.fillStyle="#8a5a68";ctx.fillText("LOVE WALL · 全校共享表白墙",W/2,112);
+ctx.textAlign="center";ctx.fillStyle="#c4002a";ctx.font="bold 40px 'Microsoft YaHei'";ctx.fillText("�?我的表白 �?,W/2,80);
+ctx.font="15px 'Microsoft YaHei'";ctx.fillStyle="#8a5a68";ctx.fillText("LOVE WALL · 全校共享表白�?,W/2,112);
 ctx.fillStyle="#fff";roundRect(ctx,60,150,W-120,320,24);ctx.fill();ctx.strokeStyle="#ffd7e0";ctx.lineWidth=3;roundRect(ctx,60,150,W-120,320,24);ctx.stroke();
 ctx.textAlign="left";ctx.fillStyle="#3a0a1a";ctx.font="bold 24px 'Microsoft YaHei'";
-ctx.fillText((c.anon?"神秘人":c.name)+"（"+c.year+"级"+c.cls+"班）",100,205);
-ctx.fillStyle="#8a5a68";ctx.font="16px 'Microsoft YaHei'";ctx.fillText("表白给 "+c.to+" · "+c.tag,100,240);
+ctx.fillText((c.anon?"神秘�?:c.name)+"�?+c.year+"�?+c.cls+"班）",100,205);
+ctx.fillStyle="#8a5a68";ctx.font="16px 'Microsoft YaHei'";ctx.fillText("表白�?"+c.to+" · "+c.tag,100,240);
 ctx.fillStyle="#4a2230";ctx.font="20px 'Microsoft YaHei'";
 wrapText(ctx,c.msg,100,290,W-200,32,200);
-const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"人");
+const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"�?);
 ctx.textAlign="center";ctx.fillStyle="#c4002a";ctx.font="16px 'Microsoft YaHei'";
-ctx.fillText((ga.length?"🎁 "+ga.join(" ")+"　":"")+"❤ "+(c.likes||0)+(c.dislikes?"　👎 "+c.dislikes:""),W/2,505);
+ctx.fillText((ga.length?"🎁 "+ga.join(" ")+"　":"")+"�?"+(c.likes||0)+(c.dislikes?"　👎 "+c.dislikes:""),W/2,505);
 ctx.strokeStyle="#ffd7e0";ctx.lineWidth=2;ctx.setLineDash([]);roundRect(ctx,W/2-110,530,220,220,16);ctx.stroke();ctx.fillStyle="#fff";roundRect(ctx,W/2-104,536,208,208,12);ctx.fill();
 const qr=document.createElement("canvas");
-/* P1-5：QR 生成完成后才允许下载，避免 QR 还没画完就 toDataURL 得到缺二维码的海报 */
+/* P1-5：QR 生成完成后才允许下载，避�?QR 还没画完�?toDataURL 得到缺二维码的海�?*/
 let qrReady=null;const qrWait=new Promise(function(res){qrReady=res});
 QRCode.toCanvas(qr,SITE_BASE+"?post="+id,{width:196,height:196,colorDark:"#c4002a",colorLight:"#ffffff",margin:1},function(){ctx.drawImage(qr,W/2-98,542,196,196);ctx.fillStyle="#8a5a68";ctx.font="14px 'Microsoft YaHei'";ctx.textAlign="center";ctx.fillText("扫码 / 链接直达这条表白",W/2,785);qrReady();});
 document.getElementById("posterMsg").textContent=c.msg;
 document.getElementById("posterModal").classList.add("show");
-document.getElementById("dlPoster").onclick=function(){qrWait.then(function(){if(document.getElementById("posterModal").classList.contains("show")){const a=document.createElement("a");a.download="love-wall-poster-"+id+".png";a.href=canvas.toDataURL("image/png");a.click();toast("海报已下载 📷");document.getElementById("posterModal").classList.remove("show")}})}}
+document.getElementById("dlPoster").onclick=function(){qrWait.then(function(){if(document.getElementById("posterModal").classList.contains("show")){const a=document.createElement("a");a.download="love-wall-poster-"+id+".png";a.href=canvas.toDataURL("image/png");a.click();toast("海报已下�?📷");document.getElementById("posterModal").classList.remove("show")}})}}
 document.getElementById("closePoster").onclick=()=>document.getElementById("posterModal").classList.remove("show");
 document.getElementById("posterModal").onclick=(e)=>{if(e.target.id==="posterModal")document.getElementById("posterModal").classList.remove("show")}
-/* 匿名勾选联动 */
+/* 匿名勾选联�?*/
 document.getElementById("inAnon").onchange=function(){if(this.checked)document.getElementById("inName").value=""};let pickedGift="";(function(){document.querySelectorAll("#giftGrid .gift-btn").forEach(function(b){b.onclick=function(){if(pickedGift===b.dataset.gift){pickedGift="";b.classList.remove("on");return}pickedGift=b.dataset.gift;document.querySelectorAll("#giftGrid .gift-btn").forEach(function(x){x.classList.remove("on")});b.classList.add("on")}})})();document.addEventListener("DOMContentLoaded",function(){var m=document.getElementById("noticeModal");if(!m)return;document.getElementById("noticeCancel").onclick=function(){m.classList.remove("show")};document.getElementById("noticeOk").onclick=function(){localStorage.setItem("wallNoticeSeen",String(Date.now()));m.classList.remove("show")};m.onclick=function(e){if(e.target===m)m.classList.remove("show")};var seen=parseInt(localStorage.getItem("wallNoticeSeen")||"0",10);if(Date.now()-seen>=86400000)m.classList.add("show")});
 document.getElementById("postBtn").onclick=async()=>{if(busy)return;
 const anon=document.getElementById("inAnon").checked;
-let name=document.getElementById("inName").value.trim();if(anon)name="神秘人";
-let to=document.getElementById("inTo").value.trim().replace(/[@\s]/g,"");if(!to){toast("请填写对象昵称（不超过 4 个字）");return}if(to.length>4){toast("昵称不能超过 4 个字");return}
+let name=document.getElementById("inName").value.trim();if(anon)name="神秘�?;
+let to=document.getElementById("inTo").value.trim().replace(/[@\s]/g,"");if(!to){toast("请填写对象昵称（不超�?4 个字�?);return}if(to.length>4){toast("昵称不能超过 4 个字");return}
 const year=document.getElementById("inYear").value;const cls=document.getElementById("inClass").value;
 const tag=document.getElementById("inTag").value;const fromG=document.getElementById("inFrom").value;const toG=document.getElementById("inToG").value;
 const msg=document.getElementById("inMsg").value.trim().slice(0,200);
 if(!msg){toast("先写点想说的话吧 ✍️");return}
-if(msg.length>200){toast("正文不能超过 200 字");return}
+if(msg.length>200){toast("正文不能超过 200 �?);return}
 if(!document.getElementById("inConsent").checked){toast("请先勾选了解对象信息会公开显示（自愿原则）再发 ✍️");return}
-await ensureBadWords();const allText=name+" "+to+" "+msg;if(!passFilter(allText)||hitAdClient(allText)){toast("内容含不适当词汇（昵称/对象/正文），请修改后再发 ✍️");return}
+await ensureBadWords();const allText=name+" "+to+" "+msg;if(!passFilter(allText)||hitAdClient(allText)){toast("内容含不适当词汇（昵�?对象/正文），请修改后再发 ✍️");return}
 
 /* 修复 B：限流——同一 user_key 两次发帖间隔 */
 const uk=userKey();const lastKey="wallLastPost_"+uk;const lastTs=parseInt(localStorage.getItem(lastKey)||"0",10);
@@ -646,23 +646,23 @@ const elapsed=(Date.now()-lastTs)/1000;
 if(elapsed<POST_MIN_INTERVAL){toast("发布太快，请 "+Math.ceil(POST_MIN_INTERVAL-elapsed)+" 秒后再试");return}
 busy=true;
 const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name===""),p_gift:(typeof pickedGift!=="undefined")?pickedGift:"",p_ip:wallIp()});
-if(postRes.error){const m=postRes.error.message||"";if(/sensitive|semantic_blocked/i.test(m)){toast("内容含不当信息（敏感词 / 联系方式 / 变体粗口），请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
-/* 发帖成功：乐观上墙 + 立即直连刷新（bust Edge 缓存） */
+if(postRes.error){const m=postRes.error.message||"";if(/sensitive|semantic_blocked/i.test(m)){toast("内容含不当信息（敏感�?/ 联系方式 / 变体粗口），请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍�?)}else if(/wall_not_found/i.test(m)){toast("目标不存�?)}else{toast("发布失败�?+m)}busy=false;return}
+/* 发帖成功：乐观上�?+ 立即直连刷新（bust Edge 缓存�?*/
 const newId=postRes.data;
 busy=false;__edgeOk=false;await load();__edgeOk=true;
-toast("表白成功 ❤ 已贴到墙上");celebrate();busy=false;
+toast("表白成功 �?已贴到墙�?);celebrate();busy=false;
 localStorage.setItem(lastKey,String(Date.now()));
 document.getElementById("inMsg").value="";document.getElementById("inName").value="";document.getElementById("inTo").value="";pickedGift="";document.querySelectorAll("#giftGrid .gift-btn").forEach(x=>x.classList.remove("on"));
 curTag="all";curGender="all";curYear="all";curClass="all";curSearch="";document.getElementById("inSearch").value="";
 shownCount=PAGE;syncTabs();syncGenderTabs();syncYearTabs();syncClassTabs();
-/* 发帖后 bust Edge 缓存（60s），新帖立即可见 */
-/* 发帖成功的一次 load+toast+celebrate 已在上方执行，此处仅收尾（去掉重复的第二次） */};
+/* 发帖�?bust Edge 缓存�?0s），新帖立即可见 */
+/* 发帖成功的一�?load+toast+celebrate 已在上方执行，此处仅收尾（去掉重复的第二次） */};
 document.querySelectorAll("#quickChips .chip").forEach(ch=>{ch.onclick=()=>{const t=document.getElementById("inMsg");t.value=(t.value?"\n":"")+ch.textContent}});
 document.getElementById("inSearch").oninput=function(){curSearch=this.value.trim();shownCount=PAGE;render()};
 document.getElementById("tabs").onclick=(e)=>{const t=e.target.closest(".tab");if(!t)return;curTag=t.dataset.t;shownCount=PAGE;syncTabs();render()};
 function syncTabs(){document.querySelectorAll("#tabs .tab").forEach(x=>x.classList.toggle("on",x.dataset.t===curTag))}
-function renderDirSub(){const box=document.getElementById("dirSub");if(!box)return;const GN={男男:"男→男",男女:"男→女",女男:"女→男",女女:"女→女"};const pairs=curMajor==="男"?["男男","男女"]:curMajor==="女"?["女男","女女"]:["男男","男女","女男","女女"];box.innerHTML=pairs.map(p=>'<span class="stab ds'+(curGender===p?' on-'+(p.startsWith("男")?"m":"f"):'')+'" data-g="'+p+'">'+GN[p]+'</span>').join("")}
-document.getElementById("genderTabs").onclick=(e)=>{const dm=e.target.closest("[data-major]");if(dm){curMajor=dm.dataset.major;curGender="all";shownCount=PAGE;document.querySelectorAll("#dirMajor .dmb").forEach(x=>x.classList.remove("on-a","on-m","on-f"));if(dm.dataset.major==="all")dm.classList.add("on-a");else if(dm.dataset.major==="男")dm.classList.add("on-m");else dm.classList.add("on-f");renderDirSub();render();return}
+function renderDirSub(){const box=document.getElementById("dirSub");if(!box)return;const GN={男男:"男→�?,男女:"男→�?,女男:"女→�?,女女:"女→�?};const pairs=curMajor==="�??["男男","男女"]:curMajor==="�??["女男","女女"]:["男男","男女","女男","女女"];box.innerHTML=pairs.map(p=>'<span class="stab ds'+(curGender===p?' on-'+(p.startsWith("�?)?"m":"f"):'')+'" data-g="'+p+'">'+GN[p]+'</span>').join("")}
+document.getElementById("genderTabs").onclick=(e)=>{const dm=e.target.closest("[data-major]");if(dm){curMajor=dm.dataset.major;curGender="all";shownCount=PAGE;document.querySelectorAll("#dirMajor .dmb").forEach(x=>x.classList.remove("on-a","on-m","on-f"));if(dm.dataset.major==="all")dm.classList.add("on-a");else if(dm.dataset.major==="�?)dm.classList.add("on-m");else dm.classList.add("on-f");renderDirSub();render();return}
 const t=e.target.closest("[data-g]");if(!t)return;const g=t.dataset.g;curGender=(curGender===g)?"all":g;shownCount=PAGE;renderDirSub();render()};
 function syncGenderTabs(){renderDirSub()}
 document.getElementById("yearTabs").onclick=(e)=>{const t=e.target.closest(".stab");if(!t)return;const y=t.dataset.y;curYear=(curYear===y)?"all":y;shownCount=PAGE;syncYearTabs();render()};
@@ -670,23 +670,23 @@ function syncYearTabs(){document.querySelectorAll("#yearTabs .stab").forEach(x=>
 document.getElementById("classTabs").onclick=(e)=>{const t=e.target.closest(".stab");if(!t)return;const c=t.dataset.c;curClass=(curClass===c)?"all":c;shownCount=PAGE;syncClassTabs();render()};
 function syncClassTabs(){document.querySelectorAll("#classTabs .stab").forEach(x=>{x.classList.remove("on-class","on-all");if(x.dataset.c===curClass&&curClass==="all")x.classList.add("on-all");else if(x.dataset.c===curClass)x.classList.add("on-class")})}
 const themeBtn=document.getElementById("themeBtn");
-themeBtn.onclick=()=>{const dark=document.body.classList.toggle("dark");themeBtn.textContent=dark?"☀️ 浅色模式":"🌙 深色模式";themeBtn.classList.toggle("on",dark);localStorage.setItem("wallDark",dark?"1":"0")};
-if(localStorage.getItem("wallDark")==="1"){document.body.classList.add("dark");themeBtn.textContent="☀️ 浅色模式";themeBtn.classList.add("on")}
+themeBtn.onclick=()=>{const dark=document.body.classList.toggle("dark");themeBtn.textContent=dark?"☀�?浅色模式":"🌙 深色模式";themeBtn.classList.toggle("on",dark);localStorage.setItem("wallDark",dark?"1":"0")};
+if(localStorage.getItem("wallDark")==="1"){document.body.classList.add("dark");themeBtn.textContent="☀�?浅色模式";themeBtn.classList.add("on")}
 const musicBtn=document.getElementById("musicBtn");const musicFab=document.getElementById("musicFab");
-function setMusicUI(on){musicBtn.textContent=on?"🔇 关闭音乐":"🎵 开启音乐";musicBtn.classList.toggle("on",on);musicFab.textContent=on?"▶":"🎵";musicFab.classList.toggle("playing",on)}
+function setMusicUI(on){musicBtn.textContent=on?"🔇 关闭音乐":"🎵 开启音�?;musicBtn.classList.toggle("on",on);musicFab.textContent=on?"�?:"🎵";musicFab.classList.toggle("playing",on)}
 function toggleMusic(){if(bgm.paused){bgmIndex=0;tryBgm();bgm.load();bgm.play().then(()=>{setMusicUI(true);localStorage.setItem("wallBgmOn","on")}).catch(()=>{bgmIndex++;if(tryBgm()){bgm.load();bgm.play().then(()=>setMusicUI(true)).catch(()=>toast("背景音乐加载失败"))}else{toast("背景音乐加载失败")}})}else{bgm.pause();setMusicUI(false);localStorage.setItem("wallBgmOn","off")}}
 musicBtn.onclick=toggleMusic;musicFab.onclick=toggleMusic;
-function makeFloatLayer(){const layer=document.getElementById("floatLayer");const g=["❤","💗","💕","♥","✨"];for(let i=0;i<12;i++){const s=document.createElement("span");s.textContent=g[i%g.length];s.style.left=Math.random()*100+"vw";s.style.fontSize=(12+Math.random()*22)+"px";const d=10+Math.random()*14;s.style.animationDuration=d+"s";s.style.animationDelay=(-Math.random()*d)+"s";layer.appendChild(s)}}
+function makeFloatLayer(){const layer=document.getElementById("floatLayer");const g=["�?,"💗","💕","�?,"�?];for(let i=0;i<12;i++){const s=document.createElement("span");s.textContent=g[i%g.length];s.style.left=Math.random()*100+"vw";s.style.fontSize=(12+Math.random()*22)+"px";const d=10+Math.random()*14;s.style.animationDuration=d+"s";s.style.animationDelay=(-Math.random()*d)+"s";layer.appendChild(s)}}
 function burstAt(el){if(!el)return;const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top,6)}
 function celebrate(){const w=document.querySelector(".compose").getBoundingClientRect();burst(w.left+w.width/2,w.top+40,14)}
-function burst(x,y,n){for(let i=0;i<n;i++){const d=document.createElement("div");d.textContent="❤";d.style.cssText="position:fixed;left:"+x+"px;top:"+y+"px;color:#ff4d6d;font-size:"+(14+Math.random()*16)+"px;pointer-events:none;z-index:60;animation:rise2 .9s ease-out forwards";document.body.appendChild(d);const ang=Math.random()*Math.PI*2,dist=40+Math.random()*80;d.style.setProperty("--dx",Math.cos(ang)*dist+"px");d.style.setProperty("--dy",Math.sin(ang)*dist+"px");setTimeout(()=>d.remove(),950)}}
+function burst(x,y,n){for(let i=0;i<n;i++){const d=document.createElement("div");d.textContent="�?;d.style.cssText="position:fixed;left:"+x+"px;top:"+y+"px;color:#ff4d6d;font-size:"+(14+Math.random()*16)+"px;pointer-events:none;z-index:60;animation:rise2 .9s ease-out forwards";document.body.appendChild(d);const ang=Math.random()*Math.PI*2,dist=40+Math.random()*80;d.style.setProperty("--dx",Math.cos(ang)*dist+"px");d.style.setProperty("--dy",Math.sin(ang)*dist+"px");setTimeout(()=>d.remove(),950)}}
 const st=document.createElement("style");st.textContent="@keyframes rise2{from{transform:translate(0,0);opacity:1}to{transform:translate(var(--dx,0),-120px) scale(.4);opacity:0}}";document.head.appendChild(st);
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 makeFloatLayer();
-(function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
+(function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"�?收起更多选项":"�?更多选项（礼�?快捷语）"};})();
 (function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();Promise.all([load(),loadVisits(),recordVisit()]);
 (function(){try{var ch=sb.channel("love-wall-rt").on("postgres_changes",{event:"*",schema:"public",table:"wall"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"likes"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"card_gifts"},function(){rt()}).subscribe(function(s){if(s==="CLOSED"||s==="CHANNEL_ERROR"){console.log("realtime",s,", resubscribing");try{window.__wallRt&&window.__wallRt.unsubscribe()}catch(e){}if(__rtReconnects<3){__rtReconnects++;setTimeout(rt,5000)}else{console.log("realtime: max reconnects, fallback to polling")}}else{console.log("realtime:",s)}});window.__wallRt=ch;}catch(e){console.log("realtime init failed, fallback to polling",e)}})();var __rtT=null;let __rtReconnects=0;function rt(){if(document.hidden)return;if(__rtT)return;__rtT=setTimeout(function(){__rtT=null;safeLoad();},3000);}
-/* 轮询与 Realtime 互斥：加冷却，避免 load 并发 + visibilitychange 频繁触发 */
+/* 轮询�?Realtime 互斥：加冷却，避�?load 并发 + visibilitychange 频繁触发 */
 let __lastLoadTs=0;
 function safeLoad(){
   const now=Date.now();
@@ -697,6 +697,6 @@ function safeLoad(){
 setInterval(safeLoad,300000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){safeLoad();loadVisits();}});
 </script>
-<div class="notice-overlay" id="noticeModal"><div class="notice-card"><div class="notice-head"><span class="nicon">📢</span><h3>公告</h3></div><div class="notice-poem">偶然的相遇，让平淡的日子多了一束光。<br>犹豫了很久，还是想在这里写下心动。<br>或许你不会看见，但若刚好是你，<br>我想告诉你：我很喜欢你。</div><div class="notice-tip"><b>💡 说明</b>　本表白墙为个人自制，制作不易。大家有需求或者觉得需要改进的地方都可以提出来。请大家不要恶意捣乱、乱发无关内容，本表白墙仅限<b class="school">重庆第二外国语学校</b>的同学使用，其他学校同学请勿投稿。希望大家心怀公德，文明发言，一起好好维护这里。</div><div class="notice-foot"><span class="nhint">点击"我已阅读"后，24 小时内不再弹出</span><button id="noticeCancel" class="nbtn ghost">✕ 取消</button><button id="noticeOk" class="nbtn solid">✓ 我已阅读</button></div></div></div>
+<div class="notice-overlay" id="noticeModal"><div class="notice-card"><div class="notice-head"><span class="nicon">📢</span><h3>公告</h3></div><div class="notice-poem">偶然的相遇，让平淡的日子多了一束光�?br>犹豫了很久，还是想在这里写下心动�?br>或许你不会看见，但若刚好是你�?br>我想告诉你：我很喜欢你�?/div><div class="notice-tip"><b>💡 说明</b>　本表白墙为个人自制，制作不易。大家有需求或者觉得需要改进的地方都可以提出来。请大家不要恶意捣乱、乱发无关内容，本表白墙仅限<b class="school">重庆第二外国语学�?/b>的同学使用，其他学校同学请勿投稿。希望大家心怀公德，文明发言，一起好好维护这里�?/div><div class="notice-foot"><span class="nhint">点击"我已阅读"后，24 小时内不再弹�?/span><button id="noticeCancel" class="nbtn ghost">�?取消</button><button id="noticeOk" class="nbtn solid">�?我已阅读</button></div></div></div>
 </body>
 </html>
