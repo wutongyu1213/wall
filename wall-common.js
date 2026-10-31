@@ -87,7 +87,7 @@
   }
 
   /* ---- 上传照片 → Storage 桶 wall-photos → 写 wall_candidates ---- */
-  async function uploadAndAdd(name,msg,file,autoReview){
+  async function uploadAndAdd(name,msg,file,autoReview,aiReview){
     const s=getSB(); if(!s){ tip('云端未连接'); return false; }
     const uk=userKey();
     const path=KIND+'/'+Date.now()+'_'+uk+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
@@ -97,11 +97,14 @@
     /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图（PostgREST 需显式传全 6 个参数名） */
     const {data:cand,error:insErr}=await s.rpc('fn_wall_candidate_add',{
       p_kind:KIND, p_nickname:(name||'匿名'), p_class_no:'',
-      p_photo_url:path, p_msg:(msg||''), p_user_key:uk, p_ip:wallIp(), p_auto_review:(autoReview||'')
+      p_photo_url:path, p_msg:(msg||''), p_user_key:uk, p_ip:wallIp(), p_auto_review:(autoReview||''), p_ai_review:(aiReview&&aiReview.ok===true)?aiReview:null
     });
     if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return false; }
     await loadCands(); render();
-    tip(autoReview==='pass'?'已上传 ✔ 自动通过，全校可见':(autoReview==='review'?'已上传，进入预审队列，管理员复核后全校可见':'已上传 ✔ 全校可见'));
+    var ai=aiReview||null;
+    if(autoReview==='pass' && (!ai||ai.ok!==true||ai.verdict==='safe')) tip('已上传 ✔ 自动通过（AI 安全），全校可见');
+    else if(ai&&ai.ok===true&&ai.verdict!=='safe') tip('已上传 · AI 标记为'+(ai.verdict==='risky'?'较高风险':'可疑')+'，进入人工预审队列');
+    else tip('已上传，进入预审队列，管理员复核后全校可见');
     return true;
   }
 
@@ -296,15 +299,21 @@
       if(!f){ tip('请选择一张照片'); return; }
       preReview(f).then(function(rv){
         if(!rv.ok){ tip(rv.reason); return; }
-        up.disabled=true; up.textContent='上传中…'; prog(20);
-        fileToBlob(f,720).then(function(blob){
-          prog(55);
-          uploadAndAdd(nm,msg,blob,rv.pass?'pass':'review').then(function(ok){
-            prog(ok?100:0);
-            up.disabled=false; up.textContent='上传（自动压缩 + 预审）';
-            if(ok)setTimeout(clearPrev,600);
-          }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('上传出错：'+(e&&e.message||e)); });
-        }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('压缩失败：'+(e&&e.message||e)); });
+        var autoReview=rv.pass?'pass':'review';
+        up.disabled=true; up.textContent='AI 图像预审中…'; prog(25);
+        var aiRun=(window.__nsfw&&window.__nsfw.reviewFile)?window.__nsfw.reviewFile(f):Promise.resolve({ok:false,verdict:'unknown',autoReview:'review'});
+        aiRun.then(function(ai){
+          var aiRes=(ai&&ai.ok===true)?ai:null;
+          if(aiRes && aiRes.autoReview!=='pass'){ autoReview='review'; }
+          prog(55); up.textContent='上传中…';
+          fileToBlob(f,720).then(function(blob){
+            uploadAndAdd(nm,msg,blob,autoReview,aiRes).then(function(ok){
+              prog(ok?100:0);
+              up.disabled=false; up.textContent='上传（自动压缩 + 预审）';
+              if(ok)setTimeout(clearPrev,600);
+            }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('上传出错：'+(e&&e.message||e)); });
+          }).catch(function(e){ up.disabled=false; up.textContent='上传（自动压缩 + 预审）'; tip('压缩失败：'+(e&&e.message||e)); });
+        });
       });
     }; }
     document.querySelectorAll('[data-vote]').forEach(function(b){
