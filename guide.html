@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e0498f">
+  <link rel="apple-touch-icon" href="icon-apple-180.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="表白墙">
+  <script src="assets/pwa.js?v=1"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>使用教程 · 表白墙统一后台</title>
+<style>
+:root{--bg1:#fff5f7;--bg2:#ffe9ef;--ink:#3a0a1a;--sub:#8a5a68;--line:#ffd7e0;--acc:#c4002a;--ok:#1a9d5a;--warn:#b06a00;--dgr:#c0392b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));min-height:100vh}
+header{position:sticky;top:0;z-index:9;background:rgba(255,245,247,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px}
+header img{width:30px;height:30px;border-radius:50%;background:#fff}
+header h1{font-size:17px;margin:0;font-weight:800;flex:1}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:7px 14px;font-size:14px;cursor:pointer}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+main{max-width:760px;margin:0 auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom))}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.card h2 .badge{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px}
+.b-safe{background:#eefaf1;color:var(--ok);border:1px solid #b6e4c6}
+.b-warn{background:#fff6e6;color:var(--warn);border:1px solid #f2d9a8}
+.b-dgr{background:#fdecea;color:var(--dgr);border:1px solid #f2b8b3}
+p{font-size:14px;line-height:1.75;margin:8px 0;color:#5a2b3d}
+ul{margin:8px 0;padding-left:20px}
+li{font-size:14px;line-height:1.75;color:#5a2b3d;margin:5px 0}
+.step{display:flex;gap:10px;margin:8px 0}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.step .tx{flex:1;font-size:14px;line-height:1.7;color:#5a2b3d;padding-top:1px}
+kbd{background:#fff8fa;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:12px;font-family:inherit}
+.tip{background:#fff8fa;border:1px solid #ffdbe8;border-radius:10px;padding:10px 12px;font-size:13px;color:#8a5a68;line-height:1.7;margin:10px 0}
+.tip b{color:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left}
+th{background:#fff8fa;color:var(--sub);font-weight:700}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.toc a{font-size:13px;color:var(--acc);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:#fff;font-weight:700}
+.toc a:hover{border-color:var(--acc)}
+footer{max-width:760px;margin:0 auto;padding:0 16px 40px;color:#c79aab;font-size:12px;text-align:center;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <img src="icon-192.png" alt="重庆第二外国语学校">
+  <h1>📖 统一后台 · 使用教程</h1>
+  <a class="btn" href="admin.html">← 进后台</a>
+</header>
+<main>
+  <div class="card">
+    <div class="toc">
+      <a href="#start">开始</a><a href="#dash">仪表盘</a><a href="#review">预审</a><a href="#cands">候选</a>
+      <a href="#posts">内容</a><a href="#reports">举报</a><a href="#appeals">申诉</a><a href="#announce">公告</a>
+      <a href="#sens">敏感词</a><a href="#quota">配额</a><a href="#log">日志</a>
+    </div>
+  </div>
+
+  <div class="card" id="start">
+    <h2>① 开始 · 登录</h2>
+    <p>打开 <b>admin.html</b> → 输入管理密码 → 「进入后台」。密码只在云端核对，浏览器不落盘；<b>刷新页面需要重新输入</b>（安全设计，勿嫌麻烦）。</p>
+    <div class="tip"><b>顶部标签数字</b> = 该队列待处理条数（红色 0 表示清空了）。切到哪个标签就只加载哪个，不拖慢页面。</div>
+  </div>
+
+  <div class="card" id="dash">
+    <h2>② 仪表盘 <span class="badge b-safe">待办中心</span></h2>
+    <p>一进后台先看这里：<b>点卡片直接跳到对应队列</b>。最上方 8 个数字是总览（待预审 / 待举报 / 待申诉 / 候选人 / 可见表白 / 累计访问…），底部「🧹 一键清理」区：</p>
+    <table><tr><th>按钮</th><th>作用</th></tr>
+    <tr><td>🧹 清理数据库</td><td>物理删除「已删除/违规」态的 DB 行（写审计）</td></tr>
+    <tr><td>📷 清理孤儿照片</td><td>删存储里已无任何候选指向的照片</td></tr>
+    <tr><td>全部清理</td><td>上面两步一起做</td></tr></table>
+    <div class="tip">cron 每日 02:00 也会自动清理；这里的手动按钮用于即时处理。清理不可恢复，但都留痕在审计日志。</div>
+  </div>
+
+  <div class="card" id="review">
+    <h2>③ 照片预审 <span class="badge b-warn">先审后显</span></h2>
+    <p>新上传的候选人照片先进这里，<b>通过后才全校可见</b>。每张卡片可看到 AI 风险标签（安全/可疑/高风险 + 风险%）。</p>
+    <div class="step"><span class="n">1</span><span class="tx"><b>✅ 通过</b>：直接放行，候选立即可见。</span></div>
+    <div class="step"><span class="n">2</span><span class="tx"><b>✋ 拒绝</b>：会让你填一个拒绝原因（写入审计），候选被挡下、照片不展示。</span></div>
+    <div class="tip">AI 只是初筛参考，<b>最终判断以你人工为准</b>。拿不准就拒绝，宁可多审不可错放。</div>
+  </div>
+
+  <div class="card" id="cands">
+    <h2>④ 候选人 · 全量 <span class="badge b-warn">含删除</span></h2>
+    <p>所有候选人（可见/待审/已拒绝）都在这里，上方可按姓名搜索、按状态筛选。每位可：</p>
+    <ul>
+      <li><b>⏸ 关闭投票 / ▶ 开启投票</b>：临时停开投票（不删人）</li>
+      <li><b>🗑 删除</b>：删 DB 行 + 级联投票，<b>需输入「删除+编号」二次确认</b>才执行</li>
+    </ul>
+    <div class="tip"><b>同名照片自动归组</b>：7 天内同名候选人会合并为一人、多张照片，所以这里看到的是「人」不是「照片」。</div>
+  </div>
+
+  <div class="card" id="posts">
+    <h2>⑤ 内容 <span class="badge b-warn">可隐藏/删除</span></h2>
+    <p>全部表白帖（含已隐藏/已删）。可按关键词搜索、按状态筛选。每条可 <b>🙈 隐藏</b>（可恢复、保留行）或 <b>🗑 彻底删除</b>（不可恢复，需二次确认输入）。</p>
+    <p>区别：<b>隐藏</b>=从公开页拿走但 DB 保留；<b>删除</b>=连行带点赞礼物一起删。</p>
+  </div>
+
+  <div class="card" id="reports">
+    <h2>⑥ 举报处置 <span class="badge b-warn">有处置</span></h2>
+    <p>用户点卡片「举报」产生的待办。每条显示<b>举报理由 + 被举报内容</b>。三种处置：</p>
+    <ul>
+      <li><b>🙈 隐藏</b>：内容从公开页下架</li>
+      <li><b>🗑 删除</b>：彻底删除（需二次确认）</li>
+      <li><b>驳回</b>：举报不成立，内容保留</li>
+    </ul>
+  </div>
+
+  <div class="card" id="appeals">
+    <h2>⑦ 申诉 <span class="badge b-warn">有处置</span></h2>
+    <p>被拍者/被对象点「申请下架」产生的待办。可 <b>删除内容/照片</b>（需二次确认）或 <b>驳回</b>。</p>
+  </div>
+
+  <div class="card" id="announce">
+    <h2>⑧ 全站公告 <span class="badge b-safe">即时生效</span></h2>
+    <p>所有页面打开即显示的公告横幅。这里填标题 + 正文（≤500字）→「保存并全站生效」。规则：</p>
+    <ul>
+      <li>用户点「知道了」后 <b>15 分钟内不再弹</b></li>
+      <li>你<b>一改内容，免弹窗口立即失效</b>，新公告马上重弹（必达）</li>
+    </ul>
+  </div>
+
+  <div class="card" id="sens">
+    <h2>⑨ 敏感词 <span class="badge b-safe">增删</span></h2>
+    <p>当前 <b>172 词</b>，全部参与发帖/投稿的自动拦截。上方输入框 <b>＋ 添加</b>，列表逐条 <b>删</b>。带搜索框快速定位。</p>
+    <div class="tip">加词用回车或按钮；改的是全站点云端的表，保存即生效。</div>
+  </div>
+
+  <div class="card" id="quota">
+    <h2>⑩ 配额 <span class="badge b-safe">防刷阈值</span></h2>
+    <p>每个动作的「单设备/日」与「单 IP/日」上限。改表格里的数字 →「保存修改」即时生效。用途：有人恶意刷票/刷屏时，收紧对应动作阈值即可限流。</p>
+    <div class="tip">不确定就保持默认；「恢复默认」可一键重载当前清单。</div>
+  </div>
+
+  <div class="card" id="log">
+    <h2>⑪ 审计日志 <span class="badge b-safe">只读</span></h2>
+    <p>最近 300 条操作留痕（谁删了谁、预审通过/拒绝、挂照、标记…），可按动作类型筛选、按表名/备注搜索。<b>只读，不能改</b>——这是追责依据。</p>
+  </div>
+
+  <div class="card">
+    <h2>⚠️ 操作安全总览</h2>
+    <table><tr><th>级别</th><th>操作</th><th>防误触</th></tr>
+    <tr><td>🟢 可逆</td><td>通过/隐藏/开启投票/加删敏感词/改公告/改配额</td><td>直接点，错了能再改回</td></tr>
+    <tr><td>🟡 需理由</td><td>拒绝预审</td><td>填原因留痕</td></tr>
+    <tr><td>🔴 不可逆</td><td>删除候选人/删除帖子/处置删除/一键清理</td><td>弹框 + <b>输入「删除编号」文字确认</b></td></tr></table>
+    <div class="tip">所有操作都走<b>云端 RPC 并写审计日志</b>；管理密码强度较弱，请勿泄露，定期到「配置」升级。</div>
+  </div>
+</main>
+<footer>重庆第二外国语学校 · 共享表白墙 · 统一后台教程<br>本页为只读说明，不影响任何线上数据</footer>
+<script src="assets/bgm.js?v=2"></script>
+</body>
+</html>
