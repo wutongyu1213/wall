@@ -59,7 +59,7 @@
       const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
       const tmo=ctrl?setTimeout(function(){ctrl.abort();},15000):null;
       const {data,error}=await s.from('wall_candidates')
-        .select('id,nickname,class_no,photo_url,like_count,msg,created_ts')
+        .select('id,nickname,class_no,photo_url,like_count,msg,created_ts,voting_on')
         .eq('kind',KIND).eq('status','ok')
         .order('like_count',{ascending:false}).limit(200);
       if(tmo)clearTimeout(tmo);
@@ -90,6 +90,17 @@
   }
 
   /* ---- 投票（云端，DB unique 兜底一人一票） ---- */
+  /* ---- 被拍者/本人申诉（走 Supabase fn_wall_appeal，云端受理+审计，前端零判断） ---- */
+  async function appeal(cid){
+    const s=getSB(); if(!s){ tip('云端未连接'); return; }
+    const uk=userKey();
+    var raw=prompt('你是被拍者/本人？请填写申诉理由（如：我是本人，申请删除照片）：');
+    if(raw===null)return;
+    var reason=(raw||'申请删除').slice(0,200);
+    var r=await s.rpc('fn_wall_appeal',{p_target_kind:'candidate',p_target_id:Number(cid),p_reason:reason,p_user_key:uk});
+    if(r.error){ tip('申诉未受理：'+((r.error.message||'').replace(/^sensitive:/,'').slice(0,50))); return; }
+    tip('申诉已提交 ✅ 管理员会尽快处理（云端受理）');
+  }
   async function vote(cid){
     const s=getSB(); if(!s){ tip('云端未连接'); return; }
     const uk=userKey();
@@ -180,7 +191,8 @@
           +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
-          +'<div class="vf"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+(done?'disabled':'')+'>'+(done?'已投':'投票')+'</button>'
+          +'<div class="vf"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+((done||p.voting_on===false)?'disabled':'')+' style="margin-right:6px">'+(p.voting_on===false?'投票已关闭':(done?'已投':'投票'))+'</button>'
+          +'<button class="vote" data-appeal="'+p.id+'" style="margin-right:6px;opacity:.85">申诉</button>'
           +'<span class="ct">'+c+' 票</span></div>'
           +'</div>'
           
@@ -210,6 +222,9 @@
     }; }
     document.querySelectorAll('[data-vote]').forEach(function(b){
       b.onclick=function(){ vote(b.getAttribute('data-vote')); };
+    });
+    document.querySelectorAll('[data-appeal]').forEach(function(b){
+      b.onclick=function(){ appeal(b.getAttribute('data-appeal')); };
     });
     const rt=document.getElementById('retryLoad');
     if(rt){ rt.onclick=function(){ if(typeof window.supabase==='undefined'){ location.reload(); return; } loading=false; loadCands().then(function(){ render(); }).catch(function(){ render(); }); }; }
