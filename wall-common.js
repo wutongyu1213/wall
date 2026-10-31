@@ -19,6 +19,23 @@
   }
 
   /* ---- 本地身份锚点（投票去重用，清缓存可重置，DB 有 unique 兜底）---- */
+  async function signPhotos(rows){
+    var out={};
+    var rels=(rows||[]).filter(function(p){return p&&p.photo_url&&p.photo_url.trim()!==""&&!/^https?:/.test(p.photo_url);}).map(function(p){return p.photo_url;});
+    (rows||[]).forEach(function(p){ if(p&&p.photo_url&&/^https?:/.test(p.photo_url)) out[p.photo_url]=p.photo_url; });
+    var list=rels;
+    if(!list.length) return out;
+    var s2=getSB(); if(!s2) return out;
+    try{
+      var r=await s2.storage.from("wall-photos").createSignedUrls(list,900);
+      (r.data||[]).forEach(function(d){
+        var u=d.signedUrl||"";
+        if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u;
+        out[d.path]=u;
+      });
+    }catch(e){ console.warn("sign photos",e); }
+    return out;
+  }
   function userKey(){
     let uk=localStorage.getItem('wallVoteKey');
     if(!uk){ uk='v'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wallVoteKey',uk); }
@@ -45,7 +62,7 @@
         .order('like_count',{ascending:false}).limit(200);
       if(tmo)clearTimeout(tmo);
       if(myLock!==loadLock)return; // 已被更新一次加载取代
-      if(error){ loadErr=true; people=[]; } else { people=data||[]; }
+      if(error){ loadErr=true; people=[]; } else { people=data||[]; var _pm=await signPhotos(people); people.forEach(function(p){ if(p&&_pm[p.photo_url]) p._src=_pm[p.photo_url]; }); }
     }catch(e){
       if(myLock===loadLock){ console.error('loadCands',e); loadErr=true; people=[]; }
     }finally{
@@ -60,11 +77,11 @@
     const path=KIND+'/'+Date.now()+'_'+uk+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
     const {error:upErr}=await s.storage.from('wall-photos').upload(path,file,{contentType:'image/jpeg'});
     if(upErr){ console.error(upErr); tip('照片上传失败：'+upErr.message); return; }
-    const publicUrl=s.storage.from('wall-photos').getPublicUrl(path).data.publicUrl;
+    /* 桶已私有：库里只存稳定相对路径 path，显示时由 signPhotos 客户端签名 */
     /* 切换到 fn_wall_candidate_add RPC：服务端校验 + 限流 + 防破图（PostgREST 需显式传全 6 个参数名） */
     const {data:cand,error:insErr}=await s.rpc('fn_wall_candidate_add',{
       p_kind:KIND, p_nickname:(name||'匿名'), p_class_no:'',
-      p_photo_url:publicUrl, p_msg:(msg||''), p_user_key:uk
+      p_photo_url:path, p_msg:(msg||''), p_user_key:uk
     });
     if(insErr){ console.error(insErr); tip('提交失败：'+insErr.message); return; }
     await loadCands(); render(); tip('已上传 ✔ 全校可见');
@@ -156,7 +173,7 @@
         const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
         const done=myVotes.includes(p.id);
         h+='<div class="card">'
-          +'<div class="ph"><img src="'+esc(p.photo_url)+'" loading="lazy" alt="" data-id="'+p.id+'" onerror="this.classList.add(\'broken\');this.parentNode.classList.add(\'empty-photo\');this.style.display=\'none\';"><span class="ph-ph"></span><span class="medal">'+medal+'</span></div>'
+          +'<div class="ph"><img src="'+esc(p._src||"")+'" loading="lazy" alt="" data-id="'+p.id+'" onerror="this.classList.add(\'broken\');this.parentNode.classList.add(\'empty-photo\');this.style.display=\'none\';"><span class="ph-ph"></span><span class="medal">'+medal+'</span></div>'
           +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
