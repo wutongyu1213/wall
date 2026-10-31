@@ -19,6 +19,7 @@
   }
 
   /* ---- 本地身份锚点（投票去重用，清缓存可重置，DB 有 unique 兜底）---- */
+  var lastSignTime=0;
   async function signPhotos(rows){
     var out={};
     var rels=(rows||[]).filter(function(p){return p&&p.photo_url&&p.photo_url.trim()!==""&&!/^https?:/.test(p.photo_url);}).map(function(p){return p.photo_url;});
@@ -33,6 +34,7 @@
         if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u;
         out[d.path]=u;
       });
+      lastSignTime=Date.now();
     }catch(e){ console.warn("sign photos",e); }
     return out;
   }
@@ -222,6 +224,7 @@
   }
 
   window.WALL={ render:render, refresh:function(){ loadCands().then(function(){ render(); }).catch(function(){ render(); }); } };
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden&&lastSignTime&&Date.now()-lastSignTime>600000){ loadCands().then(function(){ render(); }).catch(function(){}); } });
   /* storage 事件：跨标签页刷新，带锁 + 不覆盖进行中加载 */
   window.addEventListener('storage',function(){ loadCands().then(function(){ if(loadLock===loadLock&&!loading){ render(); } }).catch(function(){}); });
   /* 顶层：未捕获 Promise 兜底，失败仍 render 出重试入口 */
