@@ -293,7 +293,7 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
     </div>
     <div class="row">
       <div class="field"><label>你的昵称</label><input id="inName" placeholder="匿名可不填" maxlength="12"></div>
-      <div class="field"><label>表白对象（真实姓名）</label><input id="inTo" placeholder="对象姓名或昵称（≤4字，建议用昵称）" maxlength="4"></div>
+      <div class="field"><label>表白对象（昵称，勿用真实全名）</label><input id="inTo" placeholder="对象昵称（≤4字，建议匿名昵称）" maxlength="4"></div>
       <div class="field"><label>年级（202 几级）</label>
         <select id="inYear">
           <option value="2027">2027级</option><option value="2028">2028级</option><option value="2029">2029级</option>
@@ -417,9 +417,9 @@ const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?loca
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
-/* BGM 云端优先：Supabase 公开桶 wall-audio（告白气球·周杰伦，国内可访问）；本地 assets/bgm.mp3 兜底 */
+/* BGM 云端唯一音源：Supabase 公开桶 wall-audio（告白气球·周杰伦）；本地 Pages 已移除 mp3 */
 const BGM_CLOUD="https://dpceuvqtwvhoipxhozxz.supabase.co/storage/v1/object/public/wall-audio/bgm.mp3";
-const BGM_URLS=[BGM_CLOUD,"assets/bgm.mp3"];
+const BGM_URLS=[BGM_CLOUD];
 /* BGM 可达性预检：不在迭代中 splice 自身；no-cors 下 status 恒为 0 属正常，仅明确 404/403 才剔除，网络异常保留本地兜底 */
 (function(){var list=BGM_URLS.slice();list.forEach(function(u){fetch(u,{method:"HEAD"}).then(function(r){if(r.status===404||r.status===403||r.status===401){BGM_URLS.splice(BGM_URLS.indexOf(u),1)}}).catch(function(){})})})();
 const bgm=document.getElementById("bgm");bgm.volume=0.35;let bgmIndex=0;
@@ -496,7 +496,7 @@ const groups=[];["male","female"].forEach(g=>{const items=visible.filter(x=>grou
 let html='<div class="groups">'+groups.map(({g,items})=>{const isMale=g==="male";const label=isMale?"男 → 男 / 男 → 女":"女 → 男 / 女 → 女";
 return '<div class="group '+g+'"><div class="ghead"><span class="gicon">'+GROUP_GICONS[g]+'</span>'+label+'<span class="gcount">'+items.length+' 条</span></div>'+
 items.map(c=>{const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"人");const ul=likedSet.has(c.id);const dl=dislikedSet.has(c.id);
-return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="admin-del" data-admin-del="'+c.id+'">🗑</span><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
+return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><span class="admin-del" data-admin-del="'+c.id+'">🗑</span><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
 if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还有 '+(list.length-shownCount)+' 条）</button>'}
 wallEl.innerHTML=html;const lm=document.getElementById("loadMore");if(lm){lm.onclick=()=>{shownCount+=PAGE;render()}}
 stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPoster();renderHot();renderRank();
@@ -564,12 +564,15 @@ function bindCardEvents(){
     var dis=t.closest("[data-dislike]");if(dis){ev.preventDefault();likeItem(dis.getAttribute("data-id"),"down");return;}
     var sh=t.closest("[data-share]");if(sh){ev.preventDefault();copyText(SITE_URL+"?post="+sh.getAttribute("data-share"));return;}
     var rp=t.closest("[data-report]");if(rp){ev.preventDefault();reportPost(rp.getAttribute("data-report"));return;}
+    var ap=t.closest("[data-appeal]");if(ap){ev.preventDefault();appealPost(ap.getAttribute("data-appeal"));return;}
     var pst=t.closest("[data-poster]");if(pst){ev.preventDefault();makePoster(pst.getAttribute("data-poster"));return;}
     /* data-admin-del 仍由 bindAdminDel() 的 per-element onclick 处理，这里不重复 */
   });
 }
 
 function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||""}).then(function(r){if(r.error){toast("举报失败："+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再试")})}
+/* 申请下架：走 fn_wall_appeal(target_kind='wall')，云端受理 + 24h 限流 5 次 + 审计，处置台可处置 */
+function appealPost(id){var uk=userKey();var ck="wallAppeal_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}var v=prompt("申请下架这条表白（请填写你的身份，如：我是被表白对象/我本人，申请删除）：");if(v===null)return;var reason=(v&&v.trim()?v.trim():"申请下架").slice(0,120);localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason,p_user_key:uk||""}).then(function(r){if(r.error){toast("申请未受理："+(r.error.message||"").slice(0,40))}else{toast("已提交下架申请 ✅ 管理员会尽快处置")}}).catch(function(){toast("申请提交失败，稍后再试")})}
 let adminMode=false;let adminPwd="";
 function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开启 🛡️");bindAdminDel()}
 /* H1: 进管理前先 prompt 收密码，避免 adminPwd 恒空导致删除必 401 */
@@ -639,7 +642,7 @@ document.getElementById("inAnon").onchange=function(){if(this.checked)document.g
 document.getElementById("postBtn").onclick=async()=>{if(busy)return;
 const anon=document.getElementById("inAnon").checked;
 let name=document.getElementById("inName").value.trim();if(anon)name="神秘人";
-let to=document.getElementById("inTo").value.trim().replace(/[@\s]/g,"");if(!to){toast("请填写表白对象的真实姓名（不超过 4 个字）");return}if(to.length>4){toast("真实姓名不能超过 4 个字");return}
+let to=document.getElementById("inTo").value.trim().replace(/[@\s]/g,"");if(!to){toast("请填写对象昵称（不超过 4 个字）");return}if(to.length>4){toast("昵称不能超过 4 个字");return}
 const year=document.getElementById("inYear").value;const cls=document.getElementById("inClass").value;
 const tag=document.getElementById("inTag").value;const fromG=document.getElementById("inFrom").value;const toG=document.getElementById("inToG").value;
 const msg=document.getElementById("inMsg").value.trim().slice(0,200);
