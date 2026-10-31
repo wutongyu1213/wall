@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>表白墙 · 管理员处置台</title>
+<style>
+:root{--bg1:#fff5f7;--bg2:#ffe9ef;--ink:#3a0a1a;--sub:#8a5a68;--line:#ffd7e0;--acc:#c4002a;--card:#fff;--ok:#1a9d5a;--warn:#b06a00;}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));min-height:100vh}
+header{position:sticky;top:0;z-index:9;background:rgba(255,245,247,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:800}
+header .badge{font-size:12px;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+.sp{flex:1}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:14px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn.pri:hover{opacity:.9}
+.btn.sm{padding:5px 10px;font-size:13px}
+main{max-width:960px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+section h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+section h2 .n{font-size:12px;color:#fff;background:var(--acc);border-radius:999px;padding:1px 8px;min-width:22px;text-align:center}
+section h2 .hint{font-size:12px;color:var(--sub);font-weight:400;margin-left:auto}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#fff}
+.card:last-child{margin-bottom:0}
+.card .t{font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;border-radius:6px;padding:1px 7px;border:1px solid var(--line);color:var(--sub);background:#fff8fa}
+.tag.pend{color:#b06a00;border-color:#f2d9a8;background:#fff6e6}
+.tag.res{color:#1a9d5a;border-color:#b6e4c6;background:#eefaf1}
+.tag.dis{color:#8a5a68;border-color:var(--line);background:#f6eef0}
+.tag.on{color:#1a9d5a;border-color:#b6e4c6;background:#eefaf1}
+.tag.off{color:#c0392b;border-color:#f2b8b3;background:#fdecea}
+.card .d{color:var(--sub);font-size:13px;margin:6px 0;line-height:1.5;word-break:break-all}
+.card .meta{font-size:12px;color:#b58ea0;margin-top:4px}
+.acts{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.photo-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--line);flex:none}
+.empty{color:var(--sub);font-size:13px;text-align:center;padding:14px 0}
+#loginCard input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;margin:6px 0}
+.note{font-size:12px;color:var(--sub);line-height:1.7;background:#fff8fa;border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:14px}
+.log line{display:block}
+.log .row{font-size:12px;color:var(--sub);padding:5px 0;border-bottom:1px dashed var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.log .row:last-child{border-bottom:0}
+.log .k{font-weight:700;color:var(--ink)}
+#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;max-width:80vw;z-index:99}
+#msg.show{opacity:.96}
+.toast2{position:fixed;top:60px;left:50%;transform:translateX(-50%);}
+footer{max-width:960px;margin:0 auto;padding:10px 16px 40px;color:#c79aab;font-size:12px;text-align:center;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛡️ 表白墙 · 管理员处置台</h1>
+  <span class="badge" id="who">未登录</span>
+  <span class="sp"></span>
+  <button class="btn sm" id="refreshBtn" onclick="refreshAll()">刷新</button>
+  <button class="btn sm" id="logoutBtn" onclick="logout()" style="display:none">退出</button>
+</header>
+
+<main>
+  <!-- 登录门 -->
+  <div id="loginCard">
+    <section>
+      <h2>管理员登录</h2>
+      <div class="note">
+        此处置台通过 <b>云端 Edge 鉴权</b> 运行：管理密码与 service 密钥都只存在于 Supabase 服务端，
+        浏览器不落盘、不接触敏感词逻辑。所有操作（申诉处置 / 投票开关）都由数据库 RPC 执行并写入审计日志。
+      </div>
+      <label style="font-size:13px;color:var(--sub)">输入管理密码</label>
+      <input type="password" id="pwd" placeholder="管理密码（≥6 位）" onkeydown="if(event.key==='Enter')login()">
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn pri" style="flex:1" onclick="login()">进入处置台</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 处置区 -->
+  <div id="consoleArea" style="display:none">
+    <div class="grid">
+      <section style="grid-column:1/-1">
+        <h2>📮 待处理申诉 <span class="n" id="apN">0</span><span class="hint">被拍者 / 被对象 主动申请</span></h2>
+        <div id="appeals"></div>
+      </section>
+
+      <section>
+        <h2>🗳️ 候选人 · 投票护栏 <span class="n" id="cdN">0</span></h2>
+        <div id="cands"></div>
+      </section>
+
+      <section>
+        <h2>🧾 审计日志 <span class="hint">最近 300 条</span></h2>
+        <div class="log" id="logwrap"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer>
+  重庆第二外国语学校 · 共享表白墙 管理端<br>
+  操作全部走云端 RPC + 审计日志 · 删照片会把候选人转 hidden 并关投票 · 驳回仅关闭申诉不改主数据
+</footer>
+
+<div id="msg"></div>
+<script>
+const SUPA_URL="https://dpceuvqtwvhoipxhozxz.supabase.co";
+const ANON_KEY="sb_publishable_lgsJvhLEHOG9oM1aXH7y1A_pgdmezyA";
+const EDGE=SUPA_URL+"/functions/v1/wall-admin";
+let PWD="";
+let busy=false;
+
+function toast(t){const m=document.getElementById("msg");m.textContent=t;m.classList.add("show");clearTimeout(m._t);m._t=setTimeout(()=>m.classList.remove("show"),2600);}
+async function edge(act,payload){
+  const r=await fetch(EDGE,{method:"POST",headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify(Object.assign({admin:PWD,act:act},payload||{}))});
+  let j;try{j=await r.json()}catch(e){j={}}
+  return j;
+}
+function fmtTime(t){if(!t)return"";const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+
+async function login(){
+  const p=(document.getElementById("pwd").value||"").trim();
+  if(!p||p.length<6){toast("密码至少 6 位");return;}
+  PWD=p;
+  const j=await edge("verify",{});
+  if(j&&j.ok){document.getElementById("who").textContent="已登录 · 管理";document.getElementById("who").style.color="var(--ok)";
+    document.getElementById("loginCard").style.display="none";
+    document.getElementById("consoleArea").style.display="block";
+    document.getElementById("logoutBtn").style.display="inline-block";
+    refreshAll();
+  }else{PWD="";toast("密码错误，无法进入");}
+}
+function logout(){PWD="";document.getElementById("pwd").value="";
+  document.getElementById("who").textContent="未登录";document.getElementById("who").style.color="";
+  document.getElementById("consoleArea").style.display="none";document.getElementById("loginCard").style.display="block";
+  document.getElementById("logoutBtn").style.display="none";}
+
+async function refreshAll(){
+  if(busy)return;busy=true;
+  try{
+    const [ap,cd,lg]=await Promise.all([edge("appeals",{}),edge("candidates",{}),edge("log",{})]);
+    if(ap&&ap.ok)renderAppeals(ap.appeals||[]);
+    if(cd&&cd.ok)renderCands(cd.candidates||[]);
+    if(lg&&lg.ok)renderLog(lg.log||[]);
+  }catch(e){toast("加载失败："+(e.message||e));}
+  busy=false;
+}
+function renderAppeals(rows){
+  const wrap=document.getElementById("appeals");
+  document.getElementById("apN").textContent=String(rows.length);
+  if(!rows.length){wrap.innerHTML='<div class="empty">暂无申诉 🎉 保持关注即可</div>';return;}
+  wrap.innerHTML="";
+  rows.forEach(function(a){
+    const st=a.status;
+    const stTag=st==="pending"?'<span class="tag pend">待处理</span>':(st==="resolved"?'<span class="tag res">已处置</span>':'<span class="tag dis">已驳回</span>');
+    const div=document.createElement("div");div.className="card";
+    div.innerHTML='<div class="t">#'+a.id+' · '+(a.target_kind==="candidate"?"候选人":"表白")+' <span class="tag">'+a.target_kind+'</span> <span style="color:var(--sub);font-weight:400;font-size:12px">目标 #'+a.target_id+'</span> '+stTag+'</div>'
+      +'<div class="d">理由：'+esc(a.reason||"（未填写）")+'</div>'
+      +'<div class="meta">发起人：'+esc(a.requestor||"匿名")+' · 提交 '+fmtTime(a.created_at)+(a.resolved_action?' · 处置 '+a.resolved_action:'')+(a.resolved_at?' @ '+fmtTime(a.resolved_at):'')+'</div>'
+      +(st==="pending"?'<div class="acts"><button class="btn sm pri" onclick="resolve('+a.id+',\'remove_photo\')">删除照片/内容</button><button class="btn sm" onclick="resolve('+a.id+',\'dismiss\')">驳回</button></div>':'');
+    wrap.appendChild(div);
+  });
+}
+function resolve(id,action){
+  if(!confirm((action==="remove_photo"?"确认删除照片/内容并隐藏？":"确认驳回此申诉？")))return;
+  busy=true;
+  edge("resolve",{id:id,action:action}).then(function(j){
+    if(j&&j.ok){toast("已"+(action==="remove_photo"?"处置（删照片/隐藏）":"驳回")+" 申诉 #"+id);refreshAll();}
+    else{toast("处置失败："+((j&&j.error)||"未知"));refreshAll();}
+    busy=false;
+  }).catch(function(e){busy=false;toast("处置请求失败："+e.message);});
+}
+function renderCands(rows){
+  const wrap=document.getElementById("cands");
+  document.getElementById("cdN").textContent=String(rows.length);
+  if(!rows.length){wrap.innerHTML='<div class="empty">暂无候选人</div>';return;}
+  wrap.innerHTML="";
+  rows.forEach(function(c){
+    const on=c.voting_on!==false;
+    const div=document.createElement("div");div.className="card";
+    let ph="";
+    if(c.photo_url){
+      if(/^https?:/.test(c.photo_url))ph='<img class="photo-thumb" src="'+esc(c.photo_url)+'" alt="">';
+      else ph='<img class="photo-thumb" data-sig="'+esc(c.photo_url)+'" alt="">';
+    }
+    div.innerHTML=ph
+      +'<div class="t" style="margin-top:6px">'+esc(c.nickname||"神秘人")+'<span class="tag">'+(c.kind==="xiaohua"?"校花":"校草")+'</span>'
+      +(on?'<span class="tag on">投票中</span>':'<span class="tag off">投票已关</span>')
+      +' <span style="color:var(--sub);font-weight:400;font-size:12px">🗳️ '+(c.like_count||0)+' 票</span></div>'
+      +'<div class="meta">#'+c.id+' · 班级 '+(esc(c.class_no||"—")+' · 状态 '+c.status)+'</div>'
+      +'<div class="acts">'+(on?'<button class="btn sm" onclick="toggle('+c.id+',false)">关闭投票</button>':'<button class="btn sm pri" onclick="toggle('+c.id+',true)">开启投票</button>')+'</div>';
+    wrap.appendChild(div);
+  });
+  // 签名照片（相对路径 → Edge 签名）
+  wrap.querySelectorAll("img[data-sig]").forEach(function(img){
+    const p=img.dataset.sig;
+    fetch(SUPA_URL+"/functions/v1/wall-photo?path="+encodeURIComponent(p),{headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY}})
+      .then(function(r){return r.json();}).then(function(j){if(j&&j.ok&&j.signedUrl)img.src=j.signedUrl;else img.remove();}).catch(function(){img.remove();});
+  });
+}
+function toggle(id,on){
+  busy=true;
+  edge("toggle",{id:id,on:on}).then(function(j){
+    if(j&&j.ok){toast("候选人 #"+id+" 投票已"+(on?"开启":"关闭"));refreshAll();}
+    else{toast("切换失败："+((j&&j.error)||"未知"));refreshAll();}
+    busy=false;
+  }).catch(function(e){busy=false;toast("切换请求失败："+e.message);});
+}
+function renderLog(rows){
+  const wrap=document.getElementById("logwrap");
+  if(!rows.length){wrap.innerHTML='<div class="empty">暂无审计记录</div>';return;}
+  wrap.innerHTML=rows.map(function(x){
+    return '<div class="row"><span class="k">'+esc(x.action||"")+'</span><span>'+esc(x.trigger||"")+'</span><span>表 '+esc(x.table_name||"")+'</span><span>#'+esc(x.row_id||"")+'</span><span>'+fmtTime(x.occurred_at)+'</span><span>'+esc(x.note||"")+'</span></div>';
+  }).join("");
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+</script>
+</body>
+</html>
