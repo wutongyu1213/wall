@@ -4,7 +4,7 @@
 const CACHE = 'wall-shell-v1';
 const CORE = [
   './', './index.html', './love-wall.html', './xiaohua-wall.html', './xiaocao-wall.html', './admin.html',
-  './manifest.json', './icon-192.png', './icon-512.png',
+  './manifest.json', './icon-192.png', './icon-512.png', './icon-apple-180.png',
   './wall-common.js',
   './assets/supabase.js', './assets/device-fp.js', './assets/ai-review.js', './assets/bgm.js',
   './assets/announce.js', './assets/qrcode.js', './assets/pwa.js', './sw.js'
