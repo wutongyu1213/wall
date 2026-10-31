@@ -336,6 +336,7 @@ function candCard(c,mode){
       (c.msg?'<div class="d">'+esc(c.msg)+'</div>':'')+
       (c.reject_reason?'<div class="d" style="color:#c0392b">拒绝原因：'+esc(c.reject_reason)+'</div>':'')+
       '<div class="meta">#'+Number(c.id||0)+' · 班级 '+esc(c.class_no||"—")+' · 照片 '+(c.photo_url?esc(c.photo_url):"无")+' · '+fmtTime(c.created_ts?c.created_ts/1000:c.created_at||c.created_ts)+'</div>'+
+      +((c.ai_review&&c.ai_review.verdict)?('<span class="tag '+(c.ai_review.verdict==='safe'?'res':(c.ai_review.verdict==='risky'?'off':'re'))+'">AI '+(c.ai_review.verdict==='safe'?'安全':(c.ai_review.verdict==='risky'?'高风险':'可疑'))+' · 风险'+(c.ai_review.risk!=null?Math.round(c.ai_review.risk*100):'—')+'%</span>'):'')+
       '<div class="acts">'+
         (mode==="review"||st==="review"
           ?'<button class="btn ok sm" onclick="reviewCand('+Number(c.id||0)+', \'approve\')">✅ 通过</button><button class="btn warn sm" onclick="reviewCand('+Number(c.id||0)+', \'reject\')">✋ 拒绝</button>':""),
