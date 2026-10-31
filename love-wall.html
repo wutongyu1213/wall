@@ -417,7 +417,8 @@ const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?loca
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
-const BGM_URLS=["https://cdn.pixabay.com/audio/2022/08/02/audio_8de1a9f2c0.mp3"];
+/* BGM 本地优先：assets/bgm.mp3（告白气球·周杰伦，随 Pages 托管，国内直连秒开）；Pixabay 兜底 */
+const BGM_URLS=["assets/bgm.mp3","https://cdn.pixabay.com/audio/2022/08/02/audio_8de1a9f2c0.mp3"];
 /* BGM 可达性预检：不在迭代中 splice 自身；no-cors 下 status 恒为 0 属正常，仅明确 404/403 才剔除，网络异常保留本地兜底 */
 (function(){var list=BGM_URLS.slice();list.forEach(function(u){fetch(u,{method:"HEAD"}).then(function(r){if(r.status===404||r.status===403||r.status===401){BGM_URLS.splice(BGM_URLS.indexOf(u),1)}}).catch(function(){})})})();
 const bgm=document.getElementById("bgm");bgm.volume=0.35;let bgmIndex=0;
