@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>校花之墙 · 投票 · 校园墙</title>
+<title>校花之墙 · 投票 · 校园�?/title>
 <style>
 :root{
   --bg1:#fff7fa;--bg2:#ffeef5;--accent:#e0498f;--accent2:#c4002a;
@@ -82,7 +82,7 @@ body{min-height:100vh;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans
 .ph-ava{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .ph-ava-ch{font-size:52px;font-weight:800;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.22)}
 .ph-ava-sub{font-size:11px;color:rgba(255,255,255,.92);background:rgba(0,0,0,.2);padding:2px 10px;border-radius:999px;backdrop-filter:blur(2px)}
-/* ===== 空态/加载 ===== */
+/* ===== 空�?加载 ===== */
 .empty{text-align:center;padding:44px 16px;color:var(--muted);font-size:.95rem;letter-spacing:1px;background:var(--card);border:1px dashed var(--line);border-radius:18px}
 .empty.err a{color:var(--accent2);cursor:pointer;text-decoration:underline}
 .loading-spin{display:block;width:34px;height:34px;margin:0 auto 12px;border:4px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
@@ -116,7 +116,7 @@ body.dark .up-drop:hover,body.dark .up-drop.drag{background:rgba(111,155,255,.12
 body.dark #upProg{background:rgba(255,255,255,.12)}
 #upProg i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
 
-/* P3 多选预览+卡片缩略 */
+/* P3 多选预�?卡片缩略 */
 #upPrev{display:none;}
 #upPrev:not(:empty){display:block}
 #upPrev{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:4px 0}
@@ -132,14 +132,14 @@ body.dark #upProg{background:rgba(255,255,255,.12)}
 <script src="assets/supabase.js?v=1"></script><script src="assets/device-fp.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
 </head>
 <body>
-<nav class="nav"><div class="nav-in"><span class="brand">🏫 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl cur" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl" href="love-wall.html">❤️ 表白</a></div></nav>
+<nav class="nav"><div class="nav-in"><span class="brand">🏫 校园�?small>· 重庆第二外国语学�?/small></span><a class="nl" href="index.html">🏠 总入�?/a><a class="nl cur" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl" href="love-wall.html">❤️ 表白</a></div></nav>
 <div id="app"></div>
-<footer>校花之墙 · 把最美的她写进墙上 · 每人一票 · 文明投票</footer>
-<script src="assets/announce.js?v=1"></script>
+<footer>校花之墙 · 把最美的她写进墙�?· 每人一�?· 文明投票</footer>
+<script src="assets/announce.js?v=2"></script>
 <script>window.WALL_CFG={key:'wall_xiaohua',title:'🌸 校花之墙',accent:'pink'}</script>
 <script src="wall-common.js?v=10"></script>
 <button class="dark-toggle" id="darkToggle" aria-label="切换深色">🌙</button>
-<script>(function(){var d=localStorage.getItem("wallDark")==="1";document.body.classList.toggle("dark",d);var b=document.getElementById("darkToggle");if(!b)return;b.textContent=d?"☀️":"🌙";b.onclick=function(){var x=document.body.classList.toggle("dark");localStorage.setItem("wallDark",x?"1":"0");b.textContent=x?"☀️":"🌙"};})();</script>
+<script>(function(){var d=localStorage.getItem("wallDark")==="1";document.body.classList.toggle("dark",d);var b=document.getElementById("darkToggle");if(!b)return;b.textContent=d?"☀�?:"🌙";b.onclick=function(){var x=document.body.classList.toggle("dark");localStorage.setItem("wallDark",x?"1":"0");b.textContent=x?"☀�?:"🌙"};})();</script>
 <script src="assets/bgm.js?v=2"></script>
 </body>
 </html>
