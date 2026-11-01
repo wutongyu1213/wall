@@ -183,6 +183,18 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;letter-spacing:2px;m
 .loading .spin{display:inline-block;width:18px;height:18px;border:3px solid #ffd7e0;border-top-color:var(--rose);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
 .loading.error .spin{display:none}
 .loading.error{color:var(--rose-d)}
+/* 骨架屏：加载中用卡片占位（微光扫过），首屏“看起来马上有内容” */
+.skel{display:grid;grid-template-columns:1fr;gap:14px;padding:6px 0}
+.skel-card{background:var(--card);border:1px solid rgba(255,77,109,.14);border-radius:16px;padding:16px 18px;overflow:hidden;position:relative}
+.skel-card::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:translateX(-100%);animation:skel-shimmer 1.15s infinite;pointer-events:none}
+body.dark .skel-card::before{background:linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent)}
+@keyframes skel-shimmer{100%{transform:translateX(100%)}}
+.skel-line{height:11px;border-radius:6px;background:rgba(0,0,0,.08);margin:9px 0;overflow:hidden}
+body.dark .skel-line{background:rgba(255,255,255,.12)}
+.skel-line.t1{width:38%;margin-top:0}
+.skel-line.t2{width:82%}
+.skel-line.t3{width:64%}
+.skel-line.t4{width:46%;margin-bottom:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 .poster-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
 .poster-modal.show{display:flex}
@@ -460,7 +472,7 @@ function userKey(){if(window.__wallDevice){try{var d=window.__wallDevice.id();if
 function wallIp(){try{return(window.__wallDevice&&window.__wallDevice.ip())||undefined}catch(e){return undefined}}
 function keyOf(c){return c.fromG+c.toG}
 function groupOf(c){return c.fromG==="男"?"male":"female"}
-function loadState(msg,spin){const el=document.getElementById("loadState");if(!el)return;el.className="loading"+(spin?"":" error");el.innerHTML=(spin?'<span class="spin"></span>':'')+msg}
+function loadState(msg,spin){const el=document.getElementById("loadState");if(!el)return;el.className="loading"+(spin?"":" error");var sk='<div class="skel">';for(var k=0;k<3;k++){sk+='<div class="skel-card"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div>'+(k<2?'<div class="skel-line t4"></div>':'')+'</div>';}sk+='</div>';el.innerHTML=spin?sk:msg}
 async function load(){if(busy)return;busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
 wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
