@@ -540,7 +540,7 @@ function signPhotosIn(wrap){
   wrap.querySelectorAll("img.photo-thumb[data-url]").forEach(function(img){
     const u=img.getAttribute("data-url")||"";
     if(!u){img.style.display="none";return;}
-    if(/^https?:/i.test(u)){img.src=u;return;}
+    if(/^https:\/\/[a-z0-9-]+\.supabase\.co\/(storage|rest)\//i.test(u)){img.src=u;return;} /* 照片域名白名单：仅受信 Supabase 域，杜绝存储型恶意 URL */
     if(/^xiaohua\//.test(u)||/^xiaocao\//.test(u)){
       fetch(SUPA_URL+"/functions/v1/wall-photo?path="+encodeURIComponent(u),{headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY}})
         .then(function(r){return r.json();})
