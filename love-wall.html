@@ -440,7 +440,9 @@ let __edgeOk=true;let __edgeGifts=null;
 async function edgeFetch(limit){const u=EDGE_URL+"?limit="+limit;const r=await fetch(u,{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}});if(!r.ok)throw new Error("edge "+r.status);const j=await r.json();if(!j||!j.ok)throw new Error("edge bad");return j}
 /* 管理鉴权已移至 Edge 函数环境变量 ADMIN_PWD，前端不再存明文密码 */
 /* 修复 D：海报/二维码指向单条（?post=id），扫出来能直达定位 */
-const SITE_BASE=(location.protocol==="http:"||location.protocol==="https:")?location.origin+"/":"https://wutongyu1213.github.io/wall/";
+/* P0-1 修复：部署在 /wall/ 子路径下，location.origin+"/" 会丢掉 /wall/ 导致 ?post= 深链 404；
+   改用相对当前页的 base，自动跟随部署路径，分享链接/海报二维码/榜单跳转全部生效 */
+const SITE_BASE=new URL('./',location.href).href;
 const SITE_URL=SITE_BASE;
 /* 修复 B：发帖限流——同一 user_key 两次发帖最小间隔（秒） */
 const POST_MIN_INTERVAL=20;
@@ -473,16 +475,27 @@ function wallIp(){try{return(window.__wallDevice&&window.__wallDevice.ip())||und
 function keyOf(c){return c.fromG+c.toG}
 function groupOf(c){return c.fromG==="男"?"male":"female"}
 function loadState(msg,spin){const el=document.getElementById("loadState");if(!el)return;el.className="loading"+(spin?"":" error");var sk='<div class="skel">';for(var k=0;k<3;k++){sk+='<div class="skel-card"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div>'+(k<2?'<div class="skel-line t4"></div>':'')+'</div>';}sk+='</div>';el.innerHTML=spin?sk:msg}
+/* 修复"点赞没用/数字又变回0"：轮询与首次加载走 60s 的 wall-cache，
+   缓存里的 like_count 是旧的（多为 0），会把刚点的赞盖回。
+   每次 load 后，对当前墙内帖子用实时 REST 重读点赞数（绕过缓存），
+   保证刚点的赞不会在下次轮询/刷新时弹回。 */
+async function refreshVisibleCounts(){
+  var ids=wall.map(function(x){return x.id}).filter(function(n){return typeof n==='number'&&n>0});
+  if(!ids.length)return;
+  try{var r=await sb.from("wall").select("id,like_count,dislike_count").in("id",ids);
+    var m={};(r.data||[]).forEach(function(x){m[x.id]={l:x.like_count||0,d:x.dislike_count||0}});
+    wall.forEach(function(x){if(m[x.id]){x.likes=m[x.id].l;x.dislikes=m[x.id].d}});
+  }catch(e){}
+}
 async function load(){if(busy)return;busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
 wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
-/* gifts：merge 而非全量替换，防止送礼后并发 load 覆盖本地 push */
-if((j.gifts||[]).length){(j.gifts).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)})}
-/* badWords：与内置词合并去重（而非替换），Edge 返回小列表不会清空内置词 */
-if((j.badWords||[]).length){j.badWords.forEach(function(w){if(w&&BAD_WORDS.indexOf(w)<0)BAD_WORDS.push(w)})}
+/* gifts：按 wall 去重合并（poll 会反复下发同一礼物，直接 push 会让"N人"虚增） */
+(j.gifts||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});
+/* 黑名单不再下发给客户端（安全：过滤只在服务端做；失败静默，用内置列表做本地预检） */
 const vse=document.getElementById("stVisit");if(vse&&j.visitCount!=null)vse.textContent=j.visitCount;
-busy=false;shownCount=PAGE;render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
-const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);giftByWall={};(gq.data||[]).forEach(x=>{(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]).push(x.gift)});shownCount=PAGE;render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
+busy=false;await refreshVisibleCounts();render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
+const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);(gq.data||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
 /* 修复 C：统计"署名的人"只算有昵称的，匿名不算重名 */
 function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘人").map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
 async function loadVisits(){try{const {data}=await sb.from("visit_counter").select("total").limit(1);const v=(data&&data[0])?data[0].total:0;document.getElementById("stVisit").textContent=v}catch(e){try{const {count}=await sb.from("visits").select("id",{count:"exact",head:true});document.getElementById("stVisit").textContent=(count||0)}catch(_){}}}
@@ -567,10 +580,14 @@ if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经�
 if(__cardBusy.has(id)){return}
 __cardBusy.add(id);
 try{
+  /* P1-4：诚实反馈。先落库（原子写），再实时读回数字；RPC 失败就报失败，绝不假装成功 */
+  let rpcOk=false,rpcErr=null;
   try{
-    const {error:rpcErr}=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT,p_ip:wallIp()});
-    if(rpcErr){/* RPC 不存在则回退本地增量 */}
-  }catch(e){}
+    const res=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT,p_ip:wallIp()});
+    rpcErr=res&&res.error; rpcOk=!rpcErr;
+  }catch(e){rpcErr=e;}
+  if(rpcErr){toast((myT==="up"?"点赞":"点倒赞")+"失败："+(rpcErr.message||"网络异常，点一下重试"));return;}
+  /* 实时读回真实计数（绕过 60s 缓存），保证数字是最新的 */
   const {data:cnt}=await sb.from("wall").select("like_count,dislike_count").eq("id",id).limit(1);
   if(cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0}
   if(myT==="up")likedSet.add(id);else dislikedSet.add(id);

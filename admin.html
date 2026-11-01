@@ -355,9 +355,22 @@ function confirmBox(title,desc,opt){
 }
 function closeModal(){const ov=document.getElementById("modalOv");ov.classList.remove("show");}
 
-/* Edge 调用（契约与原版完全一致：24 act 名 + payload key 不变） */
+/* Edge 调用（契约与原版完全一致：24 act 名 + payload key 不变）
+   P1-1：网络异常/超时/断网时不再向外抛错（原写法会让所有 busy=true;await edge();busy=false;
+   的按钮在 fetch 抛错时永久锁死，只能刷新重登）。现在兜底返回 {ok:false,error:"..."}，
+   保证调用方的 busy=false/lock(false) 一定执行；业务逻辑、密码机制、24 act 完全不变。 */
 async function edge(act,payload){
-  const r=await fetch(EDGE,{method:"POST",headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify(Object.assign({admin:PWD,act:act},payload||{}))});
+  let r;
+  try{
+    r=await fetch(EDGE,{method:"POST",headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify(Object.assign({admin:PWD,act:act},payload||{}))});
+  }catch(netErr){
+    return {ok:false,error:"网络异常："+(netErr&&netErr.message?"连接失败/断网":"超时"),_network:true};
+  }
+  if(!r||!r.ok){
+    let msg="HTTP "+(r&&r.status);
+    try{const tj=await r.json();if(tj&&tj.error)msg=String(tj.error);}catch(e){}
+    return {ok:false,error:msg};
+  }
   let j;try{j=await r.json()}catch(e){j={}}
   return j;
 }
@@ -678,9 +691,12 @@ function renderSens(){
     const div=document.createElement("div");div.className="wrow";
     div.innerHTML='<span class="w">'+esc(w.word)+'</span><span class="tag">'+esc(w.status||"active")+'</span>'
       +'<span style="margin-left:auto;color:var(--sub);font-size:12px">'+esc(w.owner||"")+'</span>'
-      +'<button class="btn sm dgr" onclick="sensDel(\''+esc(w.word).replace(/'/g,"\\'")+'\')">删</button>';
+      +'<button class="btn sm dgr" data-word="'+String(w.word||'').replace(/"/g,'&quot;')+'" style="cursor:pointer">删</button>';
     list.appendChild(div);
   });
+  /* P0-3：敏感词名不可信，绝不再拼进内联 onclick（原写法 XSS 可窃取管理员密码）。
+     改事件委托：把 word 放在 data- 属性里，绑定到元素引用，绝不进 HTML 字符串。 */
+  list.querySelectorAll('[data-word]').forEach(function(b){ b.onclick=function(){ sensDel(b.getAttribute('data-word')); }; });
   wrap.appendChild(list);
 }
 function sensAdd(){
