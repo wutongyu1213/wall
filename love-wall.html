@@ -524,7 +524,7 @@ const groups=[];["male","female"].forEach(g=>{const items=visible.filter(x=>grou
 let html='<div class="groups">'+groups.map(({g,items})=>{const isMale=g==="male";const label=isMale?"男 → 男 / 男 → 女":"女 → 男 / 女 → 女";
 return '<div class="group '+g+'"><div class="ghead"><span class="gicon">'+GROUP_GICONS[g]+'</span>'+label+'<span class="gcount">'+items.length+' 条</span></div>'+
 items.map(c=>{const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"人");const ul=likedSet.has(c.id);const dl=dislikedSet.has(c.id);
-return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="poster-btn" data-poster="'+c.id+'">📷</span><span class="share-btn" data-share="'+c.id+'">🔗 链接</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><!-- 页内不再提供删除：删除/隐藏统一走 admin.html 后台 --><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span><span class="dislike-btn'+(dl?" on":"")+'" data-dislike="'+c.id+'">👎 '+(c.dislikes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
+return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="share-btn fwd-btn" data-fwd="'+c.id+'">📤 转发</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><!-- 页内不再提供删除：删除/隐藏统一走 admin.html 后台 --><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
 if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还有 '+(list.length-shownCount)+' 条）</button>'}
 wallEl.innerHTML=html;const lm=document.getElementById("loadMore");if(lm){lm.onclick=()=>{shownCount+=PAGE;render()}}
 stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPoster();renderHot();renderRank();
@@ -589,11 +589,11 @@ function bindCardEvents(){
   w.addEventListener("click",function(ev){
     var t=ev.target;
     var like=t.closest("[data-like]");if(like){ev.preventDefault();likeItem(like.getAttribute("data-id"),"up");return;}
-    var dis=t.closest("[data-dislike]");if(dis){ev.preventDefault();likeItem(dis.getAttribute("data-id"),"down");return;}
-    var sh=t.closest("[data-share]");if(sh){ev.preventDefault();copyText(SITE_URL+"?post="+sh.getAttribute("data-share"));return;}
+    
+    var fw=t.closest("[data-fwd]");if(fw){ev.preventDefault();forwardPost(fw.getAttribute("data-fwd"));return;}
     var rp=t.closest("[data-report]");if(rp){ev.preventDefault();reportPost(rp.getAttribute("data-report"));return;}
     var ap=t.closest("[data-appeal]");if(ap){ev.preventDefault();appealPost(ap.getAttribute("data-appeal"));return;}
-    var pst=t.closest("[data-poster]");if(pst){ev.preventDefault();makePoster(pst.getAttribute("data-poster"));return;}
+    
     /* P1：页内不再有 data-admin-del 删除按钮；删除/隐藏统一走 admin.html 后台 */
   });
 }
@@ -627,6 +627,7 @@ function wrapText(ctx,text,x,y,maxW,lh,maxLines){var s=String(text==null?"":text
 function legacyCopy(txt){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);return Promise.resolve(!!ok);}catch(e){return Promise.resolve(false);}}
 function copyText(txt){if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(txt).catch(function(){return legacyCopy(txt);});}return legacyCopy(txt);}
 
+function forwardPost(id){id=Number(id);var c=wall.find(function(x){return x.id==id});if(!c)return;var who=c.anon?'神秘人':(c.name||'匿名');var kw=(c.to||'').toString().trim();var m=(c.msg||'').toString().trim();var gf=(c.gift||'').toString().trim();var txt='❤ '+who+' → '+(c.to||'')+'（'+(c.year||'')+'级'+(c.cls||'')+'班）';if(m)txt=txt+'\n「'+m+'」';if(gf)txt=txt+'\n🎁 '+gf;if(kw)txt=txt+'\n\n💡 打开表白墙，用顶部搜索框搜「'+kw+'」就能直达这条';txt=txt+'\n\n'+SITE_URL+'?post='+id;copyText(txt).then(function(){toast('✅ 已复制转发内容，发给 TA 吧');});}
 function makePoster(id){if(typeof QRCode==="undefined"){toast("二维码组件未加载，请刷新后再试 📷");return}const c=wall.find(x=>x.id==id);if(!c)return;
 const canvas=document.getElementById("posterCanvas");const ctx=canvas.getContext("2d");
 const W=600,H=800;
