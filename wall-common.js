@@ -284,7 +284,7 @@
     h+='<h3 class="sec-title">🗳️ 投票 · 全校共享排名</h3>';
       h+='<div class="notice-box"><span class="nb-ico">📌</span>投票与肖像须知：每人一票，请理性参与、勿对特定同学施加舆论压力；照片请仅上传本人或已获授权的素材，被拍者可用卡片「申诉」申请删除。</div>';
     if(loading){
-      h+='<div class="empty"><div class="loading-spin"></div>加载中…</div>';
+      h+='<div class="empty"><div class="skel"><div class="skel-item"><div class="skel-ph"></div><div class="skel-body"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div></div></div><div class="skel-item"><div class="skel-ph"></div><div class="skel-body"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div></div></div><div class="skel-item"><div class="skel-ph"></div><div class="skel-body"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div></div></div><div class="skel-item"><div class="skel-ph"></div><div class="skel-body"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div></div></div><div class="skel-item"><div class="skel-ph"></div><div class="skel-body"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div></div></div><div class="skel-item"><div class="skel-ph"></div><div class="skel-body"><div class="skel-line t1"></div><div class="skel-line t2"></div><div class="skel-line t3"></div></div></div></div>加载中…</div>';
     } else if(loadErr){
       h+='<div class="empty err">加载失败 <a id="retryLoad" href="javascript:;">点击重试</a></div>';
     } else if(people.length===0){
