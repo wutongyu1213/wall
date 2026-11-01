@@ -1,0 +1,12 @@
+User-agent: *
+# 前台页面允许被检索
+Allow: /
+Allow: /wall/
+Allow: /wall/index.html
+Allow: /wall/love-wall.html
+Allow: /wall/xiaohua-wall.html
+Allow: /wall/xiaocao-wall.html
+# 管理后台 / 使用教程 / 安装向导 不索引（避免后台入口被搜到）
+Disallow: /wall/admin.html
+Disallow: /wall/guide.html
+Disallow: /wall/apk-guide.html

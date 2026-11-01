@@ -595,7 +595,7 @@ function renderPosts(){
     const div=document.createElement("div");div.className="card";
     div.innerHTML='<div class="t">#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' → '+esc(w.target_name||"（未指定）")+' '+stTag+(w.love_tag?'<span class="tag">'+esc(w.love_tag)+'</span>':'')+'</div>'+
       '<div class="d">「'+esc((w.love_msg||"").slice(0,120))+(((w.love_msg||"").length>120)?"…":"")+'</div>'+
-      '<div class="meta">'+esc((w.grade_year||"")+"级"+(w.class_no||"")+"班")+' · '+(w.sender_gender||"")+'→'+(w.target_gender||"")+' · ❤'+(w.like_count||0)+' · '+fmtTime(w.created_ts?w.created_ts/1000:(w.created_at||w.created_ts))+'</div>'+
+      '<div class="meta">'+esc((w.grade_year||"")+"级"+(w.class_no||"")+"班")+' · '+esc(w.sender_gender||"")+'→'+esc(w.target_gender||"")+' · ❤'+(w.like_count||0)+' · '+fmtTime(w.created_ts?w.created_ts/1000:(w.created_at||w.created_ts))+'</div>'+
       '<div class="acts">'+
         (stx==="ok"?'<button class="btn sm" onclick="hidePost('+Number(w.id||0)+')">🙈 隐藏</button>':'')+
         '<button class="btn dgr sm" onclick="delPost('+Number(w.id||0)+')">🗑 彻底删除</button>'+
