@@ -43,6 +43,7 @@
   }
 
   function showFab(){
+  if(location.pathname.indexOf('admin.html')>=0)return; // 后台页不生成「二外圈」悬浮胶囊（已有独立的「管理后台」入口）
     if(document.getElementById('pwaFab'))return;
     var b=document.createElement('div');b.id='pwaFab';
     b.style.cssText='position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99900;display:flex;align-items:center;gap:8px;background:#2b1220;color:#fff;padding:10px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(43,18,32,.35);font-size:15px;font-weight:700;cursor:pointer;';
