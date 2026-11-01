@@ -150,4 +150,5 @@
      其他环境（国产/微信/苹果/电脑）→ 2s 出按钮（图文 + 一键复制网址） */
   if(env.t==='pwa'){setTimeout(function(){if(!deferred)showFab();},4000);}
   else setTimeout(showFab,2000);
+window.__pwaInstall=function(){onFab();};
 })();
