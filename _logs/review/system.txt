@@ -1,0 +1,8 @@
+2026-11-07T13:17:42.1580000Z Requested labels: ubuntu-latest
+2026-11-07T13:17:42.1580000Z Job defined at: wutongyu1213/wall/.github/workflows/ai-review.yml@refs/heads/main
+2026-11-07T13:17:42.1580000Z Waiting for a runner to pick up this job...
+2026-11-07T13:17:42.1570000Z Evaluating review.if
+2026-11-07T13:17:42.1570000Z Evaluating: success()
+2026-11-07T13:17:42.1570000Z Result: true
+2026-11-07T13:17:42.5520000Z Job is waiting for a hosted runner to come online.
+2026-11-07T13:17:42.5530000Z Job is about to start running on the hosted runner: GitHub Actions 1000000543

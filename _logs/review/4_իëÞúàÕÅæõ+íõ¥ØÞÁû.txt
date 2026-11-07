@@ -1,0 +1,6 @@
+﻿2026-11-07T13:17:49.1328267Z ##[group]Run npm install nodemailer@6 --no-save --no-audit --no-fund
+2026-11-07T13:17:49.1328639Z [36;1mnpm install nodemailer@6 --no-save --no-audit --no-fund[0m
+2026-11-07T13:17:49.1348884Z shell: /usr/bin/bash -e {0}
+2026-11-07T13:17:49.1349065Z ##[endgroup]
+2026-11-07T13:17:49.4857314Z 
+2026-11-07T13:17:49.4861518Z added 1 package in 307ms

@@ -1,0 +1,33 @@
+﻿2026-11-07T13:17:44.1514590Z Current runner version: '2.338.2'
+2026-11-07T13:17:44.1532235Z ##[group]Runner Image Provisioner
+2026-11-07T13:17:44.1532853Z Hosted Compute Agent
+2026-11-07T13:17:44.1533251Z Version: 20261028.624
+2026-11-07T13:17:44.1533697Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-07T13:17:44.1534128Z Build Date: 2026-10-28T21:51:42Z
+2026-11-07T13:17:44.1534566Z Worker ID: {c7fafb3c-3cc4-4e7a-a77f-cd7f37d367ae}
+2026-11-07T13:17:44.1535013Z Region: centralus
+2026-11-07T13:17:44.1535513Z Cloud: Azure
+2026-11-07T13:17:44.1535914Z ##[endgroup]
+2026-11-07T13:17:44.1536684Z ##[group]Operating System
+2026-11-07T13:17:44.1537091Z Ubuntu
+2026-11-07T13:17:44.1537428Z 24.04.5
+2026-11-07T13:17:44.1537811Z LTS
+2026-11-07T13:17:44.1538172Z ##[endgroup]
+2026-11-07T13:17:44.1538520Z ##[group]Runner Image
+2026-11-07T13:17:44.1538903Z Image: ubuntu-24.04
+2026-11-07T13:17:44.1539268Z Version: 20261101.360.1
+2026-11-07T13:17:44.1539942Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-07T13:17:44.1540999Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-07T13:17:44.1541847Z ##[endgroup]
+2026-11-07T13:17:44.1542554Z ##[group]GITHUB_TOKEN Permissions
+2026-11-07T13:17:44.1543857Z Contents: read
+2026-11-07T13:17:44.1544220Z Metadata: read
+2026-11-07T13:17:44.1544619Z ##[endgroup]
+2026-11-07T13:17:44.1546103Z Secret source: Actions
+2026-11-07T13:17:44.1546725Z Cache mode: write
+2026-11-07T13:17:44.1547148Z Prepare workflow directory
+2026-11-07T13:17:44.1744176Z Prepare all required actions
+2026-11-07T13:17:44.1782076Z Getting action download info
+2026-11-07T13:17:44.3838767Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-07T13:17:44.4786704Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-11-07T13:17:44.6331280Z Complete job name: review
