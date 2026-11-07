@@ -1,0 +1,75 @@
+# AI 内容巡检
+# ---------------------------------------------------------------------------
+# 每 30 分钟跑一次：拉取表白墙全部可见帖子 → AI 判定 → 超阈值的先隐藏
+# → 把「隐藏了什么、为什么」发到指定邮箱。
+#
+# 为什么放在 Actions：
+#   浏览器里的定时器只在管理员页面开着时才算数，人一走就停。
+#   这里是真正的服务端定时，且密钥存在 Secrets（加密），访客拿不到。
+#
+# 注意：GitHub 的定时任务在高负载时段可能延迟几分钟，且仓库连续 60 天无提交
+#       会被自动停用——到时会收到 GitHub 邮件，点一下即可恢复。
+# ---------------------------------------------------------------------------
+name: AI 内容巡检
+
+on:
+  schedule:
+    # 每 30 分钟（UTC 时间，与北京时间无关，因为是固定间隔）
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '演练模式（只报告不隐藏）'
+        type: boolean
+        default: false
+
+# 同一时间只允许一个实例，避免两次巡检撞在一起重复隐藏
+concurrency:
+  group: ai-review
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安装发信依赖
+        run: npm install nodemailer@6 --no-save --no-audit --no-fund
+
+      - name: 执行巡检
+        run: node scripts/ai-review.mjs
+        env:
+          # 下面两项是「公开密钥」，本来就写在网页源码里，不算机密
+          SUPABASE_URL: https://dpceuvqtwvhoipxhozxz.supabase.co
+          SUPABASE_ANON_KEY: sb_publishable_oBuCc6SrjzzsRQwa3CLjqQ_e5K2M_w3
+
+          # 以下全部来自仓库 Settings → Secrets and variables → Actions
+          ADMIN_PWD: ${{ secrets.ADMIN_PWD }}
+
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_PROVIDER_NAME: ${{ secrets.AI_PROVIDER_NAME }}
+
+          # 风险阈值：0.75 表示「明显该处理」才自动隐藏，调高更保守
+          RISK_THRESHOLD: ${{ vars.RISK_THRESHOLD || '0.75' }}
+          MAX_ITEMS: ${{ vars.MAX_ITEMS || '60' }}
+
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+
+          # 手动触发时可选演练
+          DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
