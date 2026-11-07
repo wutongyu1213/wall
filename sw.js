@@ -1,13 +1,13 @@
 /* sw.js — 校园表白墙 PWA 离线外壳缓存 v1
    策略：页面导航 network-first（缓存兜底）；静态资源 stale-while-revalidate；
    Supabase REST/Edge/Storage 与跨域 CDN 一律不缓存（数据必须实时）。 */
-const CACHE = 'wall-shell-v8';
+const CACHE = 'wall-shell-v9';
 /* P2-2：manifest-admin.json 实际是 404（走 data:URI 方案），预缓存它会让 addAll 整体 reject → SW 永不激活；已移除
    P2-audit：后台 admin.html 是访客侧不该下发的管理页，从预缓存移除；./sw.js 自身不纳入普通资源缓存 */
 const CORE = [
   './', './index.html', './love-wall.html', './xiaohua-wall.html', './xiaocao-wall.html',
   './guide.html', './apk-guide.html',
-  './manifest.json', './icon-192.png', './icon-512.png', './icon-apple-180.png',
+  './manifest.json', './icon-48.png', './icon-192.png',
   './wall-common.js',
   './assets/supabase.js', './assets/device-fp.js', './assets/ai-review.js', './assets/bgm.js',
   './assets/announce.js', './assets/qrcode.js', './assets/pwa.js'
@@ -38,23 +38,31 @@ self.addEventListener('fetch', function (e) {
   const req = e.request;
   if (req.method !== 'GET' || !cacheable(req.url)) return;
   if (req.mode === 'navigate') {
-    /* P2-3：导航改 network-first（~500ms 超时兜底缓存）——
-       新部署的 HTML 立即生效，避免旧缓存与新数据/鉴权协议混跑导致白屏；
-       网络不可用时回退到缓存，保持离线可用。 */
+    /* 导航：network-first + 500ms 超时兜底缓存。
+       新部署的 HTML 优先拿网络版（避免旧缓存与新数据混跑）；
+       但校园网经常要等好几秒，所以最多等 500ms —— 超时先用缓存渲染，
+       网络响应回来后仍然写进缓存，下次打开就是新的。
+       注意：注释里写了超时、代码里却没有，是之前留下的坑，这里补上。 */
     e.respondWith((async function () {
-      try {
-        const res = await fetch(req);
-        if (res && res.ok) {
-          const copy = res.clone();
-          const c = await caches.open(CACHE);
-          c.put(req, copy).catch(function () {});
-        }
+      const c = await caches.open(CACHE);
+      const cached = await caches.match(req);
+      const netP = fetch(req).then(function (res) {
+        if (res && res.ok) c.put(req, res.clone()).catch(function () {});
         return res;
-      } catch (err) {
-        const cached = await caches.match(req);
-        if (cached) return cached;
-        return new Response('<!doctype html><meta charset="utf-8"><title>离线</title><body style="font-family:sans-serif;padding:40px;text-align:center"><h1>当前离线</h1><p>断网中，无法打开页面。恢复网络后重试。</p></body>', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      });
+      netP.catch(function () {});           // 超时后网络仍可能失败，避免未处理拒绝
+
+      if (!cached) {
+        try { return await netP; } catch (err) {
+          return new Response('<!doctype html><meta charset="utf-8"><title>离线</title><body style="font-family:sans-serif;padding:40px;text-align:center"><h1>当前离线</h1><p>断网中，无法打开页面。恢复网络后重试。</p></body>', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+        }
       }
+
+      const winner = await Promise.race([
+        netP.catch(function () { return null; }),
+        new Promise(function (resolve) { setTimeout(function () { resolve(null); }, 500); }),
+      ]);
+      return winner || cached;
     })());
     return;
   }
