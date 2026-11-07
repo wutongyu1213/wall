@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="表白墙">
-  <script src="assets/pwa.js?v=7"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="assets/pwa.js?v=8"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>重庆第二外国语学校 · 校园表白墙</title>
 <meta name="description" content="重庆第二外国语学校 · 全校共享的校园表白墙 / 校花校草墙">
 <script src="assets/announce.js?v=2"></script>
@@ -18,10 +18,31 @@
 <meta property="og:title" content="重庆第二外国语学校 · 校园表白墙">
 <meta property="og:description" content="全校共享的表白墙 / 校花校草之墙">
 <meta property="og:type" content="website">
+<!-- [R4-2] 分享卡片：原来只有 og:title，微信/QQ 转发无缩略图、无站点图标。
+     补 og:image / og:url / twitter:card，转发才有卡片式预览。
+     og:image 暂用 icon-512.png（方形，微信会留边），建议后续换一张 1200×630 专用图。 -->
+<meta property="og:image" content="https://wutongyu1213.github.io/wall/icon-512.png">
+<meta property="og:image:alt" content="重庆第二外国语学校 校园表白墙">
+<meta property="og:url" content="https://wutongyu1213.github.io/wall/">
+<meta property="og:site_name" content="重庆二外 · 校园墙">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="重庆第二外国语学校 · 校园表白墙">
+<meta name="twitter:image" content="https://wutongyu1213.github.io/wall/icon-512.png">
 <style>
-:root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
-
-:root{--rose:#c4002a;--rose-l:#ff4d6d;--pink:#e0498f;--blue:#3b6fd6;--ink:#3a0a1a;--muted:#8a5a68;--card:#fff;--bg1:#fff5f7;--bg2:#ffe9ef;--bg3:#fff0f5;--shadow:0 10px 30px rgba(196,0,42,.10)}
+/* [R4-4] 合并重复 :root：原来定义了两遍，第二段覆盖第一段，导致 --rose-ll/--radius 等实为死变量。
+   合并后计算值完全不变，只是去掉了重复声明。 */
+:root{
+  --rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;
+  --pink:#e0498f;--pink-bg:#ffe6f2;
+  --blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;
+  --ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;
+  --card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;
+  --radius:16px;--radius-lg:20px;
+  --shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);
+  --shadow-nav:0 2px 14px rgba(196,0,42,.05);--shadow:0 10px 30px rgba(196,0,42,.10);
+  --bg1:#fff5f7;--bg2:#ffe9ef;--bg3:#fff0f5;
+  --ease:cubic-bezier(.2,.7,.3,1.15)
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);
@@ -30,7 +51,7 @@ min-height:100vh;display:flex;flex-direction:column}
 body.dark{--ink:#f5dfe6;--muted:#c79ba8;--card:#2a1018;--bg1:#1a0810;--bg2:#2a0f18;--bg3:#1f0a14;--shadow:0 10px 30px rgba(0,0,0,.5)}
 
 /* 顶部导航 */
-.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.72);backdrop-filter:blur(10px);border-bottom:1px solid rgba(196,0,42,.08);box-shadow:0 2px 14px rgba(196,0,42,.05)}
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(196,0,42,.08);box-shadow:0 2px 14px rgba(196,0,42,.05)}
 body.dark .nav{background:rgba(26,8,16,.72)}
 .nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}
 .brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:var(--rose);display:flex;align-items:center;gap:8px;margin-right:auto}
@@ -68,6 +89,15 @@ body.dark .card .t{color:#f5dfe6}
 /* 深色模式覆盖卡片底 */
 body.dark .card{background:#2a1018;border-color:rgba(255,255,255,.08)}
 
+/* [R4-1] 安卓卡原来用内联 background，优先级高于 body.dark 的覆盖 →
+   深色模式下它是全页唯一的浅绿色块。改为类选择器，补齐 --ac 彩条和 .go 提示。 */
+.card.android{--ac:linear-gradient(90deg,#12b886,#8ce3c4);background:#eef7f0}
+.card.android .t{color:#0a5c42}
+.card.android .go{color:#0f9d63}
+body.dark .card.android{background:#12261e;border-color:rgba(18,184,134,.22)}
+body.dark .card.android .t{color:#8ce3c4}
+body.dark .card.android .go{color:#5ddcae}
+
 footer{padding:22px 16px 30px;text-align:center;color:var(--muted);font-size:.8rem;line-height:1.7}
 footer b{color:var(--rose)}
 body.dark footer b{color:#ff8fa3}
@@ -101,7 +131,7 @@ body.dark .donate{border-color:rgba(255,143,163,.3);color:#ff8fa3}
   <div class="grid">
     <a class="card rose" href="love-wall.html"><span class="ico">❤️</span><span class="t">表白墙</span><span class="d">把想说的话贴到墙上<br>点赞 · 送礼物 · 实时分享</span><span class="go">进入 →</span></a>
     <a class="card pink" href="xiaohua-wall.html"><span class="ico">🌸</span><span class="t">校花之墙</span><span class="d">同学传照片 · 投票排名<br>谁是你心中的校花</span><span class="go">进入 →</span></a>
-    <a class="card blue" href="xiaocao-wall.html"><span class="ico">🌿</span><span class="t">校草之墙</span><span class="d">同学传照片 · 投票排名<br>谁是你心中的校草</span><span class="go">进入 →</span></a><a class="card android" href="apk-guide.html" style="background:#eef7f0"><span class="ico">📥</span><span class="t">安卓 App 下载</span><span class="d" style="font-size:12px">真独立 App 图标 · 各机型安装教程</span></a>
+    <a class="card blue" href="xiaocao-wall.html"><span class="ico">🌿</span><span class="t">校草之墙</span><span class="d">同学传照片 · 投票排名<br>谁是你心中的校草</span><span class="go">进入 →</span></a><a class="card android" href="apk-guide.html"><span class="ico">📥</span><span class="t">安卓 App 下载</span><span class="d" style="font-size:12px">真独立 App 图标 · 各机型安装教程</span><span class="go">进入 →</span></a>
   </div>
 </div></div>
 
@@ -129,7 +159,7 @@ body.dark .donate{border-color:rgba(255,143,163,.3);color:#ff8fa3}
   请心怀公德，勿发布侮辱、骚扰内容
   <div class="donate">💡 有改进建议？点「❤️ 表白墙」内右下角举报/反馈</div>
 <div style="margin-top:10px;padding:10px 12px;background:#fff8fa;border:1px solid #ffd7e0;border-radius:10px;font-size:12px;line-height:1.7;color:#8a5a68"><b>📌 未成年人使用须知</b><br>· 本墙为校园公开空间，发布内容全校可见；请自愿、文明，不发布侮辱、霸凌、低俗内容。<br>· 涉及他人（姓名、班级、照片）请先取得对方同意；被拍者可联系管理申请删除。<br>· 投票每人一票，请理性参与，勿对特定同学施加舆论压力。<br>· 详见「表白」页勾选承诺；发现问题点右下角「举报」，管理员会及时处置。</div>
-<div style="margin-top:8px;font-size:11px;color:#c79aab">🛡️ 内容问题？点卡片「举报 / 申请下架」，管理员会在后台处置（入口仅限管理人员）</div>
+<div style="margin-top:8px;font-size:11px;color:#8a5a68">🛡️ 内容问题？点卡片「举报 / 申请下架」，管理员会在后台处置（入口仅限管理人员）</div>
 </footer>
 
 <script>

@@ -10,13 +10,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="表白墙">
-  <script src="assets/pwa.js?v=7"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我的专属表白墙</title>
+  <script src="assets/pwa.js?v=8"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
+<title>表白墙 · 重庆第二外国语学校校园墙</title>
+<!-- [R4-2] 分享卡片元数据。原来本页 0 个 og 标签：同学把表白转发到班群，
+     微信只显示一行纯文字链接。补齐后才有缩略图 + 标题 + 描述。
+     注：<title> 原为「我的专属表白墙」——别人点开时会觉得"这谁的墙"，
+     转发场景下改成机构名更合理；若要保留原语气，把上面一行换回即可。 -->
+<meta name="description" content="重庆第二外国语学校 · 全校共享的校园表白墙，匿名发言 · 点赞 · 送礼物">
+<meta property="og:type" content="website">
+<meta property="og:title" content="表白墙 · 重庆第二外国语学校校园墙">
+<meta property="og:description" content="全校共享的校园表白墙 · 匿名 / 文明 / 自愿">
+<meta property="og:image" content="https://wutongyu1213.github.io/wall/icon-512.png">
+<meta property="og:url" content="https://wutongyu1213.github.io/wall/love-wall.html">
+<meta property="og:site_name" content="重庆二外 · 校园墙">
+<meta name="twitter:card" content="summary_large_image">
 <script src="assets/supabase.js?v=1"></script><script src="assets/device-fp.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
-<script src="assets/qrcode.js?v=1"></script>
+<!-- [R5-PERF] qrcode 由 makePoster 按需加载（见 ensureQR），首屏不再阻塞 24KB -->
 <script src="assets/announce.js?v=2"></script>
-<script>if(typeof QRCode==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"><\/script>')}</script>
 <style>
 :root{--rose:#c4002a;--rose-l:#ff4d6d;--rose-ll:#ff8fa3;--rose-bg:#fff5f7;--pink:#e0498f;--pink-bg:#ffe6f2;--blue:#3b6fd6;--blue-d:#1a3f8f;--blue-l:#6f9bff;--blue-bg:#eaf1ff;--ink:#3a0a1a;--ink-blue:#0a1a3a;--muted:#8a5a68;--muted-blue:#5a6a88;--card:#fff;--surface:#fffafc;--line:#ffd7e0;--line-soft:#ffe3ea;--radius:16px;--radius-lg:20px;--shadow-card:0 8px 24px rgba(196,0,42,.08);--shadow-card-hover:0 18px 36px rgba(196,0,42,.16);--shadow-nav:0 2px 14px rgba(196,0,42,.05);--ease:cubic-bezier(.2,.7,.3,1.15)}
 
@@ -281,7 +294,61 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
 @media(max-width:680px){.opt-toggle{width:100%;text-align:center}}
 .hl-flash{animation:hlflash 1.2s ease 2}
 @keyframes hlflash{0%{outline:3px solid rgba(196,0,42,.7);outline-offset:3px}100%{outline:3px solid transparent}}
-.brand-ico{width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:-5px;margin-right:4px;background:#fff;flex:none}</style>
+.brand-ico{width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:-5px;margin-right:4px;background:#fff;flex:none}
+/* [R5-A11Y] 卡片操作从 span 改为 button 后的样式复位。
+   注意：转发/举报按钮的类里已有完整胶囊样式（蓝/橙底 + 圆角 + 内边距），
+   所以这里【只归零按钮默认字体与原生外观】，绝不能覆盖它们的 background/border/color，
+   否则会把胶囊抹成裸文字。点赞按钮的颜色来自 .heart-count，可安全复位。 */
+.card .heart-count .h{
+  background:none;border:0;margin:0;padding:2px 4px;
+  font:inherit;color:inherit;line-height:inherit;
+  -webkit-appearance:none;appearance:none;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.card .share-btn,.card .report-btn{
+  font:inherit;-webkit-appearance:none;appearance:none;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+/* [R5-A11Y] 键盘焦点可见：原来全站没有任何 focus 样式，Tab 过去毫无提示 */
+:focus-visible{outline:2px solid #c4002a;outline-offset:2px;border-radius:6px}
+body.dark :focus-visible{outline-color:#ff8fa3}
+/* [R5-A11Y] 触控目标：原胶囊约 22px 高，低于 WCAG 2.5.8 的 24px 下限。
+   只抬最小高度、不强制宽度，避免把 meta 行挤变形。 */
+.card .share-btn,.card .report-btn,.card .heart-count .h{min-height:28px}
+@media (pointer:coarse){
+  .card .share-btn,.card .report-btn,.card .heart-count .h{min-height:34px}
+  .card .share-btn,.card .report-btn{padding-left:12px;padding-right:12px}
+}
+
+/* [R5-PERF] 尊重系统「减少动态效果」：12 个漂浮爱心常驻 + 庆祝粒子在移动端持续唤醒 GPU */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important;
+  }
+  #floatLayer,.float-layer{display:none!important}
+}
+
+/* [R6-COMPAT] iOS Safari 在输入框字号 <16px 时，聚焦会自动放大整页（且不会缩回）。
+   全站输入框是 .9~.95rem(14.4~15.2px)，在 iPhone 上每次点输入框都会跳一下。
+   移动端强制 16px 是业界标准解法。 */
+@media (max-width:820px){
+  input,select,textarea{font-size:16px!important}
+}
+/* [R6-COMPAT] 动态视口：iOS 的 100vh 把地址栏算进去，滚动时会跳动 */
+@supports (min-height:100dvh){ body{min-height:100dvh} }
+/* [R6-COMPAT] 触控设备 hover 不可用，去掉依赖 hover 的位移，避免点击后样式"卡住" */
+@media (hover:none){
+  .card:active{transform:scale(.995)}
+}
+/* [R6-COMPAT] 老 Safari 不支持 flex gap：给 meta 行加一点点间距兜底，现代浏览器不受影响 */
+@supports not (gap:1rem){
+  .card .meta>span>span,.card .meta>span>button{margin-right:8px}
+}
+/* [R7-PERF] 长列表：视口外的卡片不参与布局/绘制，500 条时首屏渲染成本大幅下降。
+   不支持 content-visibility 的浏览器会忽略这两行，行为不变。 */
+.card{content-visibility:auto;contain-intrinsic-size:auto 220px}
+</style>
 <link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   <link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   </head><body>
@@ -412,7 +479,7 @@ body.opt-open .more-opt,body.opt-open .more-opt-chip{display:block}
   </div>
 </div>
 <button class="music-fab" id="musicFab" title="背景音乐">🎵</button>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <audio id="bgm" loop preload="none"></audio><script>;
 const SUPA_URL="https://dpceuvqtwvhoipxhozxz.supabase.co";
 const SUPA_KEY="sb_publishable_lgsJvhLEHOG9oM1aXH7y1A_pgdmezyA";
@@ -467,6 +534,25 @@ if(localStorage.getItem("wallBgmOn")==="on"){
 }
 
 let wall=[];let busy=false;const PAGE=40;let shownCount=PAGE;
+/* [R6-PERF] 首屏秒开：上次拉到的数据先画出来，再后台静默更新。
+   校园网/4G 下 Edge 冷启动 600ms+，这一层能把"打开一片空白"变成"立刻有内容"。 */
+const FAST_KEY="wallFastV1", FAST_TTL=3*24*3600*1000;
+function saveFastCache(){
+  try{ if(!wall.length)return;
+    localStorage.setItem(FAST_KEY,JSON.stringify({ts:Date.now(),wall:wall.slice(0,80)}));
+  }catch(e){}
+}
+function paintFastCache(){
+  try{
+    const raw=localStorage.getItem(FAST_KEY); if(!raw)return false;
+    const o=JSON.parse(raw);
+    if(!o||!Array.isArray(o.wall)||!o.wall.length)return false;
+    if(Date.now()-(o.ts||0)>FAST_TTL)return false;
+    wall=o.wall;
+    render();
+    return true;
+  }catch(e){ return false; }
+}
 const LIKED_KEY="wallLiked";let likedSet=new Set();
 try{likedSet=new Set((JSON.parse(localStorage.getItem(LIKED_KEY))||[]).map(Number).filter(function(n){return n>0}))}catch(e){likedSet=new Set()}
 function saveLiked(){localStorage.setItem(LIKED_KEY,JSON.stringify([...likedSet]))}
@@ -482,11 +568,27 @@ function loadState(msg,spin){const el=document.getElementById("loadState");if(!e
 async function refreshVisibleCounts(){
   var ids=wall.map(function(x){return x.id}).filter(function(n){return typeof n==='number'&&n>0});
   if(!ids.length)return;
-  try{var r=await sb.from("wall").select("id,like_count,dislike_count").in("id",ids);
+  try{var r=await sb.from(await wallSrc()).select("id,like_count,dislike_count").in("id",ids);
     var m={};(r.data||[]).forEach(function(x){m[x.id]={l:x.like_count||0,d:x.dislike_count||0}});
     wall.forEach(function(x){if(m[x.id]){x.likes=m[x.id].l;x.dislikes=m[x.id].d}});
   }catch(e){}
 }
+
+/* [R7] 数据源自适应：线上若已执行「建视图」SQL 就优先读 wall_public（安全白名单），
+   没执行则回退 wall 原表并只取展示所需列。这样同一份前端能同时适配
+   「已收口」与「未收口」两种数据库状态，不会因为少跑一步 SQL 就整页白屏。 */
+var __wallSrc=null;
+async function wallSrc(){
+  if(__wallSrc)return __wallSrc;
+  try{
+    var r=await sb.from("wall_public").select("id").limit(1);
+    if(!r.error){__wallSrc="wall_public";return __wallSrc;}
+  }catch(e){}
+  __wallSrc="wall";return __wallSrc;
+}
+/* 两张源都有的列，避免 select(*) 把 user_key/semantic_review 也拉下来 */
+var WALL_COLS="id,nickname,target_name,grade_year,class_no,love_tag,sender_gender,target_gender,love_msg,like_count,dislike_count,gift,created_ts";
+
 async function load(){if(busy)return;busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
 wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
@@ -494,8 +596,8 @@ wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"
 (j.gifts||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});
 /* 黑名单不再下发给客户端（安全：过滤只在服务端做；失败静默，用内置列表做本地预检） */
 const vse=document.getElementById("stVisit");if(vse&&j.visitCount!=null)vse.textContent=j.visitCount;
-busy=false;await refreshVisibleCounts();render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
-const {data,error}=await sb.from("wall").select("*").eq("status","ok").order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);(gq.data||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
+busy=false;await refreshVisibleCounts();saveFastCache();render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
+const {data,error}=await sb.from(await wallSrc()).select(WALL_COLS).order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);(gq.data||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});saveFastCache();render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
 /* 修复 C：统计"署名的人"只算有昵称的，匿名不算重名 */
 function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘人").map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
 async function loadVisits(){try{const {data}=await sb.from("visit_counter").select("total").limit(1);const v=(data&&data[0])?data[0].total:0;document.getElementById("stVisit").textContent=v}catch(e){try{const {count}=await sb.from("visits").select("id",{count:"exact",head:true});document.getElementById("stVisit").textContent=(count||0)}catch(_){}}}
@@ -537,7 +639,7 @@ const groups=[];["male","female"].forEach(g=>{const items=visible.filter(x=>grou
 let html='<div class="groups">'+groups.map(({g,items})=>{const isMale=g==="male";const label=isMale?"男 → 男 / 男 → 女":"女 → 男 / 女 → 女";
 return '<div class="group '+g+'"><div class="ghead"><span class="gicon">'+GROUP_GICONS[g]+'</span>'+label+'<span class="gcount">'+items.length+' 条</span></div>'+
 items.map(c=>{const gl=giftByWall[c.id]||[];const ga=[];if(c.gift)ga.push(c.gift);if(gl.length)ga.push(gl.length+"人");const ul=likedSet.has(c.id);const dl=dislikedSet.has(c.id);
-return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><span class="share-btn fwd-btn" data-fwd="'+c.id+'">📤 转发</span><span class="report-btn" data-report="'+c.id+'">⚠️ 举报</span><span class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px">⚖️ 申请下架</span><!-- 页内不再提供删除：删除/隐藏统一走 admin.html 后台 --><span class="heart-count"><span class="h'+(ul?" liked":"")+'" data-like="'+c.id+'">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</span></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
+return '<div class="card" data-id="'+c.id+'"><div class="top"><div class="who">'+(c.anon?'<span style="opacity:.6">神秘人</span>':esc(c.name))+'</div><div class="badges"><span class="b-gender b-'+(isMale?'blue':'pink')+'">'+esc(c.fromG)+'→'+esc(c.toG)+'</span><span class="b-year">'+esc(c.year)+'级</span><span class="b-class">'+esc(c.cls)+'班</span></div></div><div class="to">表白给 '+esc(c.to)+'</div>'+(ga.length?'<div class="gift-line">🎁 礼物 '+esc(ga.join(" "))+'</div>':'')+'<div class="msg">'+esc(c.msg)+'</div><div class="meta"><span class="tag">'+esc(c.tag)+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>'+timeAgo(c.ts)+'</span><button type="button" class="share-btn fwd-btn" data-fwd="'+c.id+'" aria-label="转发这条表白">📤 转发</button><button type="button" class="report-btn" data-report="'+c.id+'" aria-label="举报这条表白">⚠️ 举报</button><button type="button" class="report-btn appeal-btn" data-appeal="'+c.id+'" style="margin-left:4px" aria-label="申请下架这条表白">⚖️ 申请下架</button><!-- 页内不再提供删除：删除/隐藏统一走 admin.html 后台 --><span class="heart-count"><button type="button" class="h'+(ul?" liked":"")+'" data-like="'+c.id+'" aria-pressed="'+(ul?"true":"false")+'" aria-label="点赞，当前 '+(c.likes||0)+' 个赞">'+(ul?"❤":"♥")+' '+(c.likes||0)+'</button></span></span></div></div>'}).join("")+'</div>'}).join("")+'</div>';
 if(list.length>shownCount){html+='<button class="load-more" id="loadMore">加载更多（还有 '+(list.length-shownCount)+' 条）</button>'}
 wallEl.innerHTML=html;const lm=document.getElementById("loadMore");if(lm){lm.onclick=()=>{shownCount+=PAGE;render()}}
 stats();bindLikes();bindShare();bindReport();bindGiftQ();bindAdminDel();bindPoster();renderHot();renderRank();
@@ -568,33 +670,62 @@ async function patchCardCount(id){
 const card=document.querySelector('[data-id="'+id+'"]');if(!card)return;
 const c=wall.find(x=>x.id==id);if(!c)return;
 const upEl=card.querySelector("[data-like]"),dnEl=card.querySelector("[data-dislike]");
-if(upEl){upEl.textContent=(likedSet.has(id)?"❤":"♥")+" "+(c.likes||0);upEl.classList.toggle("liked",likedSet.has(id))}
+if(upEl){
+  var on=likedSet.has(id);
+  upEl.textContent=(on?"❤":"♥")+" "+(c.likes||0);
+  upEl.classList.toggle("liked",on);
+  if(upEl.setAttribute){upEl.setAttribute("aria-pressed",on?"true":"false");upEl.setAttribute("aria-label","点赞，当前 "+(c.likes||0)+" 个赞"+(on?"，已赞":""))}
+}
 if(dnEl){dnEl.textContent="👎 "+(c.dislikes||0);dnEl.classList.toggle("on",dislikedSet.has(id))}
 }
 /* 点赞/倒赞互斥锁：同卡片 in-flight 时拒绝下一个点击，防 up+down 或同方向连点双发 */
 const __cardBusy=new Set();
-async function likeItem(id,type){id=Number(id);
+async function likeItem(id,type){
+id=Number(id);
+/* [R6-FIX] 入参自愈：历史 bug 会把 null 传进来（Number(null)=0），先挡掉 */
+if(!id||isNaN(id)){toast("页面数据异常，请下拉刷新后重试");return}
 const c=wall.find(x=>x.id==id);if(!c)return;
 const myT=type||"up";
-if((myT==="up"?likedSet:dislikedSet).has(id)){toast(myT==="up"?"这条你已经点过赞了 💗":"这条你已经点过倒赞了 👎");return}
-if(__cardBusy.has(id)){return}
+const set=myT==="up"?likedSet:dislikedSet;
+if(set.has(id)){toast(myT==="up"?"你已经赞过这条啦 💗":"你已经踩过这条啦 👎");return}
+/* [R6-UX] 原来这里直接 return，连提示都没有——网络慢时用户连点几下全无反应，
+   误以为"点赞坏了"。现在给出明确的等待反馈。 */
+if(__cardBusy.has(id)){toast("正在提交，请稍候…");return}
 __cardBusy.add(id);
+const before=c.likes||0;
+/* [R6-UX] 乐观更新：先把心点亮、数字 +1，网络回来再以服务端为准。
+   弱网下这是体感提升最大的一处——不再"点了半天没动静"。 */
+set.add(id);(myT==="up"?saveLiked:saveDisliked)();c.likes=before+1;patchCardCount(id);
 try{
-  /* P1-4：诚实反馈。先落库（原子写），再实时读回数字；RPC 失败就报失败，绝不假装成功 */
-  let rpcOk=false,rpcErr=null;
+  let rpcErr=null;
   try{
-    const res=await sb.rpc("like_wall",{w_id:Number(id),u_key:userKey(),p_type:myT,p_ip:wallIp()});
-    rpcErr=res&&res.error; rpcOk=!rpcErr;
+    const res=await sb.rpc("like_wall",{w_id:id,u_key:userKey(),p_type:myT,p_ip:wallIp()});
+    rpcErr=res&&res.error;
   }catch(e){rpcErr=e;}
-  if(rpcErr){toast((myT==="up"?"点赞":"点倒赞")+"失败："+(rpcErr.message||"网络异常，点一下重试"));return;}
-  /* 实时读回真实计数（绕过 60s 缓存），保证数字是最新的 */
-  const {data:cnt}=await sb.from("wall").select("like_count,dislike_count").eq("id",id).limit(1);
-  if(cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0}
-  if(myT==="up")likedSet.add(id);else dislikedSet.add(id);
-  (myT==="up"?saveLiked:saveDisliked)();
-  patchCardCount(id);toast(myT==="up"?"已点赞 💗":"已点倒赞 👎")
+  if(rpcErr){
+    set.delete(id);(myT==="up"?saveLiked:saveDisliked)();c.likes=before;patchCardCount(id);
+    const m=String((rpcErr.message||"")+(rpcErr.code||""));
+    if(/rate|limit|too many/i.test(m)){toast("点赞太频繁，歇一下再试 ⏳");}
+    else if(/sensitive|blocked/i.test(m)){toast("操作被拦截，请联系管理员");}
+    else{toast("点赞失败，请检查网络后重试");}
+    return;
+  }
+  /* 回读真实计数。注意 like_wall 是幂等的：重复点赞返回 204 且计数不变，
+     所以"数字没变"才是判断"之前已赞过"的唯一可靠信号。 */
+  let readOk=false;
+  try{
+    const {data:cnt,error:rdErr}=await sb.from(await wallSrc()).select("like_count,dislike_count").eq("id",id).limit(1);
+    if(!rdErr&&cnt&&cnt[0]){c.likes=cnt[0].like_count||0;c.dislikes=cnt[0].dislike_count||0;readOk=true;}
+  }catch(e){}
+  set.add(id);(myT==="up"?saveLiked:saveDisliked)();patchCardCount(id);
+  if(readOk && (c.likes||0)<=before){
+    toast("你已经赞过这条啦 💗");   /* 服务端没变 = 之前就赞过，如实告知 */
+  }else{
+    toast(myT==="up"?"已点赞 💗":"已点倒赞 👎");
+  }
 }finally{__cardBusy.delete(id);}
 }
+
 function bindLikes(){bindCardEvents()}
 function bindShare(){bindCardEvents()}
 function bindReport(){bindCardEvents()}
@@ -605,7 +736,18 @@ function bindCardEvents(){
   w.__wallBound=true;
   w.addEventListener("click",function(ev){
     var t=ev.target;
-    var like=t.closest("[data-like]");if(like){ev.preventDefault();likeItem(like.getAttribute("data-id"),"up");return;}
+    var like=t.closest("[data-like]");
+    if(like){
+      ev.preventDefault();
+      /* [R6-FIX] 这里原来写的是 getAttribute("data-id")——但元素上挂的是 data-like，
+         card 上的 data-id 在祖先节点，getAttribute 不会向上找 → 恒为 null → id=0 →
+         likeItem 里 find 不到直接 return。结果就是：全站任何人点任何一次点赞都静默无效。
+         这就是"点赞用不了"的真正原因，与网络/RPC/去重都无关。 */
+      var lid=like.getAttribute("data-like");
+      if(!lid){var pc=like.closest("[data-id]");lid=pc?pc.getAttribute("data-id"):null;}
+      if(!lid){toast("页面数据异常，请下拉刷新后重试");return;}
+      likeItem(lid,"up");return;
+    }
     
     var fw=t.closest("[data-fwd]");if(fw){ev.preventDefault();forwardPost(fw.getAttribute("data-fwd"));return;}
     var rp=t.closest("[data-report]");if(rp){ev.preventDefault();reportPost(rp.getAttribute("data-report"));return;}
@@ -645,7 +787,29 @@ function legacyCopy(txt){try{var ta=document.createElement("textarea");ta.value=
 function copyText(txt){if(navigator.clipboard&&navigator.clipboard.writeText){return navigator.clipboard.writeText(txt).catch(function(){return legacyCopy(txt);});}return legacyCopy(txt);}
 
 function forwardPost(id){id=Number(id);var c=wall.find(function(x){return x.id==id});if(!c)return;var who=c.anon?'神秘人':(c.name||'匿名');var kw=(c.to||'').toString().trim();var m=(c.msg||'').toString().trim();var gf=(c.gift||'').toString().trim();var txt='❤ '+who+' → '+(c.to||'')+'（'+(c.year||'')+'级'+(c.cls||'')+'班）';if(m)txt=txt+'\n「'+m+'」';if(gf)txt=txt+'\n🎁 '+gf;if(kw)txt=txt+'\n\n💡 打开表白墙，用顶部搜索框搜「'+kw+'」就能直达这条';txt=txt+'\n\n'+SITE_URL+'?post='+id;copyText(txt).then(function(){toast('✅ 已复制转发内容，发给 TA 吧');});}
-function makePoster(id){if(typeof QRCode==="undefined"){toast("二维码组件未加载，请刷新后再试 📷");return}const c=wall.find(x=>x.id==id);if(!c)return;
+/* [R5-PERF] 二维码组件改为按需加载。
+   原来 qrcode.js(24KB) + CDN 兜底都在 head 同步加载，但「生成海报」的入口已在
+   11-01 的提交里移除（makePoster 成了无调用点的孤岛）——等于每页都下 24KB 却永远用不上。
+   现在首屏不再引它，首次调用 makePoster 时才动态注入，加载失败再提示。 */
+let __qrLoading=null;
+function ensureQR(){
+  if(typeof QRCode!=="undefined")return Promise.resolve(true);
+  if(__qrLoading)return __qrLoading;
+  __qrLoading=new Promise(function(res){
+    var srcs=["assets/qrcode.js?v=1","https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"];
+    var i=0;
+    (function next(){
+      if(i>=srcs.length)return res(false);
+      var s=document.createElement("script");
+      s.src=srcs[i++];
+      s.onload=function(){res(typeof QRCode!=="undefined")};
+      s.onerror=next;
+      document.head.appendChild(s);
+    })();
+  });
+  return __qrLoading;
+}
+function makePoster(id){if(typeof QRCode==="undefined"){toast("正在加载二维码组件…");ensureQR().then(function(ok){if(ok)makePoster(id);else toast("二维码组件加载失败，请检查网络 📷")});return}const c=wall.find(x=>x.id==id);if(!c)return;
 const canvas=document.getElementById("posterCanvas");const ctx=canvas.getContext("2d");
 const W=600,H=800;
 const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#fff5f7");g.addColorStop(1,"#ffe9ef");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
@@ -728,7 +892,15 @@ const st=document.createElement("style");st.textContent="@keyframes rise2{from{t
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 makeFloatLayer();
 (function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
-(function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();Promise.all([load(),loadVisits(),recordVisit()]);
+(function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();paintFastCache();
+/* [R7-PERF] 移动端并发请求会抢带宽：主列表先出，访问数与访问上报挪到其后；
+   上报改为每会话一次（原来每次 visibilitychange 都会打一次）。 */
+load().then(function(){
+  var v=document.getElementById("stVisit");
+  if(!v||!v.textContent||v.textContent==="0")loadVisits();
+  var rv=0;try{rv=parseInt(sessionStorage.getItem("wallVisitSent")||"0",10)}catch(e){}
+  if(!rv){try{sessionStorage.setItem("wallVisitSent","1")}catch(e){}recordVisit();}
+});
 (function(){try{var ch=sb.channel("love-wall-rt").on("postgres_changes",{event:"*",schema:"public",table:"wall"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"likes"},function(){rt()}).on("postgres_changes",{event:"*",schema:"public",table:"card_gifts"},function(){rt()}).subscribe(function(s){if(s==="CLOSED"||s==="CHANNEL_ERROR"){console.log("realtime",s,", resubscribing");try{window.__wallRt&&window.__wallRt.unsubscribe()}catch(e){}if(__rtReconnects<3){__rtReconnects++;setTimeout(rt,5000)}else{console.log("realtime: max reconnects, fallback to polling")}}else{console.log("realtime:",s)}});window.__wallRt=ch;}catch(e){console.log("realtime init failed, fallback to polling",e)}})();var __rtT=null;let __rtReconnects=0;function rt(){if(document.hidden)return;if(__rtT)return;__rtT=setTimeout(function(){__rtT=null;safeLoad();},3000);}
 /* 轮询与 Realtime 互斥：加冷却，避免 load 并发 + visibilitychange 频繁触发 */
 let __lastLoadTs=0;

@@ -10,9 +10,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="表白墙">
-  <script src="assets/pwa.js?v=7"></script>
+  <script src="assets/pwa.js?v=8"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>校花之墙 · 投票 · 校园墙</title>
+<!-- [R4-2] 补齐分享卡片元数据（原来本页 0 个 og 标签） -->
+<meta name="description" content="重庆第二外国语学校 · 校花之墙，同学传照片 · 投票排名">
+<meta property="og:type" content="website">
+<meta property="og:title" content="校花之墙 · 重庆第二外国语学校校园墙">
+<meta property="og:description" content="同学传照片 · 投票排名 · 全校实时">
+<meta property="og:image" content="https://wutongyu1213.github.io/wall/icon-512.png">
+<meta property="og:url" content="https://wutongyu1213.github.io/wall/xiaohua-wall.html">
+<meta property="og:site_name" content="重庆二外 · 校园墙">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{
   --bg1:#fff7fa;--bg2:#ffeef5;--accent:#e0498f;--accent2:#c4002a;
@@ -149,6 +158,7 @@ body.dark .skel-ph{background:rgba(255,255,255,.06)}
 .skel-line{height:11px;border-radius:6px;background:rgba(0,0,0,.08);margin:9px 0;overflow:hidden}
 body.dark .skel-line{background:rgba(255,255,255,.12)}
 .skel-line.t1{width:40%;margin-top:0}.skel-line.t2{width:72%}.skel-line.t3{width:52%}
+@media (max-width:820px){input,select,textarea{font-size:16px!important}}
 </style>
 <script src="assets/supabase.js?v=1"></script><script src="assets/device-fp.js?v=1"></script><script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
 
@@ -164,7 +174,7 @@ body.dark .skel-line{background:rgba(255,255,255,.12)}
 </footer>
 <script src="assets/announce.js?v=2"></script>
 <script>window.WALL_CFG={key:'wall_xiaohua',title:'🌸 校花之墙',accent:'pink'}</script>
-<script src="wall-common.js?v=10"></script>
+<script src="wall-common.js?v=11"></script>
 <button class="dark-toggle" id="darkToggle" aria-label="切换深色">🌙</button>
 <script>(function(){var d=localStorage.getItem("wallDark")==="1";document.body.classList.toggle("dark",d);var b=document.getElementById("darkToggle");if(!b)return;b.textContent=d?"☀️":"🌙";b.onclick=function(){var x=document.body.classList.toggle("dark");localStorage.setItem("wallDark",x?"1":"0");b.textContent=x?"☀️":"🌙"};})();</script>
 <script src="assets/bgm.js?v=2"></script>

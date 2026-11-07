@@ -42,16 +42,43 @@
     return true;
   }
 
-  function showFab(){
-  if(location.pathname.indexOf('admin.html')>=0)return; // 后台页不生成「二外圈」悬浮胶囊（已有独立的「管理后台」入口）
-    if(document.getElementById('pwaFab'))return;
-    var b=document.createElement('div');b.id='pwaFab';
-    b.style.cssText='position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99900;display:flex;align-items:center;gap:8px;background:#2b1220;color:#fff;padding:10px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(43,18,32,.35);font-size:15px;font-weight:700;cursor:pointer;';
-    b.innerHTML='📲 <span>把「二外圈」装到'+(env.t==='ios'?'主屏幕':'桌面')+'</span>';
-    b.onclick=onFab;document.body.appendChild(b);
-    b.style.opacity='0';requestAnimationFrame(function(){b.style.transition='opacity .4s';b.style.opacity='1';});
-  }
-  function onFab(){
+  var FAB_KEY="pwaFabDismissed", FAB_DAYS=7;
+function fabDismissed(){
+  try{var t=parseInt(localStorage.getItem(FAB_KEY)||"0",10);return Date.now()-t < FAB_DAYS*24*3600*1000;}catch(e){return false}
+}
+function dismissFab(){
+  try{localStorage.setItem(FAB_KEY,String(Date.now()))}catch(e){}
+  var b=document.getElementById("pwaFab");
+  if(b){b.style.opacity="0";setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b)},250)}
+}
+function showFab(){
+  if(location.pathname.indexOf("admin.html")>=0)return;
+  if(document.getElementById("pwaFab"))return;
+  /* [R6-UX] 关过一次，7 天内不再打扰 */
+  if(fabDismissed())return;
+  /* [R6-UX] 桌面端不弹：装到桌面只对手机有意义，PC 上它纯粹是挡内容的浮层 */
+  var coarse=window.matchMedia&&window.matchMedia("(pointer:coarse)").matches;
+  if(!coarse && window.innerWidth>820)return;
+
+  var b=document.createElement("div");b.id="pwaFab";
+  b.style.cssText="position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:99900;display:flex;align-items:center;gap:6px;background:rgba(43,18,32,.94);color:#fff;padding:8px 10px 8px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(43,18,32,.35);font-size:13px;font-weight:700;cursor:pointer;max-width:calc(100vw - 24px);";
+  b.innerHTML="📲 <span>装到"+(env.t==="ios"?"主屏幕":"桌面")+"</span>"
+  b.innerHTML="📲 <span>装到"+(env.t==="ios"?"主屏幕":"桌面")+"</span>"
+    +'<span id="pwaFabX" role="button" aria-label="不再提示" style="flex:none;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:12px;margin-left:4px">✕</span>';
+  b.onclick=function(e){
+    if(e&&e.target&&e.target.id==="pwaFabX"){dismissFab();return;}
+    if(t)clearTimeout(t);
+    onFab();
+  };
+  document.body.appendChild(b);
+  b.style.opacity="0";requestAnimationFrame(function(){b.style.transition="opacity .4s";b.style.opacity="1";});
+  /* 15 秒无人理会自动收起，不长期遮挡内容 */
+  var t=setTimeout(function(){
+    var el=document.getElementById("pwaFab");
+    if(el){el.style.opacity="0";setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el)},420);}
+  },15000);
+}
+function onFab(){
     if(tryNativePrompt())return;
     if(env.t==='wechat')showWeChat();
     else if(env.t==='ios')showIos();

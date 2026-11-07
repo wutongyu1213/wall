@@ -20,33 +20,62 @@
 
   /* ---- 本地身份锚点（投票去重用，清缓存可重置，DB 有 unique 兜底）---- */
   var lastSignTime=0;
+  /* [P0-7] 签名收口：所有照片签名改走 Edge（wall-photo-sign）。
+     服务端用 service key 查 wall_candidates，确认该照片 status='ok' 才签发 15 分钟 URL。
+     原 anon 直签方案下，任何人拿到公开 key 即可对【待审/已拒/孤儿】照片签名读取，
+     "先审后显"只是 UI 承诺。Edge 不可达时照片区降级为空——宁可失败关闭，不可静默放行。 */
+  /* [R7] 签名模式自适应：Edge 已部署 → 走服务端校验（安全）；
+     未部署（404）→ 回退 anon 直签，保证照片不白屏。部署后新开页面自动切回 Edge。 */
+  var __signMode=null;
+  async function directSign(paths,out){
+    var s2=getSB(); if(!s2)return out;
+    try{
+      var r=await s2.storage.from("wall-photos").createSignedUrls(paths,900);
+      if(!r.error){
+        (r.data||[]).forEach(function(d){var u=d.signedUrl||"";if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u;if(u)out[d.path]=u;});
+        return out;
+      }
+      for(var i=0;i<paths.length;i++){
+        var one=await s2.storage.from("wall-photos").createSignedUrl(paths[i],900);
+        if(one.error)continue;
+        var u0=(one.data&&one.data.signedUrl)||"";
+        if(u0&&!/^https?:/.test(u0))u0=SUPA_URL+"/storage/v1"+u0;
+        if(u0)out[paths[i]]=u0;
+      }
+    }catch(e){console.warn("directSign",e)}
+    return out;
+  }
+  async function edgeSign(paths){
+    var out={};
+    if(!paths||!paths.length)return out;
+    if(__signMode!=="direct"){
+      var r=null;
+      try{
+        r=await fetch(SUPA_URL+"/functions/v1/wall-photo-sign",{
+          method:"POST",
+          headers:{"Content-Type":"application/json",apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY},
+          body:JSON.stringify({paths:paths})
+        });
+      }catch(e){}
+      if(r&&r.ok){
+        try{
+          var j=await r.json();
+          if(j&&j.ok){__signMode="edge";var u=j.urls||{};for(var k in u)out[k]=u[k];return out;}
+        }catch(e){}
+      }
+      if(__signMode==="edge")return out;
+      __signMode="direct";
+    }
+    return directSign(paths,out);
+  }
   async function signPhotos(rows){
     var out={};
     var rels=(rows||[]).filter(function(p){return p&&p.photo_url&&p.photo_url.trim()!==""&&!/^https?:/.test(p.photo_url);}).map(function(p){return p.photo_url;});
     (rows||[]).forEach(function(p){ if(p&&p.photo_url&&/^https?:/.test(p.photo_url)) out[p.photo_url]=p.photo_url; });
-    var list=rels;
-    if(!list.length) return out;
-    var s2=getSB(); if(!s2) return out;
-    try{
-      var r=await s2.storage.from("wall-photos").createSignedUrls(list,900);
-      if(r.error){
-        /* 批签失败（如批内含坏路径）→ 逐张降级签名，避免单条坏路径拖垮整批真实照片 */
-        for(var i=0;i<list.length;i++){
-          var one=await s2.storage.from("wall-photos").createSignedUrl(list[i],900);
-          if(one.error)continue;
-          var u0=(one.data&&one.data.signedUrl)||"";
-          if(u0&&!/^https?:/.test(u0))u0=SUPA_URL+"/storage/v1"+u0;
-          if(u0)out[list[i]]=u0;
-        }
-      }else{
-        (r.data||[]).forEach(function(d){
-          var u=d.signedUrl||"";
-          if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u;
-          out[d.path]=u;
-        });
-      }
-      lastSignTime=Date.now();
-    }catch(e){ console.warn("sign photos",e); }
+    if(!rels.length) return out;
+    var urls=await edgeSign(rels);
+    for(var k2 in urls) out[k2]=urls[k2];
+    if(Object.keys(urls).length) lastSignTime=Date.now();
     return out;
   }
   /* 批量签名任意 url 数组（主照 + 挂照共用） */
@@ -55,22 +84,9 @@
     var rels=(list||[]).filter(function(u){return u&&u.trim()!==''&&!/^https?:/.test(u);});
     (list||[]).forEach(function(u){ if(u&&/^https?:/.test(u)) out[u]=u; });
     if(!rels.length) return out;
-    var s2=getSB(); if(!s2) return out;
-    try{
-      var r=await s2.storage.from("wall-photos").createSignedUrls(rels,900);
-      if(r.error){
-        for(var i=0;i<rels.length;i++){
-          var one=await s2.storage.from("wall-photos").createSignedUrl(rels[i],900);
-          if(one.error)continue;
-          var u0=(one.data&&one.data.signedUrl)||'';
-          if(u0&&!/^https?:/.test(u0))u0=SUPA_URL+"/storage/v1"+u0;
-          if(u0)out[rels[i]]=u0;
-        }
-      }else{
-        (r.data||[]).forEach(function(d){ var u=d.signedUrl||""; if(u&&!/^https?:/.test(u))u=SUPA_URL+"/storage/v1"+u; out[d.path]=u; });
-      }
-      lastSignTime=Date.now();
-    }catch(e){ console.warn("signUrls",e); }
+    var urls=await edgeSign(rels);
+    for(var k in urls) out[k]=urls[k];
+    if(Object.keys(urls).length) lastSignTime=Date.now();
     return out;
   }
 
@@ -90,6 +106,14 @@
 
   /* ---- 拉候选人（云端，带 try/catch + 超时兜底，失败可重试） ---- */
   var loadLock=0;
+  /* [R7] 候选源自适应：有视图读视图，没有则读原表并自行过滤 status */
+  var __candSrc=null;
+  async function candSrc(){
+    var s=getSB(); if(!s)return "wall_candidates";
+    if(__candSrc)return __candSrc;
+    try{var r=await s.from("wall_candidates_public").select("id").limit(1);if(!r.error){__candSrc="wall_candidates_public";return __candSrc}}catch(e){}
+    __candSrc="wall_candidates";return __candSrc;
+  }
   async function loadCands(){
     const s=getSB(); if(!s){ loadErr=true; people=[]; loading=false; return; }
     loading=true; loadErr=false;
@@ -97,10 +121,10 @@
     try{
       const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
       const tmo=ctrl?setTimeout(function(){ctrl.abort();},15000):null;
-      const {data,error}=await s.from('wall_candidates')
-        .select('id,nickname,class_no,photo_url,like_count,msg,created_ts,voting_on')
-        .eq('kind',KIND).eq('status','ok')
-        .order('like_count',{ascending:false}).limit(200);
+      var __cs=await candSrc();
+      var __q=s.from(__cs).select('id,nickname,class_no,photo_url,like_count,msg,created_ts,voting_on').eq('kind',KIND);
+      if(__cs==='wall_candidates')__q=__q.eq('status','ok');
+      const {data,error}=await __q.order('like_count',{ascending:false}).limit(200);
       if(tmo)clearTimeout(tmo);
       if(myLock!==loadLock)return; // 已被更新一次加载取代
       if(error){ loadErr=true; people=[]; } else {
@@ -110,7 +134,10 @@
         var ids=people.map(function(x){return x.id;});
         var gmap={};
         if(ids.length){
-          var ph=await s.from('candidate_photos').select('candidate_id,photo_url,seq').eq('status','ok').in('candidate_id',ids).order('seq');
+          var __psrc=(await candSrc())==='wall_candidates'?'candidate_photos':'candidate_photos_public';
+          var __pq=s.from(__psrc).select('candidate_id,photo_url,seq');
+          if(__psrc==='candidate_photos')__pq=__pq.eq('status','ok');
+          var ph=await __pq.in('candidate_id',ids).order('seq');
           (ph.data||[]).forEach(function(r){ (gmap[r.candidate_id]=gmap[r.candidate_id]||[]).push(r.photo_url); });
           var extraUrls=[];
           Object.keys(gmap).forEach(function(cid){ (gmap[cid]||[]).forEach(function(u){ if(u&&u.trim()!==''&&extraUrls.indexOf(u)<0) extraUrls.push(u); }); });
@@ -131,7 +158,11 @@
   async function uploadAndAdd(name,msg,file,autoReview,aiReview){
     const s=getSB(); if(!s){ tip('云端未连接'); return false; }
     const uk=userKey();
-    const path=KIND+'/'+Date.now()+'_'+uk+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
+    /* [R5-PRIV] 文件名不再内嵌 u_key（设备指纹）。
+       原格式 {ts}_{u_key}_{rand}.jpg，而桶可匿名列目录 → 同名指纹段能把
+       同一台设备上传的所有照片串成一个人。改为纯随机 nonce，仍保留时间戳前缀用于排序。 */
+    const nonce=(function(){var s="",i,a;try{a=crypto.getRandomValues(new Uint8Array(6))}catch(e){a=[];for(i=0;i<6;i++)a.push(Math.floor(Math.random()*256))}for(i=0;i<a.length;i++){s+=("0"+a[i].toString(16)).slice(-2)}return s})();
+    const path=KIND+'/'+Date.now()+'_'+nonce+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
     const {error:upErr}=await s.storage.from('wall-photos').upload(path,file,{contentType:'image/jpeg'});
     if(upErr){ console.error(upErr); tip('照片上传失败：'+upErr.message); return; }
     /* 桶已私有：库里只存稳定相对路径 path，显示时由 signPhotos 客户端签名 */
@@ -299,10 +330,10 @@
         const noPhoto=!p._src;
         const phHTML=noPhoto
           ? avatarEl(p.id,p.nickname).outerHTML
-          : '<img src="'+esc(p._src)+'" loading="lazy" alt="" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'" onerror="window.__phFail(this)">';
+          : '<img src="'+esc(p._src)+'" loading="lazy" alt="'+esc((p.nickname||'参与者')+'的照片')+'" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'" onerror="window.__phFail(this)">';
         var thumbsHTML='';
         if(p._photos&&p._photos.length){
-          thumbsHTML='<div class="ph-thumbs">'+p._photos.map(function(u){return '<img class="ph-thumb" src="'+esc(u)+'" loading="lazy" alt="">';}).join('')+'</div>';
+          thumbsHTML='<div class="ph-thumbs">'+p._photos.map(function(u){return '<img class="ph-thumb" src="'+esc(u)+'" loading="lazy" alt="更多照片">';}).join('')+'</div>';
         }
         h+='<div class="card" '+(p._photos&&p._photos.length?'data-multi="1"':'')+'>'
           +'<div class="ph" data-cid="'+p.id+'" data-nm="'+esc(p.nickname||'')+'">'+phHTML+'<span class="medal">'+medal+'</span>'+(p._photos&&p._photos.length?'<span class="ph-more">+'+p._photos.length+'</span>':'')+'</div>'
@@ -310,8 +341,8 @@
           +'<div class="body">'
           +'<div class="nm">'+esc(p.nickname||'匿名')+(p._photos&&p._photos.length?' <span class="tag-photo">'+(p._photos.length+1)+' 张照片</span>':'')+'</div>'
           +(p.msg?'<div class="ms">'+esc(p.msg)+'</div>':'')
-          +'<div class="vf"><div class="vf-btns"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" '+((done||p.voting_on===false)?'disabled':'')+'>'+(p.voting_on===false?'投票已关闭':(done?'已投':'投票'))+'</button>'
-          +'<button class="vote appeal" data-appeal="'+p.id+'">申诉</button></div>'
+          +'<div class="vf"><div class="vf-btns"><button class="vote '+(done?'done':'')+'" data-vote="'+p.id+'" aria-pressed="'+(done?'true':'false')+'" aria-label="给'+esc(p.nickname||'这位同学')+'投票，当前 '+c+' 票" '+((done||p.voting_on===false)?'disabled':'')+'>'+(p.voting_on===false?'投票已关闭':(done?'已投':'投票'))+'</button>'
+          +'<button class="vote appeal" data-appeal="'+p.id+'" aria-label="对本条照片提出申诉">申诉</button></div>'
           +'<span class="ct">'+c+' 票</span></div>'
           +'</div>'
           
