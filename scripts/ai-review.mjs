@@ -18,6 +18,8 @@
  * ---------------------------------------------------------------------------
  */
 
+import { appendFileSync } from 'node:fs';
+
 const {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
@@ -48,7 +50,7 @@ const isDry = DRY_RUN === '1' || !ADMIN_PWD;
 const AUTO_HIDE_CATS = (process.env.AUTO_HIDE_PII === '1'
   ? 'pii,abuse,sexual,contact,selfharm,spam'
   : 'abuse,sexual,contact,selfharm,spam').split(',');
-const WINDOW_MIN = Math.max(5, Number(process.env.WINDOW_MIN) || 90);
+const WINDOW_MIN = Math.max(5, Number(process.env.WINDOW_MIN) || 45);
 const sinceMs = Date.now() - WINDOW_MIN * 60000;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -201,6 +203,38 @@ async function fetchCandidates() {
   return JSON.parse(r.text) || [];
 }
 
+/* ---------------- 2.5 确定性预检 ----------------
+   正则能做的事不该交给概率模型。
+   实测：手机号 / QQ / 微信 / 网址这四类，模型 12/12 都能判对（2026-11-08 复测），
+   但那意味着每条都要付一次调用、等 5~30 秒、并且依赖服务商活着。
+   正则命中率 100%、成本 0、延迟 0、不受余额影响 —— 最明确的违规应该由它先拦掉。
+
+   刻意【不】匹配「裸的 5~10 位数字」：
+   表白墙里 5201314、1314、521 这类数字是情话，按长度一刀切会大面积误伤。
+   漏掉一个没写关键词的纯数字 QQ，好过误杀一片真心话。 */
+const CONTACT_RULES = [
+  { re: /(?<!\d)1[3-9]\d{9}(?!\d)/, label: '手机号' },
+  { re: /(qq|扣扣|企鹅|q群|群号)\s*[:：]?\s*\d{5,12}/i, label: 'QQ' },
+  { re: /(微信|徽信|威信|vx|wx|weixin|wechat)\s*[:：]?\s*[A-Za-z0-9_-]{4,25}/i, label: '微信' },
+  { re: /(?:https?:\/\/|www\.)[A-Za-z0-9.-]+\.[A-Za-z]{2,}/i, label: '网址' },
+];
+
+function preScan(text) {
+  for (const r of CONTACT_RULES) {
+    const m = String(text || '').match(r.re);
+    if (m) {
+      return {
+        cat: 'contact',
+        risk: 1,
+        reason: `规则命中：${r.label}`,
+        by: 'rule',
+        hit: String(m[0]).slice(0, 24),
+      };
+    }
+  }
+  return null;
+}
+
 /* ---------------- 3. AI 判定 ---------------- */
 /* 余额耗尽时不再逐条重试：直接置位，让主流程停下来并给出人话提示 */
 let quotaDead = null;
@@ -347,6 +381,14 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
   log(`待检查帖子：${posts.length} 条（最近 ${WINDOW_MIN} 分钟内新增）`);
   if (!posts.length) {
     log("最近没有新内容，本轮结束（不发邮件）。");
+    /* 空窗口也要写摘要：否则 Actions 页面上这次运行看不出"跑过了、没内容"，
+       会被误认为"任务没执行"。 */
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      try {
+        appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+          ["### 表白墙内容巡检", "", `最近 ${WINDOW_MIN} 分钟没有新内容，本轮未处理。`, ""].join("\n"));
+      } catch { /* 本地运行无此变量 */ }
+    }
     return;
   }
 
@@ -369,21 +411,26 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
     if (!String(p.love_msg || '').trim()) return;
     if (Date.now() - t0 > BUDGET_MS) { skipped++; return; }
     const text = `${p.nickname || '匿名'} 对 ${p.target_name || ''}：${p.love_msg || ''}`;
-    let res;
-    try {
-      res = await judge(provider, text);
-    } catch (e) {
-      if (e && e.quota) {
-        if (!quotaWarned) {
-          quotaWarned = true;
-          log(`  ⚠️ 账户余额不足（剩余 ${quotaDead}），已停止本次巡检。`);
-          log('     去 https://platform.agnes-ai.com 充值后，下一次定时自动恢复，无需改代码。');
+    let res = preScan(text);
+    if (res) {
+      /* 规则直接命中：不调用模型、不花钱、不等网络 */
+      log(`  #${p.id} ${res.reason}「${res.hit}」→ 规则判定（未调用模型）`);
+    } else {
+      try {
+        res = await judge(provider, text);
+      } catch (e) {
+        if (e && e.quota) {
+          if (!quotaWarned) {
+            quotaWarned = true;
+            log(`  ⚠️ 账户余额不足（剩余 ${quotaDead}），已停止本次巡检。`);
+            log('     去 https://platform.agnes-ai.com 充值后，下一次定时自动恢复，无需改代码。');
+          }
+          return;
         }
+        failed++;
+        log(`  #${p.id} 判定失败：${e.message}`);
         return;
       }
-      failed++;
-      log(`  #${p.id} 判定失败：${e.message}`);
-      return;
     }
     checked++;
     /* 只靠分数不够：实测小模型会出现「理由写正常、分数却 0.9」的自相矛盾。
@@ -500,7 +547,42 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
   console.log('\n===== 摘要 =====');
   console.log(`检查 ${checked}｜标记 ${flagged.length}｜${isDry ? '待隐藏' : '已隐藏'} ${hidden.length}｜失败 ${failed}`);
   if (hidden.length) console.log('已处理 ID：' + hidden.map((x) => x.id).join(', '));
+
+  /* 失败不能装成绿。用 Actions 注解让它在页面上显形，
+     但不让整个 job 变红——否则余额耗尽时每 30 分钟一封失败邮件，
+     人会很快对所有告警脱敏。真正需要「报警」的判断交给 health-check。 */
+  if (quotaDead) {
+    console.log(`::warning title=账户余额不足::本轮 $0 次 AI 判定，审核实际处于停摆状态（剩余 ${quotaDead}）`);
+  }
+  if (failed) {
+    console.log(`::warning title=判定失败::${failed} 条内容未完成判定，下轮会重试`);
+  }
+  if (skipped) {
+    console.log(`::warning title=超出预算::${skipped} 条未检查（${Math.round(BUDGET_MS / 60000)} 分钟预算用尽）`);
+  }
+
+  /* 任务摘要：在 Actions 页面顶部直接显示，不用翻日志 */
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const lines = [
+      '### 表白墙内容巡检',
+      '',
+      `| 项目 | 数值 |`,
+      `|---|---|`,
+      `| 检查 | ${checked} |`,
+      `| 标记（需人工看） | ${flagged.length} |`,
+      `| ${isDry ? '待隐藏（演练）' : '已隐藏'} | ${hidden.length} |`,
+      `| 失败 | ${failed} |`,
+      `| 跳过（预算/余额） | ${skipped} |`,
+      '',
+      quotaDead ? `> ⚠️ 账户余额不足（剩余 ${quotaDead}），本轮未做任何 AI 判定。` : '',
+      hidden.length ? `\n已处理：#${hidden.map((x) => x.id).join(', #')}` : '',
+    ].filter(Boolean).join('\n');
+    try {
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines + '\n');
+    } catch { /* 本地运行时没有这个变量 */ }
+  }
 })().catch((e) => {
+  console.log(`::error title=巡检失败::${e.message}`);
   console.error('巡检失败：' + e.message);
   process.exit(1);
 });
