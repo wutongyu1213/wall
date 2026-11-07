@@ -1,0 +1,45 @@
+# 体系自检
+# ---------------------------------------------------------------------------
+# 每天跑一次，回答两个「没人回答」的问题：
+#   1. 审核还在跑吗？—— 近 3 小时没有一次成功 = 停摆，直接失败
+#   2. 安全基线回退了吗？—— 七项收口状态逐项探测
+#
+# 为什么安全项只报告不失败：
+#   七项现在都没修，天天红会让人对告警脱敏。
+#   等 sql/ 跑完，在仓库 Variables 里设 BASELINE_FIXED=1，未通过就真的会红。
+# ---------------------------------------------------------------------------
+name: 体系自检
+
+on:
+  schedule:
+    # 每天 UTC 21:10 = 北京时间 05:10，避开巡检的 */30
+    - cron: '10 21 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: health-check
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read # 需要读本仓库的运行历史，判断巡检是否停摆
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 执行自检
+        run: node scripts/health-check.mjs
+        env:
+          SUPABASE_ANON_KEY: sb_publishable_oBuCc6SrjzzsRQwa3CLjqQ_e5K2M_w3
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_SILENT_HOURS: ${{ vars.MAX_SILENT_HOURS || '3' }}
+          BASELINE_FIXED: ${{ vars.BASELINE_FIXED || '' }}
