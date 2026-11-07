@@ -44,9 +44,13 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('缺少 SUPABASE_URL / SUPABASE_ANON_KEY');
   process.exit(1);
 }
+/* 还没配密钥属于「尚未启用」，不是故障。
+   这里以 0 退出，避免每 30 分钟给你发一封 Actions 失败通知；
+   配好 Secrets 后下一次定时就会自动开始工作。 */
 if (!AI_API_KEY) {
-  console.error('缺少 AI_API_KEY（仓库 Settings → Secrets 里配置）');
-  process.exit(1);
+  console.log('[skip] 尚未配置 AI_API_KEY，本次跳过巡检。');
+  console.log('[skip] 到 Settings → Secrets and variables → Actions 添加后，下一次定时自动生效。');
+  process.exit(0);
 }
 
 const SYS_PROMPT =
