@@ -381,6 +381,8 @@ body.dark #toTop{background:rgba(42,16,24,.9);color:#ff8fa3;border-color:rgba(25
 *{-webkit-tap-highlight-color:transparent}
 body{overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
 </style>
+<!-- 液态玻璃主题层：放在所有内联样式之后，确保逐层覆盖且不改变布局 -->
+<link rel="stylesheet" href="assets/glass.css?v=1">
 <link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   <link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   </head><body>
@@ -961,5 +963,40 @@ setInterval(safeLoad,300000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){safeLoad();loadVisits();}});
 </script>
 <div class="notice-overlay" id="noticeModal"><div class="notice-card"><div class="notice-head"><span class="nicon">📢</span><h3>公告</h3></div><div class="notice-poem">偶然的相遇，让平淡的日子多了一束光。<br>犹豫了很久，还是想在这里写下心动。<br>或许你不会看见，但若刚好是你，<br>我想告诉你：我很喜欢你。</div><div class="notice-tip"><b>💡 说明</b>　本表白墙为个人自制，制作不易。大家有需求或者觉得需要改进的地方都可以提出来。请大家不要恶意捣乱、乱发无关内容，本表白墙仅限<b class="school">重庆第二外国语学校</b>的同学使用，其他学校同学请勿投稿。希望大家心怀公德，文明发言，一起好好维护这里。</div><div class="notice-foot"><span class="nhint">点击"我已阅读"后，24 小时内不再弹出</span><button id="noticeCancel" class="nbtn ghost">✕ 取消</button><button id="noticeOk" class="nbtn solid">✓ 我已阅读</button></div></div></div>
+
+<script>
+/* [R8-BGM] 音乐时机：首次交互后才出声（绕过自动播放限制）、淡入不吓人、
+   切到后台自动暂停、回来接着放。用户明确关过就永不自动响。 */
+(function(){
+  var a=document.getElementById('bgm'); if(!a)return;
+  var TARGET=0.35;
+  a.addEventListener('play',function(){
+    try{a.volume=0}catch(e){}
+    var t0=Date.now();
+    var iv=setInterval(function(){
+      var k=Math.min(1,(Date.now()-t0)/1000);
+      try{a.volume=TARGET*(k*k)}catch(e){}
+      if(k>=1)clearInterval(iv);
+    },50);
+  });
+  var resume=false;
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){ resume=!a.paused; if(resume){try{a.pause()}catch(e){}} }
+    else if(resume){
+      try{a.play().then(function(){ if(window.setMusicUI)setMusicUI(true); }).catch(function(){})}catch(e){}
+      resume=false;
+    }
+  });
+  var tried=false;
+  function firstTouch(){
+    if(tried)return; tried=true;
+    try{ if(localStorage.getItem('wallBgmOn')==='off')return; }catch(e){}
+    if(typeof startBgm==='function'){ startBgm(); }
+  }
+  ['pointerdown','touchstart','keydown','scroll'].forEach(function(ev){
+    document.addEventListener(ev,firstTouch,{once:true,passive:true});
+  });
+})();
+</script>
 </body>
 </html>

@@ -156,6 +156,8 @@ main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 /* 8) 焦点可见（键盘操作后台时能看清位置） */
 :focus-visible{outline:2px solid #ff8fa3;outline-offset:2px}
 </style>
+<!-- 液态玻璃主题层：放在所有内联样式之后，确保逐层覆盖且不改变布局 -->
+<link rel="stylesheet" href="assets/glass.css?v=1">
 <link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   <link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   </head>
@@ -846,5 +848,73 @@ async function saveAnnounce(){
 buildTabs();
 </script>
 <script src="assets/bgm.js?v=2"></script>
+
+<script>
+/* [R8-HELP] 新手引导：一个「怎么看」按钮 + 一键体检。
+   体检复用现有 edge("stats") 接口，不新增后端；结果直接告诉人「先做哪一步」。 */
+(function(){
+  var CSS='position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:9990;'
+    +'width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,.6);'
+    +'background:linear-gradient(160deg,rgba(255,255,255,.85),rgba(255,235,242,.72));'
+    +'color:#c4002a;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;'
+    +'box-shadow:0 10px 28px rgba(92,32,58,.22), inset 0 1px 0 #fff;cursor:pointer;'
+    +'-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);';
+
+  var fab=document.createElement('button');
+  fab.type='button'; fab.id='helpFab'; fab.textContent='?';
+  fab.setAttribute('aria-label','怎么用这个后台');
+  fab.style.cssText=CSS;
+  document.body.appendChild(fab);
+
+  var ov=null;
+  function close(){ if(ov){ov.remove(); ov=null;} }
+  function open(){
+    if(ov)return;
+    ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:9995;display:flex;align-items:flex-end;justify-content:center;'
+      +'background:rgba(28,8,16,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:0;';
+    ov.onclick=function(e){ if(e.target===ov)close(); };
+    var card=document.createElement('div');
+    card.style.cssText='width:100%;max-width:560px;background:rgba(255,255,255,.92);border-radius:26px 26px 0 0;'
+      +'padding:22px 18px calc(22px + env(safe-area-inset-bottom,0px));box-sizing:border-box;'
+      +'box-shadow:0 -12px 40px rgba(92,32,58,.22), inset 0 1px 0 #fff;max-height:86vh;overflow:auto;';
+    card.innerHTML=
+      '<div style="font-size:19px;font-weight:800;color:#c4002a;margin-bottom:6px">三步看懂这个后台</div>'
+      +'<div style="font-size:13px;color:#8a5a68;line-height:1.8;margin-bottom:14px">不用记按钮，看数字就行。</div>'
+      +'<div id="helpSteps" style="font-size:14px;line-height:1.9;color:#3a0a1a">'
+      +'<div style="margin-bottom:10px"><b>① 顶上那些数字 = 待办</b><br>「待预审照片 / 待处理举报 / 待处理申诉」有数字就代表有人等你处理，点数字直接跳过去。</div>'
+      +'<div style="margin-bottom:10px"><b>② 拿不准就先「隐藏」</b><br>隐藏可以恢复，删除不能。犹豫的时候选隐藏。</div>'
+      +'<div style="margin-bottom:10px"><b>③ 每次操作都有记录</b><br>「审计日志」里能看到谁在什么时候做了什么，误操作可追溯。</div>'
+      +'</div>'
+      +'<button id="helpCheck" style="width:100%;margin-top:6px;padding:13px;border:0;border-radius:999px;'
+      +'background:linear-gradient(135deg,#e0498f,#c4002a);color:#fff;font-size:15px;font-weight:800">一键体检：现在有什么要处理</button>'
+      +'<div id="helpResult" style="margin-top:12px;font-size:13px;line-height:1.9;color:#3a0a1a"></div>'
+      +'<button id="helpClose" style="width:100%;margin-top:14px;padding:11px;border:1px solid rgba(196,0,42,.18);'
+      +'border-radius:999px;background:rgba(255,255,255,.7);color:#8a5a68;font-size:14px">知道了</button>';
+    ov.appendChild(card); document.body.appendChild(ov);
+    card.querySelector('#helpClose').onclick=close;
+    card.querySelector('#helpCheck').onclick=function(){
+      var out=card.querySelector('#helpResult');
+      if(typeof edge!=='function'||!window.PWD){ out.innerHTML='<b>请先在上方输入管理密码登录</b>，再点体检。'; return; }
+      out.textContent='正在检查…';
+      edge('stats',{}).then(function(j){
+        if(!j||!j.ok){ out.innerHTML='检查失败：'+((j&&j.error)||'未知'); return; }
+        var cn=(j.candidates||{}).review||0, rp=j.open_reports||0, ap=j.pending_appeals||0;
+        var total=cn+rp+ap;
+        if(!total){ out.innerHTML='<b style="color:#0f9d63">✅ 现在没有待处理事项，墙是干净的。</b>'; return; }
+        out.innerHTML='<b>发现 '+total+' 件待办：</b><br>'
+          +(cn?'· '+cn+' 张照片等人审 → 点顶部「预审」<br>':'')
+          +(rp?'· '+rp+' 条举报等处理 → 点「举报」<br>':'')
+          +(ap?'· '+ap+' 条申诉等回复 → 点「申诉」<br>':'')
+          +'<span style="color:#8a5a68">建议顺序：先处理举报（影响最大），再审照片。</span>';
+      }).catch(function(){ out.textContent='网络异常，请稍后重试'; });
+    };
+  }
+  fab.onclick=open;
+  try{
+    if(!localStorage.getItem('adminHelpSeen')){ localStorage.setItem('adminHelpSeen','1'); setTimeout(open,900); }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

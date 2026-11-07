@@ -1,7 +1,7 @@
 /* sw.js — 校园表白墙 PWA 离线外壳缓存 v1
    策略：页面导航 network-first（缓存兜底）；静态资源 stale-while-revalidate；
    Supabase REST/Edge/Storage 与跨域 CDN 一律不缓存（数据必须实时）。 */
-const CACHE = 'wall-shell-v5';
+const CACHE = 'wall-shell-v6';
 /* P2-2：manifest-admin.json 实际是 404（走 data:URI 方案），预缓存它会让 addAll 整体 reject → SW 永不激活；已移除
    P2-audit：后台 admin.html 是访客侧不该下发的管理页，从预缓存移除；./sw.js 自身不纳入普通资源缓存 */
 const CORE = [

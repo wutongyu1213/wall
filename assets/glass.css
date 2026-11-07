@@ -1,0 +1,204 @@
+/* ==========================================================================
+   glass.css — 液态玻璃主题层（顺序：在所有页面内联样式之后加载，逐层覆盖）
+   --------------------------------------------------------------------------
+   设计要点
+   1. 只覆盖「表面质感」：背景、边框、阴影、模糊、圆角。绝不改布局属性
+      （display / padding / margin / grid），所以不会打乱任何现有排版。
+   2. 玻璃分层：L1=导航/胶囊，L2=卡片，L3=弹窗。层级越高，模糊与高光越强，
+      形成"景深"，而不是把所有东西糊成一样。
+   3. 性能：backdrop-filter 只用在导航、撰写区、弹窗这些少量元素上；
+      几百张卡片用「半透明底 + 内高光」模拟玻璃，不逐张模糊 —— 否则中低端
+      安卓会掉到 20fps。
+   4. 降级：不支持 backdrop-filter 的浏览器自动退回半透明磨砂，不会变糊。
+   ========================================================================== */
+
+:root{
+  /* 玻璃三档 */
+  --g1-bg: rgba(255,255,255,.58);
+  --g2-bg: rgba(255,255,255,.66);
+  --g3-bg: rgba(255,255,255,.80);
+  --g-brd: rgba(255,255,255,.72);
+  --g-brd-soft: rgba(255,255,255,.45);
+  --g-hi: rgba(255,255,255,.95);          /* 顶部内高光 */
+  --g-shadow: 0 10px 34px rgba(92,32,58,.10), 0 2px 8px rgba(92,32,58,.05);
+  --g-shadow-lg: 0 24px 64px rgba(92,32,58,.16), 0 6px 18px rgba(92,32,58,.07);
+  --g-blur: saturate(180%) blur(22px);
+  --g-blur-sm: saturate(160%) blur(10px);
+  --g-r: 26px;
+  --g-r-sm: 18px;
+}
+body.dark{
+  --g1-bg: rgba(42,16,24,.62);
+  --g2-bg: rgba(46,18,27,.72);
+  --g3-bg: rgba(38,14,22,.88);
+  --g-brd: rgba(255,255,255,.13);
+  --g-brd-soft: rgba(255,255,255,.08);
+  --g-hi: rgba(255,255,255,.16);
+  --g-shadow: 0 10px 34px rgba(0,0,0,.38), 0 2px 8px rgba(0,0,0,.24);
+  --g-shadow-lg: 0 24px 64px rgba(0,0,0,.55), 0 6px 18px rgba(0,0,0,.32);
+}
+
+/* ---------------------------------------------------------------- 环境光
+   玻璃之所以"像玻璃"，前提是背后有东西可折射。给页面铺一层缓慢流动的
+   柔光斑，让模糊有内容可抓。fixed 定位，不参与滚动，不引起重排。 */
+body::before{
+  content:"";
+  position:fixed;inset:-20vmax;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    radial-gradient(38vmax 30vmax at 18% 12%, rgba(255,150,180,.34), transparent 62%),
+    radial-gradient(34vmax 28vmax at 82% 8%, rgba(140,180,255,.30), transparent 60%),
+    radial-gradient(40vmax 34vmax at 72% 88%, rgba(255,120,170,.26), transparent 64%),
+    radial-gradient(30vmax 26vmax at 12% 82%, rgba(150,235,220,.22), transparent 62%);
+  filter:blur(6px);
+  animation:gDrift 26s ease-in-out infinite alternate;
+}
+body.dark::before{
+  background:
+    radial-gradient(38vmax 30vmax at 18% 12%, rgba(196,0,42,.30), transparent 62%),
+    radial-gradient(34vmax 28vmax at 82% 8%, rgba(60,90,190,.26), transparent 60%),
+    radial-gradient(40vmax 34vmax at 72% 88%, rgba(160,40,90,.24), transparent 64%),
+    radial-gradient(30vmax 26vmax at 12% 82%, rgba(30,120,110,.18), transparent 62%);
+}
+@keyframes gDrift{
+  0%   {transform:translate3d(0,0,0) scale(1)}
+  50%  {transform:translate3d(-2.2%,1.6%,0) scale(1.04)}
+  100% {transform:translate3d(1.8%,-1.4%,0) scale(1.02)}
+}
+
+/* ---------------------------------------------------------------- 公共玻璃件 */
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .g-glass,
+  .nav, nav,
+  .compose,
+  .modal-box, .notice-card, .giftq-box, .poster-box, .confirm-box, .pwa-card,
+  #modalOv > div{
+    -webkit-backdrop-filter:var(--g-blur);
+    backdrop-filter:var(--g-blur);
+  }
+}
+
+/* L1：导航条 —— 最薄最透，滚动内容从下面透出来 */
+.nav, nav{
+  background:var(--g1-bg) !important;
+  border-bottom:1px solid var(--g-brd-soft) !important;
+  box-shadow:0 1px 0 var(--g-hi) inset, 0 6px 22px rgba(92,32,58,.07) !important;
+}
+/* 导航上的胶囊按钮 */
+.nav a.nl, nav a{
+  border-radius:999px;
+  transition:background .18s, color .18s, transform .18s;
+}
+.nav a.nl.cur, nav a.cur{
+  box-shadow:0 2px 10px rgba(196,0,42,.22), 0 1px 0 rgba(255,255,255,.5) inset !important;
+}
+
+/* L2：卡片 —— 不逐张模糊，用半透明 + 内高光伪造折射。
+   注意不含 .tab/.chip/.stab：小胶囊套重阴影会显得碎，它们走 L1 的轻量处理。 */
+.card, .stat, .rank-item, .hot-banner, .kpi, .panel, .wrow, .stab, .chip, .tab{
+  background:var(--g2-bg) !important;
+  border:1px solid var(--g-brd) !important;
+  border-radius:var(--g-r) !important;
+  box-shadow:
+    inset 0 1px 0 var(--g-hi),
+    inset 0 -1px 0 rgba(255,255,255,.18),
+    var(--g-shadow) !important;
+  background-clip:padding-box;
+  position:relative;
+  isolation:isolate;
+}
+/* 斜向高光扫过：玻璃的"面"，只在 hover 时轻扫一下，静态时不耗性能 */
+.card::after{
+  content:"";
+  position:absolute;inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  opacity:0;
+  background:linear-gradient(115deg,
+    transparent 30%,
+    rgba(255,255,255,.42) 45%,
+    rgba(255,255,255,.06) 52%,
+    transparent 68%);
+  transition:opacity .35s ease;
+  z-index:1;
+}
+@media (hover:hover) and (pointer:fine){
+  .card:hover::after{opacity:.9}
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:
+      inset 0 1px 0 var(--g-hi),
+      var(--g-shadow-lg) !important;
+  }
+}
+
+/* L3：弹窗 —— 最厚，背后强制压暗，保证可读性 */
+.notice-overlay, .modal-ov, #modalOv, .giftq-modal, .poster-modal, .pwa-ov{
+  background:rgba(28,8,16,.46) !important;
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+}
+.modal-box, .notice-card, .giftq-box, .poster-box, .confirm-box, .pwa-card, #modalOv > div{
+  background:var(--g3-bg) !important;
+  border:1px solid var(--g-brd) !important;
+  border-radius:var(--g-r) !important;
+  box-shadow:inset 0 1px 0 var(--g-hi), var(--g-shadow-lg) !important;
+}
+
+/* 输入控件：凹陷感，与凸起的卡片形成对比 */
+input, select, textarea{
+  background:rgba(255,255,255,.55) !important;
+  border:1px solid var(--g-brd-soft) !important;
+  border-radius:var(--g-r-sm) !important;
+  box-shadow:inset 0 1px 3px rgba(92,32,58,.07);
+  transition:border-color .18s, box-shadow .18s;
+}
+body.dark input, body.dark select, body.dark textarea{
+  background:rgba(20,6,12,.55) !important;
+  border-color:rgba(255,255,255,.10) !important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.35);
+}
+input:focus, select:focus, textarea:focus{
+  border-color:rgba(224,73,143,.55) !important;
+  box-shadow:inset 0 1px 3px rgba(92,32,58,.06), 0 0 0 4px rgba(224,73,143,.13) !important;
+}
+
+/* 按钮：玻璃胶囊 + 按下回弹 */
+button, .btn, .load-more, .nbtn{
+  border-radius:999px !important;
+  transition:transform .16s cubic-bezier(.2,.7,.3,1.3), box-shadow .18s, filter .18s;
+}
+button:active, .btn:active, .load-more:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){
+  button:hover, .btn:hover, .load-more:hover{filter:brightness(1.04)}
+}
+
+/* 页脚与轻量区块：不加阴影，只透一点底 */
+footer{background:transparent !important}
+
+/* ---------------------------------------------------------------- 可读性兜底
+   玻璃最大的风险是"好看但看不清"。正文与次要文字统一压深一档。 */
+.card .msg, .card .to, .card .who, .panel, .kpi .v{ text-shadow:0 1px 0 rgba(255,255,255,.35) }
+body.dark .card .msg, body.dark .card .to, body.dark .card .who{ text-shadow:0 1px 0 rgba(0,0,0,.35) }
+
+/* 图片/缩略图：圆角与内描边，避免直角插在玻璃里显得突兀 */
+img{border-radius:var(--g-r-sm)}
+.ph-thumb{border-radius:12px !important;box-shadow:inset 0 0 0 1px var(--g-brd-soft)}
+
+/* ---------------------------------------------------------------- 降级与偏好 */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .nav, nav{background:rgba(255,255,255,.94) !important}
+  body.dark .nav, body.dark nav{background:rgba(36,12,20,.94) !important}
+  .modal-box, .notice-card, .giftq-box, .poster-box{background:rgba(255,255,255,.98) !important}
+}
+@media (prefers-reduced-motion:reduce){
+  body::before{animation:none !important}
+  .card::after{display:none}
+  button, .btn, .card{transition:none !important}
+}
+/* 低端机/省流量模式：关掉背景光斑与高光，只留半透明底 */
+@media (prefers-reduced-data:reduce){
+  body::before{display:none}
+  .card::after{display:none}
+}

@@ -105,6 +105,8 @@ body.dark footer b{color:#ff8fa3}
 body.dark .donate{border-color:rgba(255,143,163,.3);color:#ff8fa3}
 @media(hover:none){.card .go{opacity:1;transform:none}}
 .brand-ico{width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:-5px;margin-right:4px;background:#fff;flex:none}</style>
+<!-- 液态玻璃主题层：放在所有内联样式之后，确保逐层覆盖且不改变布局 -->
+<link rel="stylesheet" href="assets/glass.css?v=1">
 <script>
 /* 深色恢复：与 CSS 选择器 body.dark + 动态按钮一致，统一操作 body；DOM 就绪后再执行避免 body 为 null */
 (function(){
