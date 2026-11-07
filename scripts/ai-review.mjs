@@ -141,7 +141,7 @@ async function probeModel(base, preferred) {
       base + '/chat/completions',
       { Authorization: 'Bearer ' + AI_API_KEY },
       { model, max_tokens: 4, messages: [{ role: 'user', content: 'hi' }] },
-      12000,
+      30000,
     ).catch(() => ({ ok: false, status: 0, text: '' }));
     if (r.ok) return model;
   }
@@ -163,7 +163,7 @@ async function resolveProvider() {
       base + '/chat/completions',
       { Authorization: 'Bearer ' + AI_API_KEY },
       { model: defaultModel || 'gpt-4o-mini', max_tokens: 4, messages: [{ role: 'user', content: 'hi' }] },
-      10000,
+      30000,
     ).catch(() => ({ ok: false, status: 0, text: '' }));
     if (r.ok) {
       log('探测成功：' + name);
@@ -225,7 +225,7 @@ async function judgeOnce(provider, text) {
         { role: 'user', content: `内容：${text}` },
       ],
     },
-    30000, // 实测该网关单次 3~30 秒；40 秒会拖垮整体预算
+    40000, // 该网关负载下常超 30 秒；再长会拖垮整体预算
   );
   if (looksLikeQuota(r.status, r.text)) {
     const m = (r.text || '').match(/remaining:\s*([^,}\s"]+)/i);
@@ -252,13 +252,17 @@ async function judgeOnce(provider, text) {
 
 async function judge(provider, text) {
   let lastErr = null;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       return await judgeOnce(provider, text);
     } catch (e) {
       if (e && e.quota) throw e;          // 余额问题重试无意义
       lastErr = e;
-      if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
+      if (attempt < 2) {
+        // 503/超时多因服务端瞬时过载，退避后成功率明显更高
+        const busy = /503|502|504|aborted|timeout/i.test(String(e && e.message));
+        await new Promise((r) => setTimeout(r, busy ? 5000 : 1500));
+      }
     }
   }
   throw lastErr;
@@ -275,6 +279,26 @@ async function hidePost(id) {
   let j = null;
   try { j = JSON.parse(r.text); } catch { j = null; }
   return { ok: !!(j && j.ok), raw: r.text.slice(0, 120) };
+}
+
+/* 开跑前先确认管理密码是对的。
+   否则密码填错时，每一条都会「隐藏失败」，日志里看不出根因。 */
+async function verifyAdmin() {
+  if (isDry) return;
+  const r = await postJSON(
+    `${SUPABASE_URL}/functions/v1/wall-admin`,
+    { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    { admin: ADMIN_PWD, act: 'verify' },
+  );
+  let j = null;
+  try { j = JSON.parse(r.text); } catch { j = null; }
+  if (!j || !j.ok) {
+    throw new Error(
+      `管理密码校验失败（HTTP ${r.status}）：${(r.text || '').slice(0, 80)}\n` +
+      '  · 检查 GitHub Secret 里的 ADMIN_PWD 是否与后台一致\n' +
+      '  · 只想先看报告不动手，就把 ADMIN_PWD 留空（自动进演练模式）',
+    );
+  }
 }
 
 /* ---------------- 5. 发邮件 ---------------- */
@@ -313,7 +337,11 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 (async () => {
   const provider = await resolveProvider();
   log(`服务商：${provider.name} / 模型：${provider.model}${provider.detected ? '（自动探测）' : ''}`);
-  log(isDry ? '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）' : `自动隐藏阈值：风险 ≥ ${THRESHOLD}`);
+  log(isDry
+    ? (DRY_RUN === '1' ? '⚠️ 演练模式（手动指定 DRY_RUN）：只报告，不隐藏' : '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）')
+    : `自动隐藏阈值：风险 ≥ ${THRESHOLD}`);
+  await verifyAdmin();
+  if (!isDry) log('管理密码校验通过');
 
   const posts = await fetchPosts();
   log(`待检查帖子：${posts.length} 条（最近 ${WINDOW_MIN} 分钟内新增）`);
@@ -470,7 +498,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 
   // 让人在 Actions 页面也能一眼看到结论
   console.log('\n===== 摘要 =====');
-  console.log(`检查 ${posts.length}｜标记 ${flagged.length}｜${isDry ? '待隐藏' : '已隐藏'} ${hidden.length}｜失败 ${failed}`);
+  console.log(`检查 ${checked}｜标记 ${flagged.length}｜${isDry ? '待隐藏' : '已隐藏'} ${hidden.length}｜失败 ${failed}`);
   if (hidden.length) console.log('已处理 ID：' + hidden.map((x) => x.id).join(', '));
 })().catch((e) => {
   console.error('巡检失败：' + e.message);
