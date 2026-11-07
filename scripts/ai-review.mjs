@@ -62,10 +62,11 @@ const SYS_PROMPT =
 
 /* 常见 OpenAI 兼容中转的候选地址，仅在没配 AI_BASE_URL 时用于自动探测 */
 const CANDIDATES = [
-  // agens.cn 可能只在 Actions 的干净网络下可用（本地代理会掐掉 TLS 握手）
-  ['agens.cn', 'https://agens.cn/v1', ''],
-  ['agens.cn(api)', 'https://api.agens.cn/v1', ''],
-  ['agens.cn(http)', 'http://agens.cn/v1', ''],
+  // 实测（2026-11-07）：agens.cn 的 443 端口是 nginx 默认页，所有 API 路径 404；
+  // 真正的网关在 8080 端口，且与 tideapi.com 返回完全相同的错误签名（同一套 Sub2API）。
+  // tideapi.com 有正常的 HTTPS 证书，优先用它；8080 是明文 HTTP，仅作兜底。
+  ['tideapi.com', 'https://tideapi.com/v1', ''],
+  ['agens.cn:8080(明文)', 'http://agens.cn:8080/v1', ''],
   ['DeepSeek', 'https://api.deepseek.com/v1', 'deepseek-chat'],
   ['Moonshot', 'https://api.moonshot.cn/v1', 'moonshot-v1-8k'],
   ['阿里百炼', 'https://dashscope.aliyuncs.com/compatible-mode/v1', 'qwen-turbo'],
@@ -157,8 +158,10 @@ async function resolveProvider() {
     }
   }
   throw new Error(
-    '所有候选服务商都没通过认证。请到仓库 Settings → Secrets 新增 AI_BASE_URL，' +
-    '填 agens 控制台里给的接口地址（一般形如 https://xxx/v1），必要时再设 AI_MODEL。'
+    '所有候选服务商都没通过认证（全部 401 说明 key 无效，不是地址问题）。\n' +
+    '  · key 无效 → 去网关后台 https://tideapi.com 重新生成，注意密钥通常只完整显示一次\n' +
+    '  · 地址不对（返回 404）→ 到 Settings → Secrets 设 AI_BASE_URL，填形如 https://xxx/v1 的地址\n' +
+    '  · 想换一家 → 设 AI_BASE_URL + AI_MODEL 指向 DeepSeek / 阿里百炼 / 硅基流动 等标准服务'
   );
 }
 
