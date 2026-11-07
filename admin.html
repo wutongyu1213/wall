@@ -155,6 +155,9 @@ main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 
 /* 8) 焦点可见（键盘操作后台时能看清位置） */
 :focus-visible{outline:2px solid #ff8fa3;outline-offset:2px}
+
+/* [R9] 待办数字为 0 时弱化，有数字才抢眼 */
+.tabN.zero{opacity:.45;font-weight:600}
 </style>
 <!-- 液态玻璃主题层：放在所有内联样式之后，确保逐层覆盖且不改变布局 -->
 <link rel="stylesheet" href="assets/glass.css?v=1">
@@ -377,7 +380,7 @@ function switchPanel(id){
 }
 function setTabN(key,val,hot){
   const el=document.getElementById("tabN_"+key);if(!el)return;
-  el.textContent=val;if(el.classList)el.classList.toggle("hot",!!hot&&Number(val)>0);
+  el.textContent=val;if(el.classList){el.classList.toggle("hot",!!hot&&Number(val)>0);el.classList.toggle("zero",Number(val)===0);}
 }
 /* toast 队列（可叠加） */
 function toast(t){
@@ -491,9 +494,9 @@ async function loadDash(){
   el.innerHTML=items.map(function(it){
     return '<div class="kpi '+it.cls+'" data-go="'+(it.go||"")+'" onclick="kpiGo(this)"><div class="v">'+esc(String(it.n))+'</div><div class="l">'+esc(it.l)+'</div>'+(it.go?'<div class="go">点我直达 →</div>':'')+'</div>';
   }).join("");
-  setTabN("review",reviewN||"–",true);
-  setTabN("reports",repN||"–",true);
-  setTabN("appeals",appN||"–",true);
+  setTabN("review",reviewN,true);
+  setTabN("reports",repN,true);
+  setTabN("appeals",appN,true);
 }
 function kpiGo(el){const go=el.getAttribute("data-go");if(go)switchPanel(go);}
 async function runCleanup(both){
@@ -525,7 +528,7 @@ async function loadReview(){
   const j=await edge("review_queue",{});
   const wrap=document.getElementById("review");
   D.review=j&&j.ok?(j.review||[]):[];
-  setTabN("review",D.review.length||"–",true);
+  setTabN("review",D.review.length,true);
   if(j&&j.ok){
     if(!D.review.length){wrap.innerHTML='<div class="empty">暂无待预审照片 🎉</div>';return;}
     wrap.innerHTML="";D.review.forEach(function(c){wrap.appendChild(candCard(c,"review"));});
@@ -585,7 +588,7 @@ async function loadCands(){
   const wrap=document.getElementById("cands");
   D.cands=j&&j.ok?(j.candidates||[]):[];
   document.getElementById("candN").textContent="共 "+D.cands.length+" 位";
-  setTabN("cands",D.cands.length||"–");
+  setTabN("cands",D.cands.length);
   renderCands();
   signPhotosIn(wrap);
 }
@@ -612,7 +615,16 @@ function signPhotosIn(wrap){
     if(/^xiaohua\//.test(u)||/^xiaocao\//.test(u)){
       fetch(SUPA_URL+"/functions/v1/wall-photo?path="+encodeURIComponent(u),{headers:{apikey:ANON_KEY,Authorization:"Bearer "+ANON_KEY}})
         .then(function(r){return r.json();})
-        .then(function(j){if(j&&j.ok&&j.signedUrl)img.src=j.signedUrl;else img.style.display="none";})
+        .then(function(j){
+          /* [R9-FIX] wall-photo 返回 https://<ref>.supabase.co/object/sign/...，
+             缺了 /storage/v1 这一段 → 浏览器请求 404 → 后台候选人照片全是裂图。
+             这里统一补齐前缀；若日后函数端修正了返回，此判断会自动跳过。 */
+          var u2=(j&&j.signedUrl)||"";
+          if(u2 && !/\/storage\/v1\/object\//.test(u2) && /\/object\/sign\//.test(u2)){
+            u2=u2.replace(/\/object\/sign\//,"/storage/v1/object/sign/");
+          }
+          if(j&&j.ok&&u2){img.src=u2;}else{img.style.display="none";}
+        })
         .catch(function(){img.style.display="none";});
       return;
     }
@@ -625,7 +637,7 @@ async function loadPosts(){
   const j=await edge("all_posts",{});
   D.posts=j&&j.ok?(j.posts||[]):[];
   document.getElementById("postN").textContent="共 "+D.posts.length+" 条";
-  setTabN("posts",D.posts.length||"–");
+  setTabN("posts",D.posts.length);
   renderPosts();
 }
 function renderPosts(){
@@ -669,7 +681,7 @@ async function loadReports(){
   const wrap=document.getElementById("reports");
   D.reports=j&&j.ok?(j.reports||[]):[];
   const pend=D.reports.filter(function(x){return !x.handled;});
-  setTabN("reports",pend.length||"–",true);
+  setTabN("reports",pend.length,true);
   if(!j||!j.ok){wrap.innerHTML='<div class="empty">举报加载失败</div>';return;}
   if(!pend.length){wrap.innerHTML='<div class="empty">暂无待处理举报 🎉（历史已处理 '+(D.reports.length-pend.length)+' 条）</div>';return;}
   wrap.innerHTML="";
@@ -700,7 +712,7 @@ async function loadAppeals(){
   const wrap=document.getElementById("appeals");
   D.appeals=j&&j.ok?(j.appeals||[]):[];
   const pend=D.appeals.filter(function(x){return x.status==="pending";});
-  setTabN("appeals",pend.length||"–",true);
+  setTabN("appeals",pend.length,true);
   if(!j||!j.ok){wrap.innerHTML='<div class="empty">申诉加载失败</div>';return;}
   if(!pend.length){wrap.innerHTML='<div class="empty">暂无待处理申诉 🎉（历史 '+D.appeals.length+' 条）</div>';return;}
   wrap.innerHTML="";
@@ -728,7 +740,7 @@ async function loadSens(){
   const j=await edge("sens_words",{});
   D.sens=j&&j.ok?(j.words||[]):[];
   document.getElementById("sensN").textContent=D.sens.length+" 词";
-  setTabN("sens",D.sens.length||"–");
+  setTabN("sens",D.sens.length);
   renderSens();
 }
 function renderSens(){
@@ -774,6 +786,7 @@ async function loadQuota(){
   const j=await edge("quota",{});
   const tb=document.querySelector("#qtab tbody");if(!tb)return;
   if(!j||!j.ok){tb.innerHTML='<tr><td colspan="3" class="empty">配额加载失败</td></tr>';return;}
+  if(typeof setTabN==="function")setTabN("quota",(j.quota||[]).length||0);
   const q={};(j.quota||[]).forEach(function(x){q[x.action]=Number(x.daily_max)||0;});
   const pairs=[["vote","投票"],["post","发帖"],["like","点赞"],["gift","送礼"],["report","举报"],["visit","访问"],["candidate","上传候选"],["appeal","申诉"]];
   tb.innerHTML=pairs.map(function(p){
@@ -802,7 +815,7 @@ function resetQuota(){busy=true;edge("quota",{}).then(function(j){if(j&&j.ok){lo
 async function loadLog(){
   const j=await edge("log",{});
   D.log=j&&j.ok?(j.log||[]):[];
-  setTabN("log",D.log.length||"–");
+  setTabN("log",D.log.length);
   renderLog();
 }
 function renderLog(){
@@ -895,7 +908,7 @@ buildTabs();
     card.querySelector('#helpClose').onclick=close;
     card.querySelector('#helpCheck').onclick=function(){
       var out=card.querySelector('#helpResult');
-      if(typeof edge!=='function'||!window.PWD){ out.innerHTML='<b>请先在上方输入管理密码登录</b>，再点体检。'; return; }
+      if(typeof edge!=='function'||typeof PWD==='undefined'||!PWD){ out.innerHTML='<b>请先在上方输入管理密码登录</b>，再点体检。'; return; }
       out.textContent='正在检查…';
       edge('stats',{}).then(function(j){
         if(!j||!j.ok){ out.innerHTML='检查失败：'+((j&&j.error)||'未知'); return; }
@@ -916,5 +929,8 @@ buildTabs();
   }catch(e){}
 })();
 </script>
+
+
+<script src="assets/ai-review-panel.js?v=1"></script>
 </body>
 </html>
