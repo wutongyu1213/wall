@@ -106,6 +106,55 @@ table.q input{width:80px;padding:4px 6px;border:1px solid var(--line);border-rad
 .tmsg{background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.3s;max-width:80vw}
 .tmsg.show{opacity:.96}
 footer{max-width:980px;margin:0 auto;padding:10px 16px calc(40px + env(safe-area-inset-bottom));color:#c79aab;font-size:12px;text-align:center;line-height:1.6}
+
+/* ==========================================================================
+   [R7] 后台移动端优化
+   后台多数时间是在手机上打开的（处理举报、看预审）。原布局在窄屏上：
+   标签栏换行挤压、KPI 卡单列过长、配额表格横向溢出、按钮点击区偏小。
+   ========================================================================== */
+
+/* 1) 标签栏：横向滚动 + 吸顶，窄屏不再挤成两三行 */
+.tabs{
+  position:sticky;top:0;z-index:60;
+  display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none;
+  background:var(--card,#2a1018);
+  padding:6px 8px;gap:6px;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;white-space:nowrap;min-height:38px;display:inline-flex;align-items:center}
+
+/* 2) KPI：手机上两列，避免一条占满一屏 */
+@media(max-width:720px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .kpi{padding:12px 10px!important}
+  .kpi .v{font-size:1.5rem!important}
+  .kpi .l{font-size:.72rem!important}
+}
+
+/* 3) 配额表格：窄屏可横向滑动，不再撑破页面 */
+#qtab{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#qtab table{min-width:420px}
+
+/* 4) 触摸目标：按钮与输入框在触屏上更好点 */
+@media(pointer:coarse){
+  .btn{min-height:40px;padding-left:14px;padding-right:14px}
+  .wrow{padding:10px 8px}
+}
+/* 5) iOS 聚焦输入框会放大整页，强制 16px 规避 */
+@media(max-width:820px){
+  input,select,textarea{font-size:16px!important}
+}
+
+/* 6) 底部安全区，避免 iPhone 横条压住最后一行按钮 */
+main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+
+/* 7) 长列表容器限制高度，避免一次渲染几百条卡住 */
+#candList,#postList,#sensList,#logList{max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* 8) 焦点可见（键盘操作后台时能看清位置） */
+:focus-visible{outline:2px solid #ff8fa3;outline-offset:2px}
 </style>
 <link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   <link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">

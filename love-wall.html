@@ -348,6 +348,38 @@ body.dark :focus-visible{outline-color:#ff8fa3}
 /* [R7-PERF] 长列表：视口外的卡片不参与布局/绘制，500 条时首屏渲染成本大幅下降。
    不支持 content-visibility 的浏览器会忽略这两行，行为不变。 */
 .card{content-visibility:auto;contain-intrinsic-size:auto 220px}
+
+/* ==========================================================================
+   [R7] 视觉打磨（只改观感，不动结构与交互）
+   ========================================================================== */
+/* 卡片：桌面端轻微上浮，触屏端不位移（避免点完"卡住"） */
+.card{transition:transform .22s cubic-bezier(.2,.7,.3,1.2),box-shadow .22s,border-color .22s}
+@media (hover:hover) and (pointer:fine){
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(196,0,42,.13)}
+}
+/* 正文换行更自然，长英文/链接不撑破卡片 */
+.card .msg{overflow-wrap:anywhere;word-break:break-word;line-height:1.7}
+/* 礼物行做成浅色胶囊，和正文拉开层次 */
+.gift-line{display:inline-block;padding:3px 10px;border-radius:999px;background:rgba(255,215,224,.35);font-size:.82rem}
+body.dark .gift-line{background:rgba(255,143,163,.12)}
+/* 标签统一为细字距胶囊 */
+.card .tag{letter-spacing:.3px}
+/* 空状态更有温度：图标上浮 + 文案居中留白 */
+.empty{padding:56px 20px;text-align:center;line-height:1.9}
+.empty .e{font-size:2.6rem;display:block;margin-bottom:12px;opacity:.85}
+/* 回到顶部：滚动超过一屏才出现，不挡内容 */
+#toTop{
+  position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:9990;
+  width:42px;height:42px;border-radius:50%;border:1px solid rgba(196,0,42,.15);
+  background:rgba(255,255,255,.9);color:#c4002a;font-size:18px;line-height:1;
+  display:none;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 6px 18px rgba(196,0,42,.16);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
+body.dark #toTop{background:rgba(42,16,24,.9);color:#ff8fa3;border-color:rgba(255,143,163,.22)}
+#toTop.on{display:flex}
+/* 触屏高亮与滚动回弹收敛：微信/iOS 里更稳 */
+*{-webkit-tap-highlight-color:transparent}
+body{overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
 </style>
 <link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   <link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
@@ -891,6 +923,21 @@ function burst(x,y,n){for(let i=0;i<n;i++){const d=document.createElement("div")
 const st=document.createElement("style");st.textContent="@keyframes rise2{from{transform:translate(0,0);opacity:1}to{transform:translate(var(--dx,0),-120px) scale(.4);opacity:0}}";document.head.appendChild(st);
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 makeFloatLayer();
+
+/* [R7] 回到顶部：长列表滚很久才需要它，避免常驻遮挡 */
+(function(){
+  var b=document.createElement("div");
+  b.id="toTop";b.setAttribute("role","button");b.setAttribute("aria-label","回到顶部");
+  b.textContent="↑";
+  b.onclick=function(){window.scrollTo({top:0,behavior:"smooth"})};
+  document.body.appendChild(b);
+  var on=false;
+  window.addEventListener("scroll",function(){
+    var need=window.pageYOffset>window.innerHeight;
+    if(need!==on){on=need;b.classList.toggle("on",need)}
+  },{passive:true});
+})();
+
 (function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
 (function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();paintFastCache();
 /* [R7-PERF] 移动端并发请求会抢带宽：主列表先出，访问数与访问上报挪到其后；
