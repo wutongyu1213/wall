@@ -40,6 +40,17 @@ const THRESHOLD = Number(RISK_THRESHOLD) || 0.75;
 const LIMIT = Math.min(200, Math.max(1, Number(MAX_ITEMS) || 60));
 const isDry = DRY_RUN === '1' || !ADMIN_PWD;
 
+/* 只审「新内容」。每 30 分钟把全站重审一遍既慢又费钱，而重复审同一批帖子
+   也不会得到不同结论。默认回看 90 分钟 = 3 个周期，漏跑一次也不会遗漏。
+   created_ts 是 bigint 毫秒时间戳，不是 timestamptz。 */
+/* 哪些类别允许「机器直接隐藏」。pii 默认不在内：表白墙里写同学全名太常见，
+   机器一藏就是一片，交人工更稳。想连 pii 一起自动隐藏就设 AUTO_HIDE_PII=1。 */
+const AUTO_HIDE_CATS = (process.env.AUTO_HIDE_PII === '1'
+  ? 'pii,abuse,sexual,contact,selfharm,spam'
+  : 'abuse,sexual,contact,selfharm,spam').split(',');
+const WINDOW_MIN = Math.max(5, Number(process.env.WINDOW_MIN) || 90);
+const sinceMs = Date.now() - WINDOW_MIN * 60000;
+
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('缺少 SUPABASE_URL / SUPABASE_ANON_KEY');
   process.exit(1);
@@ -54,19 +65,28 @@ if (!AI_API_KEY) {
 }
 
 const SYS_PROMPT =
-  '你是校园表白墙的内容审核助手。判断这段文本是否需要在校园公开空间隐藏。' +
-  '重点看：人身攻击/辱骂/嘲讽同学、性暗示或低俗、泄露真实姓名加班级等可识别信息、' +
-  '手机号/QQ/微信号等联系方式、诱导线下见面、自伤自杀倾向、诈骗或广告。' +
-  '不要因为是表白、玩笑、谐音梗或网络流行语就判违规。' +
-  '只输出 JSON：{"risk":0到1的小数,"reason":"不超过20字的中文理由"}';
+  '你是校园表白墙的内容审核助手，判断这段文本是否需要在校园公开空间隐藏。' +
+  '注意：本产品的固定格式就是「某人对 X年级Y班 某某同学说」，' +
+  '年级、班级、单字或叠字称呼（如「李同学」「小雨」）属于功能本身，不算泄露隐私，不要因此判违规。' +
+  '只在出现以下情况时判高风险：' +
+  '① 完整姓名（姓与名齐全）、学号、手机号、微信/QQ/二维码、住址等能直接定位到具体个人的信息；' +
+  '② 人身攻击、辱骂、嘲笑外貌或身体缺陷；' +
+  '③ 性暗示、低俗内容；' +
+  '④ 索要联系方式、诱导线下单独见面；' +
+  '⑤ 自伤、自杀倾向；' +
+  '⑥ 诈骗、广告、引流。' +
+  '正常的喜欢、表白、鼓励、玩笑、谐音梗、网络流行语都应判低风险（0.2 以下）。' +
+  '先判断属于哪一类，再给风险分。只输出 JSON：' +
+  '{"cat":"none | pii(完整姓名/学号/住址/家庭情况) | abuse(攻击辱骂) | sexual(性暗示) | contact(手机号微信QQ或索要联系方式) | selfharm(自伤) | spam(广告诈骗)",' +
+  '"risk":0到1的小数,"reason":"不超过20字的中文理由"}';
 
 /* 常见 OpenAI 兼容中转的候选地址，仅在没配 AI_BASE_URL 时用于自动探测 */
 const CANDIDATES = [
-  // 实测（2026-11-07）：agens.cn 的 443 端口是 nginx 默认页，所有 API 路径 404；
-  // 真正的网关在 8080 端口，且与 tideapi.com 返回完全相同的错误签名（同一套 Sub2API）。
-  // tideapi.com 有正常的 HTTPS 证书，优先用它；8080 是明文 HTTP，仅作兜底。
-  ['tideapi.com', 'https://tideapi.com/v1', ''],
-  ['agens.cn:8080(明文)', 'http://agens.cn:8080/v1', ''],
+  // Agnes AI 国际站（2026-11-07 实测可用）。注意域名是 agnes-ai.com 不是 agens.cn。
+  // 该站默认模型里 agnes-2.5-pro-beta 需要余额；agnes-3.0-flash 目前可用且直接返回正文。
+  ['Agnes AI 国际站', 'https://apihub.agnes-ai.com/v1', 'agnes-3.0-flash'],
+  ['Agnes AI 国内站', 'https://apihub.agnes-ai.cn/v1', 'agnes-3.0-flash'],
+  ['Agnes AI 国内站(api)', 'https://api.agnes-ai.cn/v1', 'agnes-3.0-flash'],
   ['DeepSeek', 'https://api.deepseek.com/v1', 'deepseek-chat'],
   ['Moonshot', 'https://api.moonshot.cn/v1', 'moonshot-v1-8k'],
   ['阿里百炼', 'https://dashscope.aliyuncs.com/compatible-mode/v1', 'qwen-turbo'],
@@ -77,7 +97,7 @@ const CANDIDATES = [
 ];
 
 /* 中转站常见模型名，探测时逐个试，避免因模型名不对而误判"服务商不可用" */
-const MODEL_FALLBACKS = ['gpt-4o-mini', 'gpt-3.5-turbo', 'deepseek-chat', 'qwen-turbo', 'glm-4-flash', 'moonshot-v1-8k'];
+const MODEL_FALLBACKS = ['agnes-3.0-flash', 'agnes-2.5-flash', 'gpt-4o-mini', 'gpt-3.5-turbo', 'deepseek-chat', 'qwen-turbo', 'glm-4-flash', 'moonshot-v1-8k'];
 
 function log(...a) {
   console.log(`[${new Date().toISOString()}]`, ...a);
@@ -167,7 +187,7 @@ async function resolveProvider() {
 
 /* ---------------- 2. 取数据 ---------------- */
 async function fetchPosts() {
-  const u = `${SUPABASE_URL}/rest/v1/wall?select=id,nickname,target_name,love_msg,like_count,created_ts&status=eq.ok&order=created_ts.desc&limit=${LIMIT}`;
+  const u = `${SUPABASE_URL}/rest/v1/wall?select=id,nickname,target_name,love_msg,like_count,created_ts&status=eq.ok&created_ts=gt.${sinceMs}&order=created_ts.desc&limit=${LIMIT}`;
   const r = await getJSON(u, { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` });
   if (!r.ok) throw new Error(`读取帖子失败 HTTP ${r.status}：${r.text.slice(0, 120)}`);
   return JSON.parse(r.text) || [];
@@ -175,36 +195,73 @@ async function fetchPosts() {
 
 async function fetchCandidates() {
   // 只读，用于报告；照片墙的「隐藏」语义与表白墙不同，不在这里自动处置
-  const u = `${SUPABASE_URL}/rest/v1/wall_candidates?select=id,kind,nickname,msg&status=eq.ok&limit=50`;
+  const u = `${SUPABASE_URL}/rest/v1/wall_candidates?select=id,kind,nickname,msg&status=eq.ok&created_ts=gt.${sinceMs}&limit=30`;
   const r = await getJSON(u, { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` });
   if (!r.ok) return [];
   return JSON.parse(r.text) || [];
 }
 
 /* ---------------- 3. AI 判定 ---------------- */
-async function judge(provider, text) {
+/* 余额耗尽时不再逐条重试：直接置位，让主流程停下来并给出人话提示 */
+let quotaDead = null;
+
+function looksLikeQuota(status, text) {
+  if (status !== 402 && status !== 403) return false;
+  return /insufficient|quota|balance|credit|余额|额度|欠费/i.test(text || '');
+}
+
+async function judgeOnce(provider, text) {
   const r = await postJSON(
     `${provider.base}/chat/completions`,
     { Authorization: `Bearer ${AI_API_KEY}` },
     {
       model: provider.model,
       temperature: 0,
-      max_tokens: 120,
+      // 有些模型（如推理版）会把 token 先花在思考上，正文为空。
+      // 给足预算，并在正文为空时回退到 reasoning_content。
+      max_tokens: 400,
       messages: [
         { role: 'system', content: SYS_PROMPT },
         { role: 'user', content: `内容：${text}` },
       ],
     },
+    30000, // 实测该网关单次 3~30 秒；40 秒会拖垮整体预算
   );
-  if (!r.ok) throw new Error(`HTTP ${r.status} ${r.text.slice(0, 100)}`);
+  if (looksLikeQuota(r.status, r.text)) {
+    const m = (r.text || '').match(/remaining:\s*([^,}\s"]+)/i);
+    quotaDead = m ? m[1] : '0';
+    throw Object.assign(new Error('QUOTA'), { quota: true, detail: (r.text || '').slice(0, 160) });
+  }
+  if (!r.ok) throw new Error(`HTTP ${r.status} ${(r.text || '').slice(0, 100)}`);
+
   const data = JSON.parse(r.text);
-  let content = (((data || {}).choices || [{}])[0].message || {}).content || '';
+  const msg = (((data || {}).choices || [{}])[0].message) || {};
+  let content = msg.content || '';
+  if (!content.trim() && msg.reasoning_content) content = msg.reasoning_content;
   const m = content.match(/\{[\s\S]*\}/);
   if (m) content = m[0];
+  if (!content.trim()) throw new Error('模型返回空正文（可能是推理型模型把 token 用完了）');
   const obj = JSON.parse(content);
   let risk = Number(obj.risk);
   if (!Number.isFinite(risk)) risk = 0;
-  return { risk: Math.max(0, Math.min(1, risk)), reason: String(obj.reason || '').slice(0, 40) };
+  const CATS = ['none', 'pii', 'abuse', 'sexual', 'contact', 'selfharm', 'spam'];
+  let cat = String(obj.cat || 'none').toLowerCase().trim();
+  if (!CATS.includes(cat)) cat = 'none';
+  return { risk: Math.max(0, Math.min(1, risk)), cat, reason: String(obj.reason || '').slice(0, 40) };
+}
+
+async function judge(provider, text) {
+  let lastErr = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await judgeOnce(provider, text);
+    } catch (e) {
+      if (e && e.quota) throw e;          // 余额问题重试无意义
+      lastErr = e;
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
+    }
+  }
+  throw lastErr;
 }
 
 /* ---------------- 4. 隐藏 ---------------- */
@@ -259,46 +316,90 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
   log(isDry ? '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）' : `自动隐藏阈值：风险 ≥ ${THRESHOLD}`);
 
   const posts = await fetchPosts();
-  log(`待检查帖子：${posts.length} 条`);
+  log(`待检查帖子：${posts.length} 条（最近 ${WINDOW_MIN} 分钟内新增）`);
+  if (!posts.length) {
+    log("最近没有新内容，本轮结束（不发邮件）。");
+    return;
+  }
 
   const hidden = [];
   const flagged = [];
   let failed = 0;
+  let skipped = 0;
+  let checked = 0;
+  let quotaWarned = false;
 
-  for (let i = 0; i < posts.length; i++) {
-    const p = posts[i];
+  /* 该网关实测单条 3~30 秒。串行审 60 条会超出 Actions 的 15 分钟上限，
+     所以用「有限并发 + 总时间预算」：预算用尽就停，并如实告诉你有几条没审到，
+     而不是悄悄跑完却只审了一半。 */
+  const CONC = Math.max(1, Math.min(8, Number(process.env.CONCURRENCY) || 2));
+  const BUDGET_MS = Math.max(1, Number(process.env.TIME_BUDGET_MIN) || 8) * 60000;
+  const t0 = Date.now();
+
+  async function inspect(p) {
+    if (quotaDead) return;
+    if (!String(p.love_msg || '').trim()) return;
+    if (Date.now() - t0 > BUDGET_MS) { skipped++; return; }
     const text = `${p.nickname || '匿名'} 对 ${p.target_name || ''}：${p.love_msg || ''}`;
-    if (!String(p.love_msg || '').trim()) continue;
     let res;
     try {
       res = await judge(provider, text);
     } catch (e) {
+      if (e && e.quota) {
+        if (!quotaWarned) {
+          quotaWarned = true;
+          log(`  ⚠️ 账户余额不足（剩余 ${quotaDead}），已停止本次巡检。`);
+          log('     去 https://platform.agnes-ai.com 充值后，下一次定时自动恢复，无需改代码。');
+        }
+        return;
+      }
       failed++;
       log(`  #${p.id} 判定失败：${e.message}`);
-      continue;
+      return;
     }
-    if (res.risk >= 0.45) {
-      const item = { id: p.id, nick: p.nickname, target: p.target_name, msg: p.love_msg, ...res };
-      flagged.push(item);
-      if (res.risk >= THRESHOLD) {
-        const h = await hidePost(p.id);
-        if (h.ok) {
-          item.hidden = true;
-          hidden.push(item);
-          log(`  #${p.id} 风险 ${(res.risk * 100).toFixed(0)}% → ${isDry ? '将隐藏（演练）' : '已隐藏'}｜${res.reason}`);
-        } else {
-          log(`  #${p.id} 隐藏失败：${h.raw}`);
-        }
+    checked++;
+    /* 只靠分数不够：实测小模型会出现「理由写正常、分数却 0.9」的自相矛盾。
+       所以自动隐藏必须同时满足「归类不是 none」且「分数达阈值」。
+       分数高但归类为 none 的，降级成「需人工看一眼」，绝不动手隐藏。 */
+    const isViolation = res.cat !== 'none';
+    if (!isViolation && res.risk < 0.45) return;
+    const item = { id: p.id, nick: p.nickname, target: p.target_name, msg: p.love_msg, ...res };
+    flagged.push(item);
+    const canAutoHide = AUTO_HIDE_CATS.includes(res.cat);
+    if (canAutoHide && res.risk >= THRESHOLD) {
+      const h = await hidePost(p.id);
+      if (h.ok) {
+        item.hidden = true;
+        hidden.push(item);
+        log(`  #${p.id} 风险 ${(res.risk * 100).toFixed(0)}% → ${isDry ? '将隐藏（演练）' : '已隐藏'}｜[${res.cat}] ${res.reason}`);
       } else {
-        log(`  #${p.id} 风险 ${(res.risk * 100).toFixed(0)}% → 仅标记｜${res.reason}`);
+        log(`  #${p.id} 隐藏失败：${h.raw}`);
       }
+    } else {
+      const why = isViolation && !canAutoHide ? '个人信息交人工' : '未达阈值';
+      log(`  #${p.id} 风险 ${(res.risk * 100).toFixed(0)}% → 仅标记（${why}）｜[${res.cat}] ${res.reason}`);
     }
-    await new Promise((r) => setTimeout(r, 250)); // 温和限速，避免被服务商判为滥用
   }
 
-  const cands = await fetchCandidates();
+  let cursor = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(CONC, Math.max(1, posts.length)) }, async () => {
+      while (cursor < posts.length) {
+        const p = posts[cursor++];
+        await inspect(p);
+      }
+    }),
+  );
+
+  if (skipped) {
+    log(`  ⏱ 超出 ${Math.round(BUDGET_MS / 60000)} 分钟预算，${skipped} 条本轮未检查（下轮会先看最新的）`);
+  }
+
+  const cands = quotaDead ? [] : await fetchCandidates();
   const candFlagged = [];
   for (const c of cands) {
+    if (quotaDead) break;
+    if (Date.now() - t0 > BUDGET_MS * 1.2) { skipped++; break; }
     const msg = String(c.msg || '').trim();
     if (!msg) continue;
     try {
@@ -308,7 +409,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
   }
 
   const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-  log(`完成：检查 ${posts.length} 条，标记 ${flagged.length} 条，${isDry ? '待隐藏' : '已隐藏'} ${hidden.length} 条，失败 ${failed} 次`);
+  log(`完成：检查 ${checked} 条，标记 ${flagged.length} 条，${isDry ? '待隐藏' : '已隐藏'} ${hidden.length} 条，失败 ${failed} 次`);
 
   const rows = hidden.map((x) => `
     <tr>
@@ -342,7 +443,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
         <div style="font-size:12px;color:#8a5a68">需人工看一眼</div>
       </div>
       <div style="flex:1;background:#f6f8fa;border:1px solid #e5e9ef;border-radius:12px;padding:12px">
-        <div style="font-size:24px;font-weight:800;color:#3a0a1a">${posts.length}</div>
+        <div style="font-size:24px;font-weight:800;color:#3a0a1a">${checked}</div>
         <div style="font-size:12px;color:#8a5a68">本次检查</div>
       </div>
     </div>
