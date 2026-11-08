@@ -17,11 +17,20 @@
 
   var LS_KEY = 'wallAiCfg';
   var SYS_PROMPT =
-    '你是校园表白墙的内容审核助手。判断这段文本是否需要在校园公开空间隐藏。' +
-    '重点看：人身攻击/辱骂/嘲讽同学、性暗示或低俗、泄露真实姓名加班级等可识别信息、' +
-    '手机号/QQ/微信号等联系方式、诱导线下见面、自伤自杀倾向、诈骗或广告。' +
-    '不要因为是表白、玩笑、谐音梗或网络流行语就判违规。' +
-    '只输出 JSON，格式：{"risk":0到1的小数,"reason":"不超过20字的中文理由"}';
+    '你是校园表白墙的内容审核助手，判断这段文本是否需要在校园公开空间隐藏。' +
+    '注意：本产品的固定格式就是「某人对 X年级Y班 某某同学说」，' +
+    '年级、班级、单字或叠字称呼（如「李同学」「小雨」）属于功能本身，不算泄露隐私，不要因此判违规。' +
+    '只在出现以下情况时判高风险：' +
+    '① 完整姓名（姓与名齐全）、学号、手机号、微信/QQ/二维码、住址等能直接定位到具体个人的信息；' +
+    '② 人身攻击、辱骂、嘲笑外貌或身体缺陷；' +
+    '③ 性暗示、低俗内容；' +
+    '④ 索要联系方式、诱导线下单独见面；' +
+    '⑤ 自伤、自杀倾向；' +
+    '⑥ 诈骗、广告、引流。' +
+    '正常的喜欢、表白、鼓励、玩笑、谐音梗、网络流行语都应判低风险（0.2 以下）。' +
+    '先判断属于哪一类，再给风险分。只输出 JSON：' +
+    '{"cat":"none | pii(完整姓名/学号/住址/家庭情况) | abuse(攻击辱骂) | sexual(性暗示) | contact(手机号微信QQ或索要联系方式) | selfharm(自伤) | spam(广告诈骗)",' +
+    '"risk":0到1的小数,"reason":"不超过20字的中文理由"}';
 
   function loadCfg() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (e) { return {}; }
@@ -67,18 +76,16 @@
     card.innerHTML =
       '<div style="font-size:18px;font-weight:800;color:#c4002a;margin-bottom:4px">AI 内容审核</div>' +
       '<div style="font-size:12px;color:#8a5a68;line-height:1.7;margin-bottom:14px">' +
-      '机器先过一遍，把可疑的挑出来由你决定。Key 只存在这台设备，不会下发给访客。</div>' +
+      '机器先过一遍，把可疑的挑出来由你<b>手动</b>决定是否隐藏。<b style="color:#c4002a">隐藏后前台不再显示，且当前无法恢复。</b>Key 只存本机 localStorage，不会随页面下发给访客。</div>' +
       '<div style="display:grid;gap:8px;margin-bottom:10px">' +
-      '<input id="aiBase" placeholder="接口地址 https://api.openai.com/v1" value="' + (conf.base || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
-      '<input id="aiModel" placeholder="模型 gpt-4o-mini" value="' + (conf.model || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
+      '<input id="aiBase" placeholder="接口地址 https://apihub.agnes-ai.com/v1" value="' + (conf.base || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
+      '<input id="aiModel" placeholder="模型 agnes-3.0-flash" value="' + (conf.model || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
       '<input id="aiKey" type="password" placeholder="API Key（只存本机）" value="' + (conf.key || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
       '<span style="font-size:13px;color:#8a5a68">检查最近</span>' +
       '<input id="aiN" type="number" min="1" max="50" value="20" style="width:72px;padding:8px 10px;border:1px solid rgba(196,0,42,.16);border-radius:10px;font-size:14px;background:#fff">' +
       '<span style="font-size:13px;color:#8a5a68">条</span>' +
-      '<label style="margin-left:auto;font-size:13px;color:#8a5a68;display:flex;align-items:center;gap:6px">' +
-      '<input id="aiAuto" type="checkbox" style="width:auto">高风险自动隐藏</label>' +
       '</div>' +
       '<button id="aiRun" style="width:100%;padding:14px;border:0;border-radius:999px;font-size:15px;font-weight:800;background:linear-gradient(135deg,#8f7bff,#c4002a);color:#fff">开始检查</button>' +
       '<div id="aiProg" style="margin-top:10px;font-size:13px;color:#8a5a68;min-height:18px"></div>' +
@@ -125,20 +132,22 @@
         var obj = JSON.parse(content);
         var risk = Number(obj.risk);
         if (!isFinite(risk)) risk = 0;
-        return { risk: Math.max(0, Math.min(1, risk)), reason: String(obj.reason || '').slice(0, 30) };
+        var CATS = ['none', 'pii', 'abuse', 'sexual', 'contact', 'selfharm', 'spam'];
+        var cat = String(obj.cat || 'none').toLowerCase().trim();
+        if (CATS.indexOf(cat) < 0) cat = 'none';
+        return { risk: Math.max(0, Math.min(1, risk)), cat: cat, reason: String(obj.reason || '').slice(0, 30) };
       } finally {
         if (tid) clearTimeout(tid);
       }
     }
 
     async function runScan() {
-      var base = q('#aiBase').value.trim() || 'https://api.openai.com/v1';
-      var model = q('#aiModel').value.trim() || 'gpt-4o-mini';
+      var base = q('#aiBase').value.trim() || 'https://apihub.agnes-ai.com/v1';
+      var model = q('#aiModel').value.trim() || 'agnes-3.0-flash';
       var key = q('#aiKey').value.trim();
       var num = parseInt(q('#aiN').value || '20', 10);
       if (!num || num < 1) num = 20;
       if (num > 50) num = 50;
-      var auto = q('#aiAuto').checked;
 
       if (!key) { log('请先填 API Key'); return; }
       if (typeof PWD === 'undefined' || !PWD) { log('请先在上方输入管理密码登录，再点检查'); return; }
@@ -200,7 +209,7 @@
         btn.style.cssText = 'margin-top:8px;padding:8px 14px;border:0;border-radius:999px;background:#c4002a;color:#fff;font-size:13px;font-weight:700;cursor:pointer';
         btn.onclick = (function (pid, node) {
           return async function () {
-            if (!confirm('确定隐藏 #' + pid + '？隐藏后前台不再显示。')) return;
+            if (!confirm('确定隐藏 #' + pid + '？隐藏后前台不再显示，且当前无法恢复。')) return;
             node.disabled = true;
             node.textContent = '处理中…';
             var out = await edge('hide', { id: pid });
@@ -220,18 +229,6 @@
         row.appendChild(why);
         row.appendChild(btn);
         listEl.appendChild(row);
-
-        if (auto && r.risk >= 0.75) {
-          try {
-            var ar = await edge('hide', { id: p.id });
-            if (ar && ar.ok) {
-              btn.textContent = '已隐藏 ✓';
-              btn.style.background = '#0f9d63';
-              btn.disabled = true;
-              hidden++;
-            }
-          } catch (e) {}
-        }
       }
 
       log('完成：检查 ' + done + ' 条，已隐藏 ' + hidden + ' 条');

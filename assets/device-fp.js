@@ -10,7 +10,7 @@
 */
 (function(){
   var SUPA='https://dpceuvqtwvhoipxhozxz.supabase.co';
-  var ANON='sb_publishable_oBuCc6SrjzzsRQwa3CLjqQ_e5K2M_w3';
+  var ANON='sb_publishable_lgsJvhLEHOG9oM1aXH7y1A_pgdmezyA';
   var KEY_ID='wallDeviceId', KEY_IP='wallIpHash', KEY_VER='wallDeviceVer';
   var ID_VER='2';
   var id=null, ipHash='', readyP=null;

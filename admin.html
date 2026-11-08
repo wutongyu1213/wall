@@ -666,7 +666,11 @@ function renderPosts(){
     wrap.appendChild(div);
   });
 }
-function hidePost(id){busy=true;edge("hide",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已隐藏");refreshNow();}else{toast("隐藏失败："+((j&&j.error)||"未知"));refreshNow();}}).catch(function(){busy=false;});}
+async function hidePost(id){
+  const ok=await confirmBox("隐藏帖子 #"+id+"？","内容会从公开墙移除。注意：当前后台没有「恢复」功能，隐藏后无法改回可见，只能彻底删除。",{okText:"确认隐藏",okClass:"warn"});
+  if(!ok)return;
+  busy=true;edge("hide",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已隐藏（前台已移除，当前不可恢复）");refreshNow();}else{toast("隐藏失败："+((j&&j.error)||"未知"));refreshNow();}}).catch(function(){busy=false;});
+}
 async function delPost(id){
   const ok=await confirmBox("彻底删除帖子 #"+id+"？","DB 行 + 级联点赞/礼物将被删除，不可恢复。",{input:true,ph:'输入「删除'+id+'」确认',okText:"删除",okClass:"dgr"});
   if(ok===false)return;if(String(ok||"").trim()!=="删除"+id){toast("确认文字不符，已取消");return;}
@@ -696,8 +700,8 @@ async function loadReports(){
   });
 }
 async function reportRes(id,action){
-  const txt=action==="hide_post"?"隐藏被举报内容":action==="delete_post"?"彻底删除被举报内容（不可恢复）":"驳回此举报";
-  const ok=await confirmBox("确认"+txt+"？","处置将写入审计日志（fn_wall_report_resolve）。",{input:action==="delete_post",ph:action==="delete_post"?('输入「删除'+id+'」确认'):"",okText:"确认处置",okClass:action==="delete_post"?"dgr":"pri"});
+  const txt=action==="hide_post"?"隐藏被举报内容（前台移除，当前无法恢复）":action==="delete_post"?"彻底删除被举报内容（不可恢复）":"驳回此举报";
+  const ok=await confirmBox("确认"+txt+"？","处置将写入审计日志（fn_wall_report_resolve）。",{input:action==="delete_post",ph:action==="delete_post"?('输入「删除'+id+'」确认'):"",okText:"确认处置",okClass:action==="delete_post"?"dgr":(action==="hide_post"?"warn":"pri")});
   if(ok===false)return;
   if(action==="delete_post"&&String(ok||"").trim()!=="删除"+id){toast("确认文字不符，已取消");return;}
   busy=true;
@@ -896,7 +900,7 @@ buildTabs();
       +'<div style="font-size:13px;color:#8a5a68;line-height:1.8;margin-bottom:14px">不用记按钮，看数字就行。</div>'
       +'<div id="helpSteps" style="font-size:14px;line-height:1.9;color:#3a0a1a">'
       +'<div style="margin-bottom:10px"><b>① 顶上那些数字 = 待办</b><br>「待预审照片 / 待处理举报 / 待处理申诉」有数字就代表有人等你处理，点数字直接跳过去。</div>'
-      +'<div style="margin-bottom:10px"><b>② 拿不准就先「隐藏」</b><br>隐藏可以恢复，删除不能。犹豫的时候选隐藏。</div>'
+      +'<div style="margin-bottom:10px"><b>② 隐藏和删除现在都改不回来</b><br>隐藏只是前台拿掉、数据还在；删除连数据一起清。拿不准就先别动，或选「驳回」。</div>'
       +'<div style="margin-bottom:10px"><b>③ 每次操作都有记录</b><br>「审计日志」里能看到谁在什么时候做了什么，误操作可追溯。</div>'
       +'</div>'
       +'<button id="helpCheck" style="width:100%;margin-top:6px;padding:13px;border:0;border-radius:999px;'

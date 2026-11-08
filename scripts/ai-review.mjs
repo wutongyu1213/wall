@@ -5,7 +5,7 @@
  * 每 30 分钟由 GitHub Actions 触发：
  *   1. 拉取表白墙所有 status=ok 的帖子
  *   2. 逐条交给 AI 判定风险（0~1）
- *   3. 风险 >= 阈值 → 调 wall-admin 的 hide 动作先隐藏（可撤销，不删除）
+ *   3. 风险 >= 阈值 → 调 wall-admin 的 hide 动作隐藏（注意：后端暂无恢复动作，隐藏不可逆）
  *   4. 把「隐藏了什么、为什么」发到指定邮箱
  *
  * 为什么用 GitHub Actions 而不是浏览器里定时：
@@ -539,7 +539,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
       ${candRows}
     </table>` : ''}
     <p style="color:#8a5a68;font-size:12px;margin-top:22px;line-height:1.7">
-      隐藏是可撤销的（后台「内容」页可恢复可见）。如果你觉得误判偏多，把阈值调高到 0.8 以上。<br>
+      注意：隐藏目前不可恢复（后端暂无恢复动作），被隐藏的帖子不会回到公开墙。如果你觉得误判偏多，把阈值调高到 0.8 以上，或设 AUTO_HIDE=0 只标记不隐藏。<br>
       本条为自动发送，无需回复。
     </p>
   </div>`;

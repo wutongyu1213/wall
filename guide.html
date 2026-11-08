@@ -97,15 +97,15 @@ footer{max-width:760px;margin:0 auto;padding:0 16px 40px;color:#c79aab;font-size
 
   <div class="card" id="posts">
     <h2>⑤ 内容 <span class="badge b-warn">可隐藏/删除</span></h2>
-    <p>全部表白帖（含已隐藏/已删）。可按关键词搜索、按状态筛选。每条可 <b>🙈 隐藏</b>（可恢复、保留行）或 <b>🗑 彻底删除</b>（不可恢复，需二次确认输入）。</p>
-    <p>区别：<b>隐藏</b>=从公开页拿走但 DB 保留；<b>删除</b>=连行带点赞礼物一起删。</p>
+    <p>全部表白帖（含已隐藏/已删）。可按关键词搜索、按状态筛选。每条可 <b>🙈 隐藏</b>（前台移除、保留行，<b>当前无法恢复</b>）或 <b>🗑 彻底删除</b>（不可恢复，需二次确认输入）。</p>
+    <p>区别：<b>隐藏</b>=从公开页拿走但 DB 保留（目前无恢复入口）；<b>删除</b>=连行带点赞礼物一起删。</p>
   </div>
 
   <div class="card" id="reports">
     <h2>⑥ 举报处置 <span class="badge b-warn">有处置</span></h2>
     <p>用户点卡片「举报」产生的待办。每条显示<b>举报理由 + 被举报内容</b>。三种处置：</p>
     <ul>
-      <li><b>🙈 隐藏</b>：内容从公开页下架</li>
+      <li><b>🙈 隐藏</b>：内容从公开页下架（当前无法恢复）</li>
       <li><b>🗑 删除</b>：彻底删除（需二次确认）</li>
       <li><b>驳回</b>：举报不成立，内容保留</li>
     </ul>
@@ -145,9 +145,9 @@ footer{max-width:760px;margin:0 auto;padding:0 16px 40px;color:#c79aab;font-size
   <div class="card">
     <h2>⚠️ 操作安全总览</h2>
     <table><tr><th>级别</th><th>操作</th><th>防误触</th></tr>
-    <tr><td>🟢 可逆</td><td>通过/隐藏/开启投票/加删敏感词/改公告/改配额</td><td>直接点，错了能再改回</td></tr>
+    <tr><td>🟢 可逆</td><td>通过/开启投票/加删敏感词/改公告/改配额</td><td>直接点，错了能再改回</td></tr>
     <tr><td>🟡 需理由</td><td>拒绝预审</td><td>填原因留痕</td></tr>
-    <tr><td>🔴 不可逆</td><td>删除候选人/删除帖子/处置删除/一键清理</td><td>弹框 + <b>输入「删除编号」文字确认</b></td></tr></table>
+    <tr><td>🔴 不可逆</td><td>隐藏 / 删除候选人 / 删除帖子 / 处置删除 / 一键清理</td><td>弹框二次确认（隐藏目前无恢复入口）</td></tr></table>
     <div class="tip">所有操作都走<b>云端 RPC 并写审计日志</b>；管理密码强度较弱，请勿泄露，定期到「配置」升级。</div>
   </div>
 </main>
