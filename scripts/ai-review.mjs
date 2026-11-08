@@ -40,7 +40,11 @@ const {
 
 const THRESHOLD = Number(RISK_THRESHOLD) || 0.75;
 const LIMIT = Math.min(200, Math.max(1, Number(MAX_ITEMS) || 60));
-const isDry = DRY_RUN === '1' || !ADMIN_PWD;
+/* AUTO_HIDE=0 时「只标记不隐藏」：AI 判定结果仍进报告/邮件，但不调 hide 接口。
+   场景：系统目前没有「恢复」通道，隐藏是单向的（连后台都无法改回可见），
+   若担心概率模型误判后不可逆，可先用此开关把自动隐藏关掉、回到人工确认。 */
+const autoHideOff = process.env.AUTO_HIDE === '0';
+const isDry = DRY_RUN === '1' || !ADMIN_PWD || autoHideOff;
 
 /* 只审「新内容」。每 30 分钟把全站重审一遍既慢又费钱，而重复审同一批帖子
    也不会得到不同结论。默认回看 90 分钟 = 3 个周期，漏跑一次也不会遗漏。
@@ -372,7 +376,9 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
   const provider = await resolveProvider();
   log(`服务商：${provider.name} / 模型：${provider.model}${provider.detected ? '（自动探测）' : ''}`);
   log(isDry
-    ? (DRY_RUN === '1' ? '⚠️ 演练模式（手动指定 DRY_RUN）：只报告，不隐藏' : '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）')
+    ? (DRY_RUN === '1' ? '⚠️ 演练模式（手动指定 DRY_RUN）：只报告，不隐藏'
+       : autoHideOff ? '⚠️ AUTO_HIDE=0：只标记不隐藏（自动隐藏已关，结果仍进报告/邮件）'
+       : '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）')
     : `自动隐藏阈值：风险 ≥ ${THRESHOLD}`);
   await verifyAdmin();
   if (!isDry) log('管理密码校验通过');

@@ -385,6 +385,46 @@ body{overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
 <link rel="stylesheet" href="assets/glass.css?v=1">
 <link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
   <link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
+<style>
+/* [R7] 我的投稿：让作者看到被系统隐藏的内容 */
+#mineTip{display:none;margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#fff6f8;border:1px solid #ffd6e0;color:#7a1230;font-size:.88rem;line-height:1.65;cursor:pointer;text-align:left}
+#mineTip.show{display:block}
+#mineTip b{color:#c4002a}
+#mineTip u{text-decoration:none;border-bottom:1px solid currentColor}
+.mine-modal{position:fixed;inset:0;z-index:130;background:rgba(25,10,20,.55);display:none;align-items:center;justify-content:center;padding:16px}
+.mine-modal.show{display:flex}
+.mine-box{background:#fff;border-radius:16px;max-width:420px;width:100%;max-height:82vh;overflow:auto;padding:16px;box-shadow:0 16px 48px rgba(0,0,0,.3);text-align:left;-webkit-overflow-scrolling:touch}
+.mine-box h3{margin:0 0 4px;font-size:1rem;color:#c4002a}
+.mine-sub{font-size:.76rem;color:#8a5a68;margin-bottom:12px;line-height:1.6}
+.mine-empty{font-size:.85rem;color:#8a5a68;text-align:center;padding:22px 8px;line-height:1.8}
+.mine-item{border:1px solid #ffe0e8;border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fffafb}
+.mine-item.hid{background:#f6f6f8;border-color:#e2e2e8}
+.mine-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.mine-time{font-size:.72rem;color:#8a5a68}
+.mine-badge{font-size:.68rem;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.mine-badge.ok{background:#e8f7ee;color:#1b7a45}
+.mine-badge.hid{background:#ececf2;color:#4a4a55}
+.mine-msg{font-size:.9rem;line-height:1.7;margin:4px 0 0;color:#2a1a20;word-break:break-word}
+.mine-why{font-size:.75rem;color:#6a4a56;background:#fff;border-left:3px solid #ffc2d1;padding:7px 9px;border-radius:4px;margin:8px 0 0;line-height:1.65}
+.mine-acts{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:9px;flex-wrap:wrap}
+.mine-acts button{font-size:.78rem;padding:7px 13px;min-height:34px;border-radius:9px;border:1px solid #ffd6e0;background:#fff;color:#c4002a;cursor:pointer}
+.mine-acts button:hover{background:#fff0f4}
+.mine-acts button.danger{border-color:#f0b8b8;color:#a40012;background:#fff5f5}
+.mine-confirm{font-size:.75rem;color:#a00;flex:1;text-align:left}
+.mine-confirm.ok{color:#1b7a45}
+body.dark #mineTip{background:#2a1a22;border-color:#5a2a3a;color:#ffd6e0}
+body.dark #mineTip b{color:#ff8fab}
+body.dark .mine-box{background:#1e1519;color:#f6e9ee}
+body.dark .mine-box h3{color:#ff8fab}
+body.dark .mine-sub,body.dark .mine-time{color:#c9a3b1}
+body.dark .mine-item{background:#241a1f;border-color:#3a2a32}
+body.dark .mine-item.hid{background:#1b1b1f;border-color:#33333c}
+body.dark .mine-msg{color:#f6e9ee}
+body.dark .mine-why{background:#2a1f26;color:#e0c3ce}
+body.dark .mine-acts button{background:#241a1f;border-color:#5a2a3a}
+body.dark .mine-badge.ok{background:#1d3a2a;color:#8fe0b0}
+body.dark .mine-badge.hid{background:#2c2c36;color:#b9b9c8}
+</style>
   </head><body>
 <nav class="nav"><div class="nav-in"><span class="brand"><img class="brand-ico" src="icon-48.png" alt="重庆第二外国语学校"> 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
 
@@ -398,6 +438,7 @@ body{overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
     <div class="toggle-bar">
     <button class="toggle-btn" id="themeBtn">🌙 深色模式</button>
     <button class="toggle-btn" id="musicBtn">🎵 开启音乐</button>
+    <button class="toggle-btn" id="mineBtn">📮 我的投稿</button>
   </div>
   <div class="stats">
     <div class="stat"><div class="num" id="stMsg">0</div><div class="lbl">表白留言</div></div>
@@ -410,6 +451,7 @@ body{overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
     <div class="lg"><span class="dotb"></span>男 → 男 / 男 → 女（蓝色区）</div>
     <div class="lg"><span class="dotp"></span>女 → 男 / 女 → 女（粉色区）</div>
   </div>
+  <div id="mineTip" role="status" aria-live="polite"></div>
   <section class="compose">
     <h2 id="composeToggle"><span class="dot"></span>写一条表白</h2>
     <div class="compose-body" id="composeBody">
@@ -894,6 +936,7 @@ const newId=postRes.data;
 busy=false;__edgeOk=false;await load();__edgeOk=true;
 toast("表白成功 ❤ 已贴到墙上");celebrate();busy=false;
 localStorage.setItem(lastKey,String(Date.now()));
+localStorage.setItem(MINE_POSTED_KEY,"1");
 document.getElementById("inMsg").value="";document.getElementById("inName").value="";document.getElementById("inTo").value="";pickedGift="";document.querySelectorAll("#giftGrid .gift-btn").forEach(x=>x.classList.remove("on"));
 curTag="all";curGender="all";curYear="all";curClass="all";curSearch="";document.getElementById("inSearch").value="";
 shownCount=PAGE;syncTabs();syncGenderTabs();syncYearTabs();syncClassTabs();
@@ -961,6 +1004,134 @@ function safeLoad(){
 }
 setInterval(safeLoad,300000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){safeLoad();loadVisits();}});
+/* ===== [R7] 我的投稿：让作者看到被系统隐藏的内容，并决定是否删除 =====
+   为什么要有它：AI 巡检会「先隐藏」，而作者一旦被误判，帖子就从公开墙消失了，
+   他连入口都找不到。这个面板只按本机身份（userKey）读自己发过的内容，
+   被隐藏的也会显示，并给「删除」出口。
+   注意：现在作者身份没有登录保护，所以「删除」只能以「申请」形式提交到后台，
+   由管理员确认后真正删除——不能让前端直接删，否则任何人都能删任何人的帖子。 */
+var MINE_POSTED_KEY="wallPosted", MINE_ROWS=[];
+function mineModal(){
+  var m=document.getElementById("mineModal");
+  if(m) return m;
+  m=document.createElement("div");
+  m.className="mine-modal"; m.id="mineModal";
+  m.innerHTML='<div class="mine-box" role="dialog" aria-modal="true" aria-labelledby="mineTitle">'
+    +'<h3 id="mineTitle">📮 我的投稿</h3>'
+    +'<div class="mine-sub">只在这台设备上显示，别人看不到这段记录。</div>'
+    +'<div id="mineList"></div>'
+    +'<div class="mine-acts"><button type="button" data-mclose="1">关闭</button></div>'
+    +'</div>';
+  document.body.appendChild(m);
+  m.addEventListener("click",function(e){
+    if(e.target===m){hideMine();return}
+    var t=e.target;
+    if(!t||!t.getAttribute) return;
+    if(t.getAttribute("data-mclose")){hideMine();return}
+    var del=t.getAttribute("data-mdel"); if(del){askDel(Number(del));return}
+    var cancel=t.getAttribute("data-mcancel"); if(cancel){resetActs(Number(cancel));return}
+    var ok=t.getAttribute("data-mok"); if(ok){sendDel(Number(ok));return}
+  });
+  return m;
+}
+function hideMine(){var m=document.getElementById("mineModal");if(m)m.classList.remove("show")}
+function whyOf(r){
+  var s=r.semantic_review;
+  if(s&&typeof s==="object"){
+    var hits=Array.isArray(s.hits)?s.hits:[];
+    if(hits.length) return "命中："+hits.slice(0,2).join("、");
+  }
+  return "";
+}
+function mineHtml(){
+  if(!MINE_ROWS.length) return '<div class="mine-empty">这台设备还没发过表白。<br>发过的内容会出现在这里，包括被系统隐藏的。</div>';
+  return MINE_ROWS.map(function(r){
+    var hid=r.status!=="ok";
+    var why=whyOf(r);
+    return '<div class="mine-item'+(hid?' hid':'')+'" data-mrow="'+Number(r.id)+'">'
+      +'<div class="mine-head"><span class="mine-time">'+timeAgo(r.created_ts||Date.now())+'</span>'
+      +'<span class="mine-badge '+(hid?'hid':'ok')+'">'+(hid?'已隐藏':'公开中')+'</span></div>'
+      +'<div class="mine-msg">'+esc(r.love_msg||"")+'</div>'
+      +(hid?'<div class="mine-why">'+(why?('系统判定：'+esc(why)):'被自动巡检判定为不适宜公开')
+        +'。这条已从公开墙移除，只有你能看到；留着不影响别人，删掉则彻底消失。</div>':'')
+      +'<div class="mine-acts">'+(hid?'<button type="button" data-mdel="'+Number(r.id)+'">删除这条</button>':'')+'</div>'
+      +'</div>';
+  }).join("");
+}
+function askDel(id){
+  var row=document.querySelector('[data-mrow="'+id+'"]');
+  if(!row) return;
+  var acts=row.querySelector(".mine-acts");
+  if(!acts) return;
+  acts.innerHTML='<span class="mine-confirm">删除后无法恢复，确定？</span>'
+    +'<button type="button" data-mcancel="'+id+'">再想想</button>'
+    +'<button type="button" class="danger" data-mok="'+id+'">确定删除</button>';
+}
+function resetActs(id){
+  var row=document.querySelector('[data-mrow="'+id+'"]');
+  if(!row) return;
+  var acts=row.querySelector(".mine-acts");
+  if(acts) acts.innerHTML='<button type="button" data-mdel="'+id+'">删除这条</button>';
+}
+async function sendDel(id){
+  var uk=userKey();
+  var ck="wallDel_"+uk+"_"+id;
+  var last=parseInt(localStorage.getItem(ck)||"0",10);
+  if((Date.now()-last)/1000<600){toast("已提交过，管理员会尽快处理");return}
+  var acts=document.querySelector('[data-mrow="'+id+'"] .mine-acts');
+  if(acts) acts.innerHTML='<span class="mine-confirm">提交中…</span>';
+  try{
+    var r=await sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),
+      p_reason:"【作者申请删除】本条已被系统隐藏，作者确认删除",p_user_key:uk||"",p_ip:wallIp()});
+    if(r&&r.error){resetActs(id);toast("提交失败："+String(r.error.message||"").slice(0,30));return}
+    localStorage.setItem(ck,String(Date.now()));
+    if(acts) acts.innerHTML='<span class="mine-confirm ok">已提交，管理员处理后即彻底删除</span>';
+    toast("已提交删除申请 ✅");
+  }catch(e){resetActs(id);toast("提交失败，请稍后再试")}
+}
+async function fetchMine(){
+  var uk=userKey();
+  if(!uk) return {rows:[],err:"这台设备没有身份标识"};
+  try{
+    var q=await sb.from("wall").select("id,love_msg,target_name,status,created_ts,semantic_review")
+      .eq("user_key",uk).order("created_ts",{ascending:false}).limit(30);
+    if(q&&q.error) return {rows:[],err:String(q.error.message||"读取失败").slice(0,40)};
+    return {rows:(q&&q.data)||[]};
+  }catch(e){return {rows:[],err:String((e&&e.message)||"读取失败").slice(0,40)}}
+}
+async function openMine(){
+  var m=mineModal();
+  m.classList.add("show");
+  var list=m.querySelector("#mineList");
+  list.innerHTML='<div class="mine-empty">读取中…</div>';
+  var res=await fetchMine();
+  if(res.err){list.innerHTML='<div class="mine-empty">读不到你的投稿：'+esc(res.err)+'</div>';return}
+  MINE_ROWS=res.rows;
+  list.innerHTML=mineHtml();
+}
+async function checkMine(){
+  var tip=document.getElementById("mineTip");
+  if(!tip) return;
+  var ever=false;
+  try{ever=localStorage.getItem(MINE_POSTED_KEY)==="1"}catch(e){}
+  if(!ever){return}
+  var res=await fetchMine();
+  if(res.err||!res.rows.length){tip.classList.remove("show");return}
+  var hid=res.rows.filter(function(r){return r.status!=="ok"});
+  if(!hid.length){tip.classList.remove("show");return}
+  MINE_ROWS=res.rows;
+  tip.innerHTML='<b>你有 '+hid.length+' 条投稿被系统隐藏了</b>，别人看不到，只有你能看 · <u>点这里查看</u>';
+  tip.classList.add("show");
+}
+(function(){
+  var b=document.getElementById("mineBtn"); if(b) b.onclick=openMine;
+  var t=document.getElementById("mineTip"); if(t) t.onclick=openMine;
+  function boot(){setTimeout(checkMine,1500)}
+  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot)}
+  else{boot()}
+  /* ?mine=1 直接打开面板（也用于自测） */
+  try{if(/[?&]mine=1/.test(location.search)){setTimeout(openMine,1800)}}catch(e){}
+})();
 </script>
 <div class="notice-overlay" id="noticeModal"><div class="notice-card"><div class="notice-head"><span class="nicon">📢</span><h3>公告</h3></div><div class="notice-poem">偶然的相遇，让平淡的日子多了一束光。<br>犹豫了很久，还是想在这里写下心动。<br>或许你不会看见，但若刚好是你，<br>我想告诉你：我很喜欢你。</div><div class="notice-tip"><b>💡 说明</b>　本表白墙为个人自制，制作不易。大家有需求或者觉得需要改进的地方都可以提出来。请大家不要恶意捣乱、乱发无关内容，本表白墙仅限<b class="school">重庆第二外国语学校</b>的同学使用，其他学校同学请勿投稿。希望大家心怀公德，文明发言，一起好好维护这里。</div><div class="notice-foot"><span class="nhint">点击"我已阅读"后，24 小时内不再弹出</span><button id="noticeCancel" class="nbtn ghost">✕ 取消</button><button id="noticeOk" class="nbtn solid">✓ 我已阅读</button></div></div></div>
 
