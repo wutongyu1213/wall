@@ -77,7 +77,8 @@
       '<div style="font-size:18px;font-weight:800;color:#c4002a;margin-bottom:4px">AI 内容审核</div>' +
       '<div style="font-size:12px;color:#8a5a68;line-height:1.7;margin-bottom:14px">' +
       '机器先过一遍，把可疑的挑出来由你<b>手动</b>决定是否隐藏。<b style="color:#c4002a">隐藏后前台不再显示，且当前无法恢复。</b>Key 只存本机 localStorage，不会随页面下发给访客。</div>' +
-      '<div style="display:grid;gap:8px;margin-bottom:10px">' +
+      '<div id="aiServerTip" style="display:none;font-size:12.5px;color:#0f7a3d;background:#eefaf1;border:1px solid #b6e4c6;border-radius:12px;padding:10px 12px;margin-bottom:10px;line-height:1.7"></div>' +
+      '<div id="aiCfgBox" style="display:grid;gap:8px;margin-bottom:10px">' +
       '<input id="aiBase" placeholder="接口地址 https://apihub.agnes-ai.com/v1" value="' + (conf.base || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
       '<input id="aiModel" placeholder="模型 agnes-3.0-flash" value="' + (conf.model || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
       '<input id="aiKey" type="password" placeholder="API Key（只存本机）" value="' + (conf.key || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
@@ -100,6 +101,79 @@
 
     q('#aiClose').onclick = closePanel;
     q('#aiRun').onclick = runScan;
+
+    /* ---------------- 服务端代理（wall-ai Edge） ----------------
+       目的：密钥放 Supabase Secrets，浏览器里没有。
+       探测到已配置 → 隐藏输入框，点一下就能扫；没部署/没配 → 退回本机 Key 手动模式。
+       注意：这里必须带 admin 密码，否则任何人都能拿这个函数白嫖额度。 */
+    var SERVER = null;
+
+    function apiEndpoint() {
+      var b = (typeof SUPA_URL !== 'undefined' && SUPA_URL) ? SUPA_URL : 'https://dpceuvqtwvhoipxhozxz.supabase.co';
+      var k = (typeof ANON_KEY !== 'undefined' && ANON_KEY) ? ANON_KEY : '';
+      return { url: b.replace(/\/+$/, '') + '/functions/v1/wall-ai', key: k };
+    }
+
+    async function probeServer() {
+      var tip = q('#aiServerTip'), box = q('#aiCfgBox');
+      if (typeof PWD === 'undefined' || !PWD) return;   // 未登录不探
+      var ep = apiEndpoint();
+      try {
+        var r = await fetch(ep.url, {
+          method: 'POST',
+          headers: { apikey: ep.key, Authorization: 'Bearer ' + ep.key, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin: PWD, ping: true }),
+        });
+        if (r.status === 404) return;                   // 函数未部署 → 保持手动模式
+        var j = null;
+        try { j = await r.json(); } catch (e) { return; }
+        if (!j || !j.ok) return;                        // 密码不符等 → 保持手动
+
+        SERVER = j;
+        if (j.configured) {
+          tip.style.display = 'block';
+          tip.style.background = '#eefaf1';
+          tip.style.borderColor = '#b6e4c6';
+          tip.style.color = '#0f7a3d';
+          tip.innerHTML = '✅ <b>已由服务端配置好</b>，不用填任何东西，直接点下面的按钮。<br>' +
+            '模型：' + escHtml(j.model || '—') + ' · 密钥存在 Supabase，浏览器里没有。';
+          box.style.display = 'none';
+          var rb = q('#aiRun');
+          if (rb) rb.textContent = '开始检查（已配置）';
+        } else {
+          tip.style.display = 'block';
+          tip.style.background = '#fff6e6';
+          tip.style.borderColor = '#f2d9a8';
+          tip.style.color = '#8a5a1a';
+          tip.innerHTML = '⚠️ 服务端已连通，但<b>还没配 AI_API_KEY</b>。<br>' +
+            '可以让管理员去 Supabase → Edge Functions → Secrets 加一条，或在下面临时填一个 Key。';
+        }
+      } catch (e) { /* 网络异常 → 保持手动模式，不打扰用户 */ }
+    }
+
+    function escHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+
+    async function callServer(text) {
+      var ep = apiEndpoint();
+      var r = await fetch(ep.url, {
+        method: 'POST',
+        headers: { apikey: ep.key, Authorization: 'Bearer ' + ep.key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin: PWD, texts: [text] }),
+      });
+      var j = null;
+      try { j = await r.json(); } catch (e) { /* ignore */ }
+      if (!r.ok) throw new Error('HTTP ' + r.status + (j && j.error ? ' ' + j.error : ''));
+      if (!j || !j.ok) throw new Error((j && j.error) || '服务端错误');
+      var x = (j.results || [])[0];
+      if (!x || x.error) throw new Error((x && x.error) || '空结果');
+      return x;
+    }
+
+    probeServer();
 
     /* 单条调用：超时 20 秒，异常向上抛由调用方显示 */
     async function callAI(base, model, key, text) {
@@ -149,9 +223,10 @@
       if (!num || num < 1) num = 20;
       if (num > 50) num = 50;
 
-      if (!key) { log('请先填 API Key'); return; }
+      var useServer = !!(SERVER && SERVER.configured);
+      if (!useServer && !key) { log('请先填 API Key（或让管理员在服务端配好）'); return; }
       if (typeof PWD === 'undefined' || !PWD) { log('请先在上方输入管理密码登录，再点检查'); return; }
-      saveCfg({ base: base, model: model, key: key });
+      if (!useServer) saveCfg({ base: base, model: model, key: key });
 
       var listEl = q('#aiList');
       listEl.innerHTML = '';
@@ -173,8 +248,8 @@
         log('检查中 ' + (i + 1) + '/' + posts.length + '…');
         var r;
         try {
-          r = await callAI(base, model, key,
-            (p.nickname || '匿名') + ' 对 ' + (p.target_name || '') + '：' + p.love_msg);
+          var txt = (p.nickname || '匿名') + ' 对 ' + (p.target_name || '') + '：' + p.love_msg;
+          r = useServer ? await callServer(txt) : await callAI(base, model, key, txt);
         } catch (e) {
           log('第 ' + (i + 1) + ' 条失败：' + e.message);
           continue;
