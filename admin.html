@@ -158,6 +158,8 @@ main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 
 /* [R9] 待办数字为 0 时弱化，有数字才抢眼 */
 .tabN.zero{opacity:.45;font-weight:600}
+/* [R19] 风险待确认：选中态也保持红色药丸，否则和普通计数看不出区别 */
+.tab.on .n.hot{background:#fff;color:var(--acc)}
 
 /* ==========================================================================
    [R16] 后台体验：登录可见密码 / tab 分组 / 隐藏行说明
@@ -520,20 +522,26 @@ async function refreshAll(){
 
 /* ---------- 仪表盘（待办中心） ---------- */
 async function loadDash(){
-  const j=await edge("stats",{});
+  /* 统计与「风险待确认」并行取：两者互不依赖，串行会白等一次往返 */
+  const [j,flagN]=await Promise.all([edge("stats",{}),refreshFlagBadge()]);
   const el=document.getElementById("kpis");
   if(!(j&&j.ok)){el.innerHTML='<div class="empty">统计加载失败</div>';return;}
   const cand=j.candidates||{},posts=j.posts||{};
   const reviewN=cand.review||0,repN=j.open_reports||0,appN=j.pending_appeals||0;
+  /* flagN === -1 表示风险数算不出来（Edge 挂 / 清单未生成），此时显示「?」且不计入总待办，
+     不能当成 0 —— 0 会被读成「没有风险待确认」 */
+  const flagKnown=flagN>=0;
+  const waitN=reviewN+repN+appN+(flagKnown?flagN:0);
   const items=[
     {n:reviewN,l:"待预审照片",go:"review",cls:reviewN?"":"zero"},
     {n:repN,l:"待处理举报",go:"reports",cls:repN?"":"zero"},
     {n:appN,l:"待处理申诉",go:"appeals",cls:appN?"":"zero"},
+    {n:flagKnown?flagN:"?",l:"风险待确认",go:"flags",cls:(flagKnown&&flagN)?"":"zero"},
     {n:(j.cand_total!=null?j.cand_total:"?"),l:"候选人总数",go:"cands",cls:"zero"},
     {n:posts.ok||0,l:"可见表白",go:"posts",cls:"zero"},
     {n:j.visits||0,l:"累计访问",go:null,cls:"zero"},
     {n:(j.post_total||0),l:"表白总数(含删除态)",go:null,cls:"zero"},
-    {n:reviewN+repN+appN,l:"总待办",go:null,cls:(reviewN+repN+appN)?"":"zero"}
+    {n:waitN,l:"总待办",go:null,cls:waitN?"":"zero"}
   ];
   el.innerHTML=items.map(function(it){
     return '<div class="kpi '+it.cls+'" data-go="'+(it.go||"")+'" onclick="kpiGo(this)"><div class="v">'+esc(String(it.n))+'</div><div class="l">'+esc(it.l)+'</div>'+(it.go?'<div class="go">点我直达 →</div>':'')+'</div>';
@@ -715,13 +723,14 @@ function renderPosts(){
 async function hidePost(id){
   const ok=await confirmBox("隐藏帖子 #"+id+"？","内容会从公开墙移除。注意：当前后台没有「恢复」功能，隐藏后无法改回可见，只能彻底删除。",{okText:"确认隐藏",okClass:"warn"});
   if(!ok)return;
-  busy=true;edge("hide",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已隐藏（前台已移除，当前不可恢复）");refreshNow();}else{toast("隐藏失败："+((j&&j.error)||"未知"));refreshNow();}}).catch(function(){busy=false;});
+  busy=true;edge("hide",{id:id}).then(function(j){busy=false;if(j&&j.ok){toast("帖子 #"+id+" 已隐藏（前台已移除，当前不可恢复）");D.posts=null;refreshNow();}else{toast("隐藏失败："+((j&&j.error)||"未知"));refreshNow();}}).catch(function(){busy=false;});
 }
 async function delPost(id){
   const ok=await confirmBox("彻底删除帖子 #"+id+"？","DB 行 + 级联点赞/礼物将被删除，不可恢复。",{input:true,ph:'输入「删除'+id+'」确认',okText:"删除",okClass:"dgr"});
   if(ok===false)return;if(String(ok||"").trim()!=="删除"+id){toast("确认文字不符，已取消");return;}
   busy=true;const j=await edge("delete_post",{id:id});busy=false;
   if(j&&j.ok){toast("帖子 #"+id+" 已删除 ✅");}else{toast("删除失败："+((j&&j.error)||"未知"));}
+  D.posts=null;
   refreshNow();
 }
 
@@ -805,22 +814,10 @@ function ignoreFlag(id){
   loadFlags();
 }
 
-async function loadFlags(){
-  const wrap=document.getElementById("flags");
-  if(!wrap)return;
-  wrap.innerHTML='<div class="empty">正在读取风险清单…</div>';
-  const info=document.getElementById("flagInfo");
-  if(info)info.textContent="";
-
-  /* 1) 帖子原文：优先用已有缓存，没有就拉一次 */
-  let posts=D.posts||[];
-  if(!posts.length){
-    const j=await edge("all_posts",{});
-    posts=j&&j.ok?(j.posts||[]):[];
-    if(posts.length)D.posts=posts;
-  }
-
-  /* 2) 风险清单 */
+/* 读取风险清单并算出「真正待人工确认」的条目。
+   loadFlags 与「🚨 风险」红点共用这一份逻辑，避免两处实现漂移。
+   fresh=true 时强制重拉帖子：刚屏蔽/删除的那条应当立刻从清单里消失。 */
+async function fetchFlagItems(fresh){
   let data=null, err="";
   try{
     const r=await fetch("data/ai-flags.json?v="+Date.now(),{cache:"no-store"});
@@ -828,13 +825,14 @@ async function loadFlags(){
     else if(r.status===404)err="还没生成风险清单（等巡检跑完第一轮）";
     else err="读取失败 HTTP "+r.status;
   }catch(e){ err="读取失败："+((e&&e.message)||"网络异常"); }
+  if(!data)return {data:null,err:err,items:[],byId:{}};
 
-  if(!data){
-    setTabN("flags",0);
-    wrap.innerHTML='<div class="empty">'+esc(err||"暂无风险清单")+'</div>';
-    return;
+  let posts=(fresh||!D.posts||!D.posts.length)?null:D.posts;
+  if(!posts){
+    const j=await edge("all_posts",{});
+    posts=j&&j.ok?(j.posts||[]):[];
+    if(posts.length)D.posts=posts;
   }
-
   const byId={};
   posts.forEach(function(p){ byId[Number(p.id)]=p; });
   const ignored=flagIgnoredSet();
@@ -845,6 +843,38 @@ async function loadFlags(){
     if(ignored.has(Number(x.id)))return false;       // 人工已判为误报
     return true;
   }).sort(function(a,b){ return (b.risk||0)-(a.risk||0); });
+  return {data:data,err:"",items:items,byId:byId};
+}
+
+/* 不打开「风险」页也能看到红点：登录后由 loadDash 调一次。
+   返回 -1 表示「算不出来」（Edge 挂了 / 清单还没生成）——此时**不要**把红点归零：
+   0 会被老师读成「没有风险」，比显示旧数字更危险。 */
+async function refreshFlagBadge(){
+  try{
+    const r=await fetchFlagItems(false);
+    if(r.err)return -1;
+    setTabN("flags",r.items.length,true);
+    return r.items.length;
+  }catch(e){ return -1; }
+}
+
+async function loadFlags(){
+  const wrap=document.getElementById("flags");
+  if(!wrap)return;
+  wrap.innerHTML='<div class="empty">正在读取风险清单…</div>';
+  const info=document.getElementById("flagInfo");
+  if(info)info.textContent="";
+
+  let res;
+  try{ res=await fetchFlagItems(true); }
+  catch(e){ res={data:null,err:"读取失败："+((e&&e.message)||"网络异常"),items:[],byId:{}}; }
+
+  if(!res.data){
+    setTabN("flags",0);
+    wrap.innerHTML='<div class="empty">'+esc(res.err||"暂无风险清单")+'</div>';
+    return;
+  }
+  const data=res.data, items=res.items, byId=res.byId;
 
   if(info){
     info.textContent="清单更新于 "+fmtTime(data.updatedAt)+" · 共记录 "+((data.items||[]).length)+" 条 · 待确认 "+items.length+" 条";
