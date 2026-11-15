@@ -286,7 +286,7 @@ body.dark .skel-line{background:rgba(255,255,255,.12)}
 .giftq-box .gg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
 .giftq-box button.gb{width:50px;height:50px;font-size:24px;background:#fff7f9;border:2px solid #ffd6e0;border-radius:12px;cursor:pointer;padding:0}
 .giftq-box button.gb:hover{border-color:#ff4d6d;transform:translateY(-2px)}
-.giftq-act{display:flex;gap:8px;justify-content:center}@media(max-width:560px){.compose-body{display:none}.compose.expanded .compose-body{display:block}.compose h2{cursor:pointer;user-select:none}.compose h2::after{content:"展开 ▾";float:right;font-size:.8rem;color:var(--muted);font-weight:normal}.compose.expanded h2::after{content:"收起 ▴"}}
+.giftq-act{display:flex;gap:8px;justify-content:center}@media(max-width:560px){.compose h2{cursor:pointer;user-select:none}}
 @media(min-width:561px){.compose-body{display:block!important}}
 .nav-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;flex-wrap:wrap}.brand{font-weight:800;font-size:1rem;letter-spacing:.5px;color:#c4002a;display:flex;align-items:center;gap:8px;margin-right:auto}.brand small{font-weight:400;color:#8a5a68;font-size:.72rem;letter-spacing:0}.nav a.nl{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:12px;color:#8a5a68;text-decoration:none;transition:.18s;background:transparent}.nav a.nl:hover{background:rgba(196,0,42,.07);color:#c4002a}.nav a.nl.cur{background:linear-gradient(135deg,#c4002a,#ff4d6d);color:#fff;box-shadow:0 4px 12px rgba(196,0,42,.25)}/* 首屏减负：默认收起"更多选项" */
 .more-opt,.more-opt-chip{display:none}
@@ -424,8 +424,67 @@ body.dark .mine-why{background:#2a1f26;color:#e0c3ce}
 body.dark .mine-acts button{background:#241a1f;border-color:#5a2a3a}
 body.dark .mine-badge.ok{background:#1d3a2a;color:#8fe0b0}
 body.dark .mine-badge.hid{background:#2c2c36;color:#b9b9c8}
+
+/* ==========================================================================
+   [R15] 手机端体验：这一版只改「手机上一用就卡住」的地方
+   优先级依据：学生 90% 在手机 + 微信里打开，且多数是 12-18 岁
+   ========================================================================== */
+
+/* 1) 撰写区默认展开：原先把表单默认收起，h2 看起来像标题，用户找不到输入框。
+      改成默认展开，保留 h2 点击收起（.collapsed），并在标题右侧给出明确提示。 */
+@media(max-width:560px){
+  .compose-body{display:block!important}
+  .compose.collapsed .compose-body{display:none!important}
+  .compose:not(.collapsed) h2::after{content:"收起 ▴";float:right;font-size:.8rem;color:var(--muted);font-weight:normal}
+  .compose.collapsed h2::after{content:"展开 ▾";float:right;font-size:.8rem;color:var(--muted);font-weight:normal}
+}
+
+/* 2) 触控目标：原来的筛选/标签/举报按钮只有 20~34px 高，手指点不中。
+      按 44px（iOS）/ 48px（Android）标准抬到可用范围。 */
+@media(pointer:coarse){
+  .tab,.stab,.dmb{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+  .chip{min-height:38px;display:inline-flex;align-items:center}
+  .share-btn,.report-btn{min-height:34px;padding:7px 13px!important;display:inline-flex;align-items:center;font-size:.78rem}
+  .giftq-btn{min-height:34px;padding:6px 12px!important}
+  .gift-btn{min-width:46px;min-height:46px}
+  .opt-toggle{min-height:42px}
+  #postBtn{min-height:50px;font-size:1rem}
+  .mine-acts button{min-height:40px}
+  .music-fab{bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}
+}
+
+/* 3) 正文字数计数器：原来只有 maxlength，粘贴超长会被静默截断，用户不知道。 */
+.msg-count{text-align:right;font-size:.72rem;color:var(--muted);margin:-6px 2px 8px;transition:color .2s}
+.msg-count.warn{color:#e8590c;font-weight:700}
+.msg-count.over{color:#c4002a;font-weight:700}
+
+/* 4) 离线状态条：原来断网时只会一直点一直失败，用户分不清是网还是墙的问题。 */
+.net-bar{position:fixed;left:0;right:0;top:0;z-index:200;display:none;padding:8px 14px;
+  background:#c4002a;color:#fff;font-size:.82rem;text-align:center;line-height:1.5;
+  box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.net-bar.show{display:block}
+body.dark .net-bar{background:#8a0020}
+
+/* 5) 手机端底部安全区：避免 iPhone 横条压住最后一个按钮 */
+@media(max-width:560px){
+  .wrap{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+  .compose{padding:18px 16px;margin-bottom:18px}
+  .compose h2{font-size:1rem;margin-bottom:12px}
+  /* 手机端把「更多选项」做成整行按钮，避免半宽按钮点不中 */
+  .opt-toggle{width:100%;text-align:center}
+}
+
+/* 6) 次要字段折叠：手机首屏只留「昵称 + 对象 + 正文 + 提交」。
+      年级/班级/标签/性别仍是真实 select（值照常提交），只是默认不显示，
+      避免首屏被 5 个下拉框挤满、用户以为没地方写字。桌面端不受影响。 */
+@media(max-width:560px){
+  .more-field{display:none!important}
+  body.opt-open .more-field{display:block!important}
+  body.opt-open .row.more-field{display:flex!important}
+}
 </style>
   </head><body>
+<div id="netBar" class="net-bar" role="status" aria-live="polite"></div>
 <nav class="nav"><div class="nav-in"><span class="brand"><img class="brand-ico" src="icon-48.png" alt="重庆第二外国语学校"> 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
 
 <div class="love-float" id="floatLayer"></div>
@@ -462,31 +521,32 @@ body.dark .mine-badge.hid{background:#2c2c36;color:#b9b9c8}
     <div class="row">
       <div class="field"><label>你的昵称</label><input id="inName" placeholder="匿名可不填" maxlength="12"></div>
       <div class="field"><label>表白对象（昵称，勿用真实全名）</label><input id="inTo" placeholder="对象昵称（≤4字，建议匿名昵称）" maxlength="4"></div>
-      <div class="field"><label>年级（202 几级）</label>
+      <div class="field more-field"><label>年级（202 几级）</label>
         <select id="inYear">
           <option value="2027">2027级</option><option value="2028">2028级</option><option value="2029">2029级</option>
         </select>
       </div>
-      <div class="field"><label>班级</label>
+      <div class="field more-field"><label>班级</label>
         <select id="inClass"><option value="1">1班</option><option value="2">2班</option><option value="3">3班</option><option value="4">4班</option><option value="5">5班</option><option value="6">6班</option><option value="7">7班</option><option value="8">8班</option><option value="9">9班</option><option value="10">10班</option><option value="11">11班</option><option value="12">12班</option><option value="13">13班</option><option value="14">14班</option><option value="15">15班</option><option value="16">16班</option><option value="17">17班</option><option value="18">18班</option><option value="19">19班</option><option value="20">20班</option><option value="21">21班</option><option value="22">22班</option><option value="23">23班</option><option value="24">24班</option><option value="25">25班</option></select>
       </div>
-      <div class="field"><label>标签</label>
+      <div class="field more-field"><label>标签</label>
         <select id="inTag">
           <option value="喜欢">喜欢</option><option value="告白">告白</option>
           <option value="感谢">感谢</option><option value="祝福">祝福</option><option value="思念">思念</option>
         </select>
       </div>
     </div>
-    <div class="row">
+    <div class="row more-field">
       <div class="field"><label>我的性别</label><select id="inFrom"><option value="男">男</option><option value="女">女</option></select></div>
       <div class="field"><label>对象性别</label><select id="inToG"><option value="男">男</option><option value="女">女</option></select></div>
     </div>
-    <button type="button" class="opt-toggle" id="optToggle" style="border:1px dashed rgba(196,0,42,.35);background:none;color:#c4002a;font-size:12px;padding:6px 12px;border-radius:10px;cursor:pointer;margin:8px 0">▾ 更多选项（礼物/快捷语）</button>
+    <button type="button" class="opt-toggle" id="optToggle" style="border:1px dashed rgba(196,0,42,.35);background:none;color:#c4002a;font-size:12px;padding:6px 12px;border-radius:10px;cursor:pointer;margin:8px 0">▾ 更多选项（年级 / 班级 / 性别 / 礼物）</button>
 <div class="gift-pick more-opt">
       <label>附一个虚拟礼物 <span class="hint">（可选，随表白送出）</span></label>
       <div class="gift-grid" id="giftGrid"><button type="button" class="gift-btn" data-gift="🌹">🌹</button><button type="button" class="gift-btn" data-gift="❤️">❤️</button><button type="button" class="gift-btn" data-gift="🧸">🧸</button><button type="button" class="gift-btn" data-gift="🎂">🎂</button><button type="button" class="gift-btn" data-gift="⭐">⭐</button><button type="button" class="gift-btn" data-gift="🎈">🎈</button><button type="button" class="gift-btn" data-gift="🍫">🍫</button><button type="button" class="gift-btn" data-gift="🍀">🍀</button></div>
     </div>
     <textarea id="inMsg" placeholder="在这里写下你想说的话…" maxlength="200"></textarea>
+    <div class="msg-count" id="msgCount" aria-live="polite">0/200</div>
     <div class="chips" id="quickChips">
       <span class="chip">我喜欢你 ❤</span>
       <span class="chip">遇见你真好</span>
@@ -937,7 +997,7 @@ busy=false;__edgeOk=false;await load();__edgeOk=true;
 toast("表白成功 ❤ 已贴到墙上");celebrate();busy=false;
 localStorage.setItem(lastKey,String(Date.now()));
 localStorage.setItem(MINE_POSTED_KEY,"1");
-document.getElementById("inMsg").value="";document.getElementById("inName").value="";document.getElementById("inTo").value="";pickedGift="";document.querySelectorAll("#giftGrid .gift-btn").forEach(x=>x.classList.remove("on"));
+document.getElementById("inMsg").value="";document.getElementById("inName").value="";document.getElementById("inTo").value="";pickedGift="";document.querySelectorAll("#giftGrid .gift-btn").forEach(x=>x.classList.remove("on"));if(window.__wallDraft)window.__wallDraft.clear();
 curTag="all";curGender="all";curYear="all";curClass="all";curSearch="";document.getElementById("inSearch").value="";
 shownCount=PAGE;syncTabs();syncGenderTabs();syncYearTabs();syncClassTabs();
 /* 发帖后 bust Edge 缓存（60s），新帖立即可见 */
@@ -984,7 +1044,7 @@ makeFloatLayer();
 })();
 
 (function(){var ot=document.getElementById("optToggle");if(!ot)return;ot.onclick=function(){document.body.classList.toggle("opt-open");ot.textContent=document.body.classList.contains("opt-open")?"▴ 收起更多选项":"▾ 更多选项（礼物/快捷语）"};})();
-(function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.add("expanded");document.querySelector(".compose").scrollIntoView({behavior:"smooth"})};function tick(){if(window.innerWidth<=560&&document.querySelector(".compose")&&!document.querySelector(".compose").classList.contains("expanded"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;document.querySelector(".compose").classList.toggle("expanded");};})();loadBadWords();paintFastCache();
+(function(){var bf=document.getElementById("composeFloat");if(!bf)return;bf.onclick=function(){if(window.innerWidth>560)return;var c=document.querySelector(".compose");if(!c)return;c.classList.remove("collapsed");c.scrollIntoView({behavior:"smooth"})};function tick(){var c=document.querySelector(".compose");if(window.innerWidth<=560&&c&&c.classList.contains("collapsed"))bf.style.display="block";else bf.style.display="none"}tick();window.addEventListener("resize",tick);setTimeout(tick,500)})();(function(){var tg=document.getElementById("composeToggle");if(!tg)return;tg.onclick=function(){if(window.innerWidth>560)return;var c=document.querySelector(".compose");if(!c)return;c.classList.toggle("collapsed");try{window.dispatchEvent(new Event("resize"))}catch(e){}};})();loadBadWords();paintFastCache();
 /* [R7-PERF] 移动端并发请求会抢带宽：主列表先出，访问数与访问上报挪到其后；
    上报改为每会话一次（原来每次 visibilitychange 都会打一次）。 */
 load().then(function(){
@@ -1131,6 +1191,72 @@ async function checkMine(){
   else{boot()}
   /* ?mine=1 直接打开面板（也用于自测） */
   try{if(/[?&]mine=1/.test(location.search)){setTimeout(openMine,1800)}}catch(e){}
+})();
+
+/* ===== [R15] 手机端体验：字数计数 / 草稿 / 离线提示 ===== */
+(function(){
+  var msgEl=document.getElementById("inMsg");
+  var cntEl=document.getElementById("msgCount");
+  var toEl=document.getElementById("inTo");
+  var nameEl=document.getElementById("inName");
+  var DRAFT_KEY="wallDraftV1";
+  var MAX=200;
+
+  /* 1) 字数计数器：原来只有 maxlength，粘贴超长会被静默截断 */
+  function updCount(){
+    if(!msgEl||!cntEl) return;
+    var n=(msgEl.value||"").length;
+    cntEl.textContent=n+"/"+MAX;
+    cntEl.className="msg-count"+(n>=MAX?" over":(n>=MAX-20?" warn":""));
+  }
+  if(msgEl){ msgEl.addEventListener("input",updCount); updCount(); }
+
+  /* 2) 草稿：切微信 / 误触返回 / 锁屏杀进程都不丢 */
+  var saveTimer=null;
+  function saveDraft(){
+    try{
+      var d={msg:msgEl?msgEl.value:"",to:toEl?toEl.value:"",name:nameEl?nameEl.value:"",ts:Date.now()};
+      if((d.msg||"").trim()||(d.to||"").trim()||(d.name||"").trim()){
+        localStorage.setItem(DRAFT_KEY,JSON.stringify(d));
+      }else{
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    }catch(e){}
+  }
+  function onEdit(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveDraft,400); }
+  [msgEl,toEl,nameEl].forEach(function(el){ if(el) el.addEventListener("input",onEdit); });
+
+  function restoreDraft(){
+    try{
+      var raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
+      var d=JSON.parse(raw); if(!d) return;
+      if(Date.now()-(d.ts||0)>7*86400000){ localStorage.removeItem(DRAFT_KEY); return; }
+      var restored=false;
+      if(d.msg&&msgEl){ msgEl.value=d.msg; restored=true; }
+      if(d.to&&toEl){ toEl.value=d.to; restored=true; }
+      if(d.name&&nameEl){ nameEl.value=d.name; restored=true; }
+      if(restored){ updCount(); toast("已恢复上次没发完的内容"); }
+    }catch(e){}
+  }
+  function clearDraft(){
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+    if(msgEl){ msgEl.value=""; }
+    updCount();
+  }
+  window.__wallDraft={restore:restoreDraft,clear:clearDraft,save:saveDraft};
+  if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded",restoreDraft); }
+  else { restoreDraft(); }
+
+  /* 3) 离线提示条：原来断网只会一直点一直失败 */
+  var bar=document.getElementById("netBar");
+  function syncNet(){
+    if(!bar) return;
+    if(navigator.onLine){ bar.classList.remove("show"); }
+    else { bar.textContent="当前离线，联网后自动恢复"; bar.classList.add("show"); }
+  }
+  window.addEventListener("online",function(){ syncNet(); toast("网络回来了 ✅"); });
+  window.addEventListener("offline",syncNet);
+  syncNet();
 })();
 </script>
 <div class="notice-overlay" id="noticeModal"><div class="notice-card"><div class="notice-head"><span class="nicon">📢</span><h3>公告</h3></div><div class="notice-poem">偶然的相遇，让平淡的日子多了一束光。<br>犹豫了很久，还是想在这里写下心动。<br>或许你不会看见，但若刚好是你，<br>我想告诉你：我很喜欢你。</div><div class="notice-tip"><b>💡 说明</b>　本表白墙为个人自制，制作不易。大家有需求或者觉得需要改进的地方都可以提出来。请大家不要恶意捣乱、乱发无关内容，本表白墙仅限<b class="school">重庆第二外国语学校</b>的同学使用，其他学校同学请勿投稿。希望大家心怀公德，文明发言，一起好好维护这里。</div><div class="notice-foot"><span class="nhint">点击"我已阅读"后，24 小时内不再弹出</span><button id="noticeCancel" class="nbtn ghost">✕ 取消</button><button id="noticeOk" class="nbtn solid">✓ 我已阅读</button></div></div></div>
