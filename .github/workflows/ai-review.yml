@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write   # [R18] 需要把 data/ai-flags.json 提交回仓库
 
 jobs:
   review:
@@ -73,3 +73,18 @@ jobs:
 
           # 手动触发时可选演练
           DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
+
+          # [R18] 默认 flag = 只标记不隐藏；想恢复「超阈值自动隐藏」就设 vars.AI_MODE=hide
+          AI_MODE: ${{ vars.AI_MODE || 'flag' }}
+
+      # [R18] 把风险清单提交回仓库：后台「风险嫌疑」版块直接 fetch 这个文件，
+      #       不需要任何数据库写权限。
+      - name: 提交风险清单
+        run: |
+          if [ ! -f data/ai-flags.json ]; then echo "无风险清单，跳过"; exit 0; fi
+          git config user.name "ai-review-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ai-flags.json
+          if git diff --staged --quiet; then echo "清单无变化，跳过提交"; exit 0; fi
+          git commit -m "chore(ai): 更新风险标记 [skip ci]"
+          git push || echo "推送失败（可能并发），下轮会重试"

@@ -286,6 +286,22 @@ main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
       </section>
     </div>
 
+    <!-- 风险嫌疑（AI 自动标记，人工决定是否屏蔽） -->
+    <div class="panel" data-p="flags">
+      <section>
+        <h2>🚨 风险嫌疑 <span class="hint">AI 自动标记 · 你决定是否屏蔽</span></h2>
+        <div class="note" style="margin-bottom:12px">
+          AI 每 30 分钟自动扫一遍，<b>只标记、不隐藏</b>。下面这些内容目前<b>仍对全校可见</b>；
+          你确认有问题再点「屏蔽」。注意：<b>屏蔽后无法恢复</b>，拿不准就先放着。
+        </div>
+        <div class="filters">
+          <button class="btn sm" onclick="loadFlags()">↻ 重新读取清单</button>
+          <span id="flagInfo" style="font-size:12px;color:var(--sub)"></span>
+        </div>
+        <div id="flags"></div>
+      </section>
+    </div>
+
     <!-- 公告 -->
     <div class="panel" data-p="announce">
       <section>
@@ -380,6 +396,7 @@ const TABS=[
   {id:"review",label:"📷 预审",n:"review",loader:loadReview},
   {id:"reports",label:"⚠️ 举报",n:"reports",loader:loadReports},
   {id:"appeals",label:"📮 申诉",n:"appeals",loader:loadAppeals},
+  {id:"flags",label:"🚨 风险",n:"flags",loader:loadFlags},
   {id:"posts",label:"🗣️ 内容",n:"posts",loader:loadPosts,sep:true},
   {id:"cands",label:"🗳️ 候选",n:"cands",loader:loadCands},
   {id:"announce",label:"📢 公告",n:"announce",loader:loadAnnounce,sep:true},
@@ -766,6 +783,98 @@ async function resolveAppeal(id,action){
   const j=await edge("resolve",{id:id,action:action});busy=false;
   if(j&&j.ok){toast("申诉 #"+id+" 已"+(action==="remove_photo"?"处置":"驳回"));refreshNow();}
   else{toast("处置失败："+((j&&j.error)||"未知"));refreshNow();}
+}
+
+/* ---------- 风险嫌疑（AI 自动标记，人工决定） ----------
+   数据来源：仓库里的 data/ai-flags.json（由 GitHub Actions 巡检写入并提交）。
+   为什么走文件而不是数据库：anon 对 wall 表没有 UPDATE 权限，
+   想落库得改 Edge/RLS，两者都需要 Supabase Dashboard 权限（当前没有）。
+   文件同源，后台直接 fetch 即可，零额外权限。 */
+const CAT_LABEL={none:"其他",pii:"个人信息",abuse:"辱骂攻击",sexual:"性暗示",contact:"联系方式",selfharm:"自伤倾向",spam:"广告诈骗"};
+const FLAG_IGNORE_KEY="wallFlagIgnored";
+function flagIgnoredSet(){
+  try{ return new Set((JSON.parse(localStorage.getItem(FLAG_IGNORE_KEY)||"[]")||[]).map(Number)); }
+  catch(e){ return new Set(); }
+}
+function ignoreFlag(id){
+  try{
+    const s=flagIgnoredSet(); s.add(Number(id));
+    localStorage.setItem(FLAG_IGNORE_KEY, JSON.stringify([...s].slice(-300)));
+  }catch(e){}
+  toast("已标记为误报，不再提醒 #"+id);
+  loadFlags();
+}
+
+async function loadFlags(){
+  const wrap=document.getElementById("flags");
+  if(!wrap)return;
+  wrap.innerHTML='<div class="empty">正在读取风险清单…</div>';
+  const info=document.getElementById("flagInfo");
+  if(info)info.textContent="";
+
+  /* 1) 帖子原文：优先用已有缓存，没有就拉一次 */
+  let posts=D.posts||[];
+  if(!posts.length){
+    const j=await edge("all_posts",{});
+    posts=j&&j.ok?(j.posts||[]):[];
+    if(posts.length)D.posts=posts;
+  }
+
+  /* 2) 风险清单 */
+  let data=null, err="";
+  try{
+    const r=await fetch("data/ai-flags.json?v="+Date.now(),{cache:"no-store"});
+    if(r.ok)data=await r.json();
+    else if(r.status===404)err="还没生成风险清单（等巡检跑完第一轮）";
+    else err="读取失败 HTTP "+r.status;
+  }catch(e){ err="读取失败："+((e&&e.message)||"网络异常"); }
+
+  if(!data){
+    setTabN("flags",0);
+    wrap.innerHTML='<div class="empty">'+esc(err||"暂无风险清单")+'</div>';
+    return;
+  }
+
+  const byId={};
+  posts.forEach(function(p){ byId[Number(p.id)]=p; });
+  const ignored=flagIgnoredSet();
+  const items=(data.items||[]).filter(function(x){
+    const p=byId[Number(x.id)];
+    if(!p)return false;                              // 帖子已删除
+    if((p.status||"ok")!=="ok")return false;         // 已隐藏，不必再判断
+    if(ignored.has(Number(x.id)))return false;       // 人工已判为误报
+    return true;
+  }).sort(function(a,b){ return (b.risk||0)-(a.risk||0); });
+
+  if(info){
+    info.textContent="清单更新于 "+fmtTime(data.updatedAt)+" · 共记录 "+((data.items||[]).length)+" 条 · 待确认 "+items.length+" 条";
+  }
+  setTabN("flags",items.length,true);
+
+  if(!items.length){
+    wrap.innerHTML='<div class="empty">暂无待确认的风险 🎉<br>'+
+      '<span style="font-size:12px">AI 每 30 分钟自动扫一遍；清单更新于 '+esc(fmtTime(data.updatedAt))+'</span></div>';
+    return;
+  }
+
+  wrap.innerHTML="";
+  items.forEach(function(x){
+    const p=byId[Number(x.id)]||{};
+    const pct=Math.round((x.risk||0)*100);
+    const color=pct>=75?"#c4002a":(pct>=45?"#e8590c":"#0f9d63");
+    const div=document.createElement("div");div.className="card";
+    div.innerHTML='<div class="t">#'+Number(x.id)+' '+esc(p.nickname||"匿名")+' → '+esc(p.target_name||"（未指定）")+
+      ' <span class="tag" style="color:'+color+';border-color:'+color+'">风险 '+pct+'%</span>'+
+      ' <span class="tag">'+esc(CAT_LABEL[x.cat]||x.cat||"其他")+'</span></div>'+
+      '<div class="d">「'+esc((p.love_msg||"").slice(0,120))+(((p.love_msg||"").length>120)?"…":"")+'」</div>'+
+      '<div class="meta">'+esc((p.grade_year||"")+"级"+(p.class_no||"")+"班")+' · '+fmtTime(p.created_ts?p.created_ts/1000:(p.created_at||p.created_ts))+' · AI 标记于 '+fmtTime(x.at)+'</div>'+
+      '<div class="acts">'+
+        '<button class="btn warn sm" onclick="hidePost('+Number(x.id)+')">🚫 屏蔽这条</button>'+
+        '<button class="btn sm" onclick="ignoreFlag('+Number(x.id)+')">✅ 误判，忽略</button>'+
+        '<button class="btn sm" onclick="switchPanel(\'posts\')">去看全部内容</button>'+
+      '</div>';
+    wrap.appendChild(div);
+  });
 }
 
 /* ---------- 敏感词（搜索过滤 + 折叠） ---------- */

@@ -18,7 +18,7 @@
  * ---------------------------------------------------------------------------
  */
 
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const {
   SUPABASE_URL,
@@ -40,11 +40,14 @@ const {
 
 const THRESHOLD = Number(RISK_THRESHOLD) || 0.75;
 const LIMIT = Math.min(200, Math.max(1, Number(MAX_ITEMS) || 60));
-/* AUTO_HIDE=0 时「只标记不隐藏」：AI 判定结果仍进报告/邮件，但不调 hide 接口。
-   场景：系统目前没有「恢复」通道，隐藏是单向的（连后台都无法改回可见），
-   若担心概率模型误判后不可逆，可先用此开关把自动隐藏关掉、回到人工确认。 */
+/* [R18] 运行模式：
+   flag（默认）= 只标记。把风险写进 data/ai-flags.json，由后台「风险嫌疑」版块人工决定是否隐藏。
+   hide        = 旧行为，超阈值直接隐藏（不可逆，不推荐）。
+   为什么默认改成 flag：后端没有「恢复」动作，隐藏是单向的，
+   概率模型判错一次就是永久丢失；而是否屏蔽应该由人决定。 */
+const AI_MODE = (process.env.AI_MODE || 'flag').toLowerCase() === 'hide' ? 'hide' : 'flag';
 const autoHideOff = process.env.AUTO_HIDE === '0';
-const isDry = DRY_RUN === '1' || !ADMIN_PWD || autoHideOff;
+const isDry = DRY_RUN === '1' || !ADMIN_PWD || autoHideOff || AI_MODE === 'flag';
 
 /* 只审「新内容」。每 30 分钟把全站重审一遍既慢又费钱，而重复审同一批帖子
    也不会得到不同结论。默认回看 90 分钟 = 3 个周期，漏跑一次也不会遗漏。
@@ -107,6 +110,54 @@ const MODEL_FALLBACKS = ['agnes-3.0-flash', 'agnes-2.5-flash', 'gpt-4o-mini', 'g
 
 function log(...a) {
   console.log(`[${new Date().toISOString()}]`, ...a);
+}
+
+/* [R18] 把风险标记写成仓库里的 data/ai-flags.json。
+   为什么用文件而不是数据库：
+   - 后台与这个站同源，fetch('data/ai-flags.json') 就能读，不需要任何数据库写权限；
+   - 数据库侧 anon 对 wall 表没有 UPDATE 权限，想落库就得改 Edge/RLS，而这两样都需要
+     Supabase Dashboard 权限（当前拿不到）。
+   隐私取舍：文件是公开的，所以只写 {id, risk, cat, at}，
+   **绝不写正文、昵称、对象** —— 后台渲染时再用 id 去 all_posts 里取原文。 */
+function writeFlagFile(items, modelName) {
+  const FILE = 'data/ai-flags.json';
+  const KEEP_DAYS = 7;
+  const MAX_ITEMS = 200;
+
+  let old = { items: [] };
+  try { old = JSON.parse(readFileSync(FILE, 'utf8')); } catch { /* 首次运行没有文件 */ }
+
+  const cutoff = Date.now() - KEEP_DAYS * 86400000;
+  const map = new Map();
+  for (const x of (Array.isArray(old.items) ? old.items : [])) {
+    if (x && x.id && Number(x.at || 0) >= cutoff) map.set(Number(x.id), x);
+  }
+  for (const x of items) {
+    map.set(Number(x.id), {
+      id: Number(x.id),
+      risk: Math.round(Number(x.risk || 0) * 1000) / 1000,
+      cat: String(x.cat || 'none'),
+      at: Date.now(),
+    });
+  }
+
+  const list = [...map.values()].sort((a, b) => b.at - a.at).slice(0, MAX_ITEMS);
+  const out = {
+    updatedAt: new Date().toISOString(),
+    model: modelName || AI_MODEL || '',
+    threshold: THRESHOLD,
+    total: list.length,
+    items: list,
+  };
+  try {
+    mkdirSync('data', { recursive: true });
+    writeFileSync(FILE, JSON.stringify(out, null, 1) + '\n');
+    log(`  📝 风险清单已更新：${list.length} 条 → ${FILE}`);
+    return true;
+  } catch (e) {
+    log(`  ⚠️ 写风险清单失败（不影响本轮判定）：${e.message}`);
+    return false;
+  }
 }
 
 async function postJSON(url, headers, body, timeoutMs = 25000) {
@@ -375,11 +426,13 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 (async () => {
   const provider = await resolveProvider();
   log(`服务商：${provider.name} / 模型：${provider.model}${provider.detected ? '（自动探测）' : ''}`);
-  log(isDry
-    ? (DRY_RUN === '1' ? '⚠️ 演练模式（手动指定 DRY_RUN）：只报告，不隐藏'
-       : autoHideOff ? '⚠️ AUTO_HIDE=0：只标记不隐藏（自动隐藏已关，结果仍进报告/邮件）'
-       : '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）')
-    : `自动隐藏阈值：风险 ≥ ${THRESHOLD}`);
+  log(AI_MODE === 'flag'
+    ? `🟡 只标记模式：风险 ≥ 0.45 写入后台「风险嫌疑」，是否隐藏由人工确认（隐藏阈值 ${THRESHOLD}）`
+    : isDry
+      ? (DRY_RUN === '1' ? '⚠️ 演练模式（手动指定 DRY_RUN）：只报告，不隐藏'
+         : autoHideOff ? '⚠️ AUTO_HIDE=0：只标记不隐藏（自动隐藏已关，结果仍进报告/邮件）'
+         : '⚠️ 演练模式：只报告，不隐藏（未配置 ADMIN_PWD）')
+      : `自动隐藏阈值：风险 ≥ ${THRESHOLD}`);
   await verifyAdmin();
   if (!isDry) log('管理密码校验通过');
 
@@ -447,7 +500,8 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
     const item = { id: p.id, nick: p.nickname, target: p.target_name, msg: p.love_msg, ...res };
     flagged.push(item);
     const canAutoHide = AUTO_HIDE_CATS.includes(res.cat);
-    if (canAutoHide && res.risk >= THRESHOLD) {
+    /* [R18] 默认 flag 模式：只记录，不隐藏。是否屏蔽交给后台人工确认。 */
+    if (AI_MODE === 'hide' && canAutoHide && res.risk >= THRESHOLD) {
       const h = await hidePost(p.id);
       if (h.ok) {
         item.hidden = true;
@@ -457,7 +511,9 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
         log(`  #${p.id} 隐藏失败：${h.raw}`);
       }
     } else {
-      const why = isViolation && !canAutoHide ? '个人信息交人工' : '未达阈值';
+      const why = AI_MODE === 'flag'
+        ? '待人工确认'
+        : (isViolation && !canAutoHide ? '个人信息交人工' : '未达阈值');
       log(`  #${p.id} 风险 ${(res.risk * 100).toFixed(0)}% → 仅标记（${why}）｜[${res.cat}] ${res.reason}`);
     }
   }
@@ -475,6 +531,10 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
   if (skipped) {
     log(`  ⏱ 超出 ${Math.round(BUDGET_MS / 60000)} 分钟预算，${skipped} 条本轮未检查（下轮会先看最新的）`);
   }
+
+  /* [R18] 把本轮风险写进 data/ai-flags.json，供后台「风险嫌疑」版块人工确认。
+     flagged 为空时不写，避免每分钟都产生一次空 commit。 */
+  if (flagged.length) writeFlagFile(flagged, provider.model);
 
   const cands = quotaDead ? [] : await fetchCandidates();
   const candFlagged = [];
