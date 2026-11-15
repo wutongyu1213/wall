@@ -158,6 +158,27 @@ main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 
 /* [R9] 待办数字为 0 时弱化，有数字才抢眼 */
 .tabN.zero{opacity:.45;font-weight:600}
+
+/* ==========================================================================
+   [R16] 后台体验：登录可见密码 / tab 分组 / 隐藏行说明
+   ========================================================================== */
+
+/* 1) 密码「显示/隐藏」眼睛：老师多在手机上输密码，看不到对错很容易反复失败 */
+.pwd-wrap{position:relative}
+.pwd-wrap input{padding-right:52px!important}
+.pwd-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  width:42px;height:42px;border:0;background:transparent;border-radius:10px;
+  font-size:18px;line-height:1;cursor:pointer;color:var(--sub);
+  display:flex;align-items:center;justify-content:center}
+.pwd-eye:active{background:rgba(196,0,42,.08)}
+
+/* 2) tab 分组分隔线：10 个 tab 一条长龙，日常队列与设置混在一起 */
+.tab-sep{flex:0 0 auto;width:1px;height:22px;background:var(--line);
+  align-self:center;margin:0 3px;opacity:.8}
+
+/* 3) 隐藏行说明：让老师一眼知道「这条已经拿不回来了」 */
+.post-hidden-note{font-size:12px;color:#b06a00;background:#fff6e6;border:1px solid #f2d9a8;
+  border-radius:8px;padding:6px 9px;margin-top:6px;line-height:1.6}
 </style>
 <!-- 液态玻璃主题层：放在所有内联样式之后，确保逐层覆盖且不改变布局 -->
 <link rel="stylesheet" href="assets/glass.css?v=1">
@@ -187,7 +208,10 @@ main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
         预审、举报、申诉、删除、清理、敏感词、配额、公告全部由数据库 RPC 执行并写入审计日志，各公开页不再单独提供管理入口。
       </div>
       <label style="font-size:13px;color:var(--sub)">管理密码</label>
-      <input type="password" id="pwd" placeholder="管理密码（≥6 位）" onkeydown="if(event.key==='Enter')login()">
+      <div class="pwd-wrap">
+        <input type="password" id="pwd" placeholder="管理密码（≥6 位）" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+        <button type="button" class="pwd-eye" id="pwdEye" aria-label="显示密码" aria-pressed="false">👁</button>
+      </div>
       <div id="loginErr" style="font-size:12px;color:#c0392b;min-height:16px"></div>
       <button class="btn pri" style="width:100%" onclick="login()">进入后台</button>
     </section>
@@ -349,14 +373,16 @@ let loginFails=0;
 let D={cands:[],posts:[],reports:[],appeals:[],sens:[],log:[],quota:[],review:[],ann:null};
 
 /* ---------- tab 定义（懒加载） ---------- */
+/* [R16] 按「日常队列 / 内容 / 设置」三段重排，段间插分隔线。
+   老师日常只用前 4 个（待办/预审/举报/申诉），原来它们被候选和内容夹在中间。 */
 const TABS=[
   {id:"dash",label:"📌 待办"},
   {id:"review",label:"📷 预审",n:"review",loader:loadReview},
-  {id:"cands",label:"🗳️ 候选",n:"cands",loader:loadCands},
-  {id:"posts",label:"🗣️ 内容",n:"posts",loader:loadPosts},
   {id:"reports",label:"⚠️ 举报",n:"reports",loader:loadReports},
   {id:"appeals",label:"📮 申诉",n:"appeals",loader:loadAppeals},
-  {id:"announce",label:"📢 公告",n:"announce",loader:loadAnnounce},
+  {id:"posts",label:"🗣️ 内容",n:"posts",loader:loadPosts,sep:true},
+  {id:"cands",label:"🗳️ 候选",n:"cands",loader:loadCands},
+  {id:"announce",label:"📢 公告",n:"announce",loader:loadAnnounce,sep:true},
   {id:"sens",label:"🚫 敏感词",n:"sens",loader:loadSens},
   {id:"quota",label:"📈 配额",n:"quota",loader:loadQuota},
   {id:"log",label:"🧾 日志",n:"log",loader:loadLog}
@@ -364,6 +390,7 @@ const TABS=[
 function buildTabs(){
   const wrap=document.getElementById("tabs");wrap.innerHTML="";
   TABS.forEach(function(t,ix){
+    if(t.sep){const sp=document.createElement("span");sp.className="tab-sep";sp.setAttribute("aria-hidden","true");wrap.appendChild(sp);}
     const el=document.createElement("button");
     el.className="tab"+(ix===0?" on":"");el.dataset.p=t.id;
     el.innerHTML=t.label+(t.n?'<span class="n" id="tabN_'+t.n+'">–</span>':'');
@@ -636,7 +663,8 @@ function signPhotosIn(wrap){
 async function loadPosts(){
   const j=await edge("all_posts",{});
   D.posts=j&&j.ok?(j.posts||[]):[];
-  document.getElementById("postN").textContent="共 "+D.posts.length+" 条";
+  const hidN=D.posts.filter(function(w){return (w.status||"ok")!=="ok";}).length;
+  document.getElementById("postN").textContent="共 "+D.posts.length+" 条"+(hidN?"（其中已隐藏 "+hidN+" 条）":"");
   setTabN("posts",D.posts.length);
   renderPosts();
 }
@@ -659,8 +687,9 @@ function renderPosts(){
     div.innerHTML='<div class="t">#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' → '+esc(w.target_name||"（未指定）")+' '+stTag+(w.love_tag?'<span class="tag">'+esc(w.love_tag)+'</span>':'')+'</div>'+
       '<div class="d">「'+esc((w.love_msg||"").slice(0,120))+(((w.love_msg||"").length>120)?"…":"")+'</div>'+
       '<div class="meta">'+esc((w.grade_year||"")+"级"+(w.class_no||"")+"班")+' · '+esc(w.sender_gender||"")+'→'+esc(w.target_gender||"")+' · ❤'+(w.like_count||0)+' · '+fmtTime(w.created_ts?w.created_ts/1000:(w.created_at||w.created_ts))+'</div>'+
+      (stx!=="ok"?'<div class="post-hidden-note">这条已从公开墙移除。<b>当前后台没有「恢复」功能</b>，只能彻底删除。</div>':'')+
       '<div class="acts">'+
-        (stx==="ok"?'<button class="btn sm" onclick="hidePost('+Number(w.id||0)+')">🙈 隐藏</button>':'')+
+        (stx==="ok"?'<button class="btn sm" onclick="hidePost('+Number(w.id||0)+')">🚫 隐藏</button>':'')+
         '<button class="btn dgr sm" onclick="delPost('+Number(w.id||0)+')">🗑 彻底删除</button>'+
       '</div>';
     wrap.appendChild(div);
@@ -860,6 +889,20 @@ async function saveAnnounce(){
   if(j&&j.ok){toast("公告已保存 ✅ 全站即时生效");await loadAnnounce();}
   else toast("保存失败："+((j&&j.error)||"未知"));
 }
+
+/* [R16] 密码「显示 / 隐藏」：手机上输密码看不到对错，很容易反复失败 */
+(function(){
+  var eye=document.getElementById("pwdEye"), pwd=document.getElementById("pwd");
+  if(!eye||!pwd)return;
+  eye.onclick=function(){
+    var show=pwd.type==="password";
+    pwd.type=show?"text":"password";
+    eye.textContent=show?"🙈":"👁";
+    eye.setAttribute("aria-pressed",show?"true":"false");
+    eye.setAttribute("aria-label",show?"隐藏密码":"显示密码");
+    try{pwd.focus()}catch(e){}
+  };
+})();
 
 /* 首屏：登录态不保留（安全），每次刷新重新登录 */
 buildTabs();

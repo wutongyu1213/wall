@@ -482,6 +482,38 @@ body.dark .net-bar{background:#8a0020}
   body.opt-open .more-field{display:block!important}
   body.opt-open .row.more-field{display:flex!important}
 }
+
+/* 7) 举报 / 申请下架的站内弹窗
+      为什么必须换掉原生 prompt：微信 X5 / WKWebView 会禁用 prompt()，
+      返回 null，于是「举报」和「申请下架」两个安全出口在微信里静默失效。 */
+.reason-modal{position:fixed;inset:0;z-index:140;background:rgba(25,10,20,.55);
+  display:none;align-items:flex-end;justify-content:center}
+.reason-modal.show{display:flex}
+@media(min-width:561px){.reason-modal{align-items:center;padding:16px}}
+.reason-box{background:#fff;width:100%;max-width:420px;border-radius:20px 20px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));
+  box-shadow:0 -12px 40px rgba(0,0,0,.25);max-height:86vh;overflow:auto;
+  -webkit-overflow-scrolling:touch;text-align:left}
+@media(min-width:561px){.reason-box{border-radius:20px;padding-bottom:20px}}
+.reason-box h3{margin:0 0 6px;font-size:1.02rem;color:var(--ink)}
+.reason-desc{margin:0 0 14px;font-size:.8rem;color:var(--muted);line-height:1.65}
+.reason-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.reason-opt{min-height:46px;padding:11px 14px;border-radius:12px;border:1px solid #ffd7e0;
+  background:#fff;color:var(--ink);font-size:.92rem;text-align:left;cursor:pointer;
+  transition:.15s;font-family:inherit;line-height:1.4}
+.reason-opt.on{border-color:#c4002a;background:#fff0f4;color:#c4002a;font-weight:700}
+.reason-text{width:100%;min-height:62px;padding:10px 12px;border-radius:12px;
+  border:1px solid #ffd7e0;font-size:16px;font-family:inherit;resize:vertical;
+  background:var(--card);color:var(--ink);box-sizing:border-box}
+.reason-acts{display:flex;gap:10px;margin-top:14px}
+.reason-acts button{flex:1;min-height:48px;border-radius:12px;border:1px solid #ffd7e0;
+  background:#fff;color:var(--ink);font-size:.95rem;cursor:pointer;font-family:inherit}
+.reason-acts button.pri{background:#c4002a;border-color:#c4002a;color:#fff;font-weight:700}
+body.dark .reason-box{background:#1e1519;color:#f6e9ee}
+body.dark .reason-opt{background:#241a1f;border-color:#3a2a32;color:#f6e9ee}
+body.dark .reason-opt.on{background:#3a1520;border-color:#ff8fab;color:#ff8fab}
+body.dark .reason-text{background:#241a1f;border-color:#3a2a32;color:#f6e9ee}
+body.dark .reason-acts button{background:#241a1f;border-color:#3a2a32;color:#f6e9ee}
 </style>
   </head><body>
 <div id="netBar" class="net-bar" role="status" aria-live="polite"></div>
@@ -893,9 +925,106 @@ function bindCardEvents(){
   });
 }
 
-function reportPost(id){var uk=userKey();var ck="wallReport_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}var v=prompt("举报这条（可选填写原因）：");if(v===null)return;localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:v||"举报",p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("举报失败："+r.error.message)}else{toast("已收到举报，管理方会尽快处理 🙏")}}).catch(function(){toast("举报提交失败，稍后再试")})}
+/* [R16] 举报/申诉的站内弹窗。
+   原生 prompt() 在微信内置浏览器（X5 / WKWebView）里被禁用，返回 null，
+   导致「举报」和「申请下架」两个安全出口在主要场景里静默失效。
+   这里换成站内抽屉式单选，触控目标 46px，返回 Promise<string|null>。 */
+function askReason(opt){
+  return new Promise(function(resolve){
+    var m=document.getElementById("reasonModal");
+    if(!m){
+      m=document.createElement("div");
+      m.className="reason-modal"; m.id="reasonModal";
+      m.innerHTML='<div class="reason-box" role="dialog" aria-modal="true" aria-labelledby="reasonTitle">'
+        +'<h3 id="reasonTitle"></h3>'
+        +'<p class="reason-desc" id="reasonDesc"></p>'
+        +'<div class="reason-opts" id="reasonOpts"></div>'
+        +'<textarea id="reasonText" class="reason-text" maxlength="80" placeholder="补充说明（可选，80 字以内）"></textarea>'
+        +'<div class="reason-acts"><button type="button" data-rcancel="1">取消</button><button type="button" class="pri" data-rok="1">提交</button></div>'
+        +'</div>';
+      document.body.appendChild(m);
+    }
+    var optsEl=m.querySelector("#reasonOpts");
+    var textEl=m.querySelector("#reasonText");
+    m.querySelector("#reasonTitle").textContent=opt.title||"";
+    m.querySelector("#reasonDesc").textContent=opt.desc||"";
+    textEl.value="";
+    var pickedIdx=0;
+    optsEl.innerHTML=(opt.choices||[]).map(function(c,i){
+      return '<button type="button" class="reason-opt'+(i===0?" on":"")+'" data-ri="'+i+'">'+esc(c.label)+"</button>";
+    }).join("");
+    m.classList.add("show");
+    try{ document.body.style.overflow="hidden"; }catch(e){}
+    function done(v){
+      m.classList.remove("show");
+      try{ document.body.style.overflow=""; }catch(e){}
+      optsEl.onclick=null;
+      m.querySelector("[data-rcancel]").onclick=null;
+      m.querySelector("[data-rok]").onclick=null;
+      m.onclick=null;
+      resolve(v);
+    }
+    optsEl.onclick=function(e){
+      var b=(e.target&&e.target.closest)?e.target.closest("[data-ri]"):null;
+      if(!b)return;
+      pickedIdx=Number(b.getAttribute("data-ri"))||0;
+      for(var i=0;i<optsEl.children.length;i++){ optsEl.children[i].classList.toggle("on", i===pickedIdx); }
+    };
+    m.querySelector("[data-rcancel]").onclick=function(){done(null)};
+    m.querySelector("[data-rok]").onclick=function(){
+      var base=(opt.choices[pickedIdx]||{}).v||"";
+      var extra=(textEl.value||"").trim();
+      done(extra? (base+"："+extra) : base);
+    };
+    m.onclick=function(e){ if(e.target===m) done(null); };
+  });
+}
+async function reportPost(id){
+  var uk=userKey(); var ck="wallReport_"+uk+"_"+id;
+  var last=parseInt(localStorage.getItem(ck)||"0",10);
+  if((Date.now()-last)/1000<60){toast("这条你最近已举报，稍等 60 秒再试");return}
+  var reason=await askReason({
+    title:"举报这条表白",
+    desc:"选一个原因，管理员会尽快核实。恶意举报会被记录。",
+    choices:[
+      {v:"辱骂或嘲讽同学",label:"辱骂 / 嘲讽同学"},
+      {v:"泄露我的隐私",label:"泄露我的隐私"},
+      {v:"低俗或性暗示",label:"低俗 / 性暗示"},
+      {v:"垃圾广告",label:"垃圾广告"},
+      {v:"其他问题",label:"其他问题"}
+    ]
+  });
+  if(!reason) return;
+  localStorage.setItem(ck,String(Date.now()));
+  try{
+    var r=await sb.rpc("fn_wall_report",{p_wall_id:Number(id),p_reason:reason.slice(0,120),p_user_key:uk||"",p_ip:wallIp()});
+    if(r&&r.error){toast("举报失败："+String(r.error.message||"").slice(0,30))}
+    else{toast("已收到举报，管理方会尽快处理 🙏")}
+  }catch(e){toast("举报提交失败，稍后再试")}
+}
 /* 申请下架：走 fn_wall_appeal(target_kind='wall')，云端受理 + 24h 限流 5 次 + 审计，处置台可处置 */
-function appealPost(id){var uk=userKey();var ck="wallAppeal_"+uk+"_"+id;var last=parseInt(localStorage.getItem(ck)||"0",10);if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}var v=prompt("申请下架这条表白（请填写你的身份，如：我是被表白对象/我本人，申请删除）：");if(v===null)return;var reason=(v&&v.trim()?v.trim():"申请下架").slice(0,120);localStorage.setItem(ck,String(Date.now()));sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason,p_user_key:uk||"",p_ip:wallIp()}).then(function(r){if(r.error){toast("申请未受理："+(r.error.message||"").slice(0,40))}else{toast("已提交下架申请 ✅ 管理员会尽快处置")}}).catch(function(){toast("申请提交失败，稍后再试")})}
+async function appealPost(id){
+  var uk=userKey(); var ck="wallAppeal_"+uk+"_"+id;
+  var last=parseInt(localStorage.getItem(ck)||"0",10);
+  if((Date.now()-last)/1000<120){toast("这条你最近已申请过下架，稍等再试");return}
+  var reason=await askReason({
+    title:"申请下架这条",
+    desc:"说明你的身份，管理员核实后会尽快处理。不会被对方知道是谁申请的。",
+    choices:[
+      {v:"我是被表白的对象",label:"我是被表白的对象"},
+      {v:"我是被写的当事人",label:"我是被写的当事人"},
+      {v:"内容泄露我的隐私",label:"内容泄露我的隐私"},
+      {v:"其他原因",label:"其他原因"}
+    ]
+  });
+  if(!reason) return;
+  localStorage.setItem(ck,String(Date.now()));
+  try{
+    var r=await sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),p_reason:reason.slice(0,120),p_user_key:uk||"",p_ip:wallIp()});
+    if(r&&r.error){toast("申请未受理："+String(r.error.message||"").slice(0,40))}
+    else{toast("已提交下架申请 ✅ 管理员会尽快处置")}
+  }catch(e){toast("申请提交失败，稍后再试")}
+}
 let adminMode=false;let adminPwd="";
 function enterAdmin(){adminMode=true;document.body.classList.add("admin-mode");toast("管理员模式已开启 🛡️");bindAdminDel()}
 /* H1: 进管理前先 prompt 收密码，避免 adminPwd 恒空导致删除必 401 */
