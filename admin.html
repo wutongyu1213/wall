@@ -724,7 +724,7 @@ async function loadReports(){
     div.innerHTML='<div class="t">#'+Number(r.id||0)+' · 举报 表白帖 #'+Number(r.wall_id||0)+' <span class="tag pend">待处理</span></div>'+
       '<div class="d">举报理由：'+esc(r.detail||r.reason||"（未填写）")+'</div>'+
       (w?'<div class="d" style="border-left:3px solid var(--line);padding-left:8px;margin-top:4px">被举报：'+esc(w.target_name||"")+' —「'+esc((w.love_msg||"").slice(0,60))+'」 <span class="tag">当前 '+esc(w.status||"?")+'</span></div>':'<div class="d" style="color:#b58ea0">（被举报帖已不存在，可直接驳回）</div>')+
-      '<div class="acts"><button class="btn sm" onclick="reportRes('+Number(r.id||0)+',\'hide_post\')">🙈 隐藏</button><button class="btn dgr sm" onclick="reportRes('+Number(r.id||0)+',\'delete_post\')">🗑 删除</button><button class="btn sm" onclick="reportRes('+Number(r.id||0)+',\'dismiss\')">驳回</button></div>';
+      '<div class="acts"><button class="btn sm" onclick="reportRes('+Number(r.id||0)+',\'hide_post\')">🚫 隐藏</button><button class="btn dgr sm" onclick="reportRes('+Number(r.id||0)+',\'delete_post\')">🗑 删除</button><button class="btn sm" onclick="reportRes('+Number(r.id||0)+',\'dismiss\')">驳回</button></div>';
     wrap.appendChild(div);
   });
 }
