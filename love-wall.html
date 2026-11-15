@@ -517,7 +517,7 @@ body.dark .reason-acts button{background:#241a1f;border-color:#3a2a32;color:#f6e
 </style>
   </head><body>
 <div id="netBar" class="net-bar" role="status" aria-live="polite"></div>
-<nav class="nav"><div class="nav-in"><span class="brand"><img class="brand-ico" src="icon-48.png" alt="重庆第二外国语学校"> 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a></div></nav>
+<nav class="nav"><div class="nav-in"><span class="brand"><img class="brand-ico" src="icon-48.png" alt="重庆第二外国语学校"> 校园墙<small>· 重庆第二外国语学校</small></span><a class="nl" href="index.html">🏠 总入口</a><a class="nl" href="xiaohua-wall.html">🌸 校花</a><a class="nl" href="xiaocao-wall.html">🌿 校草</a><a class="nl cur" href="love-wall.html">❤️ 表白</a><a class="nl" href="lost-found.html">🔍 寻物</a></div></nav>
 
 <div class="love-float" id="floatLayer"></div>
 <div class="wrap">
@@ -716,7 +716,7 @@ function paintFastCache(){
     const o=JSON.parse(raw);
     if(!o||!Array.isArray(o.wall)||!o.wall.length)return false;
     if(Date.now()-(o.ts||0)>FAST_TTL)return false;
-    wall=o.wall;
+    wall=o.wall.filter(function(x){return !x||LOST_TAGS.indexOf(x.tag)<0});
     render();
     return true;
   }catch(e){ return false; }
@@ -756,16 +756,20 @@ async function wallSrc(){
 }
 /* 两张源都有的列，避免 select(*) 把 user_key/semantic_review 也拉下来 */
 var WALL_COLS="id,nickname,target_name,grade_year,class_no,love_tag,sender_gender,target_gender,love_msg,like_count,dislike_count,gift,created_ts";
+/* 寻物启事与表白共用 wall 表（love_tag = 寻物 / 招领，见 sql/05-寻物启事.sql）。
+   表白墙必须把这两类过滤掉，否则寻物帖会混进表白流、还会被按性别分组。 */
+var LOST_TAGS=["寻物","招领"];
+function isLostRow(r){return !!r&&LOST_TAGS.indexOf(r.love_tag)>=0}
 
 async function load(){if(busy)return;busy=true;const lim=shownCount>=PAGE?500:30;
 if(__edgeOk){try{const j=await edgeFetch(lim);
-wall=(j.wall||[]).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
+wall=(j.wall||[]).filter(r=>!isLostRow(r)).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));
 /* gifts：按 wall 去重合并（poll 会反复下发同一礼物，直接 push 会让"N人"虚增） */
 (j.gifts||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});
 /* 黑名单不再下发给客户端（安全：过滤只在服务端做；失败静默，用内置列表做本地预检） */
 const vse=document.getElementById("stVisit");if(vse&&j.visitCount!=null)vse.textContent=j.visitCount;
 busy=false;await refreshVisibleCounts();saveFastCache();render();return;}catch(e){__edgeOk=false;console.log("edge fallback:",e&&e.message)}}
-const {data,error}=await sb.from(await wallSrc()).select(WALL_COLS).order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);(gq.data||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});saveFastCache();render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
+const {data,error}=await sb.from(await wallSrc()).select(WALL_COLS).order("created_ts",{ascending:false}).limit(lim);busy=false;if(error){console.error(error);loadState("加载失败，点击重试",false);document.getElementById("loadState").onclick=load}else if(data){wall=data.filter(r=>!isLostRow(r)).map(r=>({id:r.id,name:r.nickname||"匿名",to:r.target_name||"心里的那个人",year:r.grade_year||"2027",cls:r.class_no||"1",tag:r.love_tag||"喜欢",fromG:r.sender_gender||"男",toG:r.target_gender||"男",msg:r.love_msg||"",likes:r.like_count||0,ts:r.created_ts||Date.now(),anon:r.nickname=="",gift:r.gift||"",dislikes:r.dislike_count||0}));const gq=await sb.from("card_gifts").select("wall_id,gift").limit(500);(gq.data||[]).forEach(x=>{var arr=(giftByWall[x.wall_id]=giftByWall[x.wall_id]||[]);if(arr.indexOf(x.gift)<0)arr.push(x.gift)});saveFastCache();render()}else{loadState("这里还没有表白，快写下第一条吧",false)}}
 /* 修复 C：统计"署名的人"只算有昵称的，匿名不算重名 */
 function stats(){document.getElementById("stMsg").textContent=wall.length;document.getElementById("stPeople").textContent=new Set(wall.filter(x=>x.name&&x.name!=="匿名"&&x.name!=="神秘人").map(x=>x.name)).size;document.getElementById("stLove").textContent=wall.reduce((a,b)=>a+(b.likes||0),0)}
 async function loadVisits(){try{const {data}=await sb.from("visit_counter").select("total").limit(1);const v=(data&&data[0])?data[0].total:0;document.getElementById("stVisit").textContent=v}catch(e){try{const {count}=await sb.from("visits").select("id",{count:"exact",head:true});document.getElementById("stVisit").textContent=(count||0)}catch(_){}}}
@@ -1117,6 +1121,9 @@ await ensureBadWords();const allText=name+" "+to+" "+msg;if(!passFilter(allText)
 const uk=userKey();const lastKey="wallLastPost_"+uk;const lastTs=parseInt(localStorage.getItem(lastKey)||"0",10);
 const elapsed=(Date.now()-lastTs)/1000;
 if(elapsed<POST_MIN_INTERVAL){toast("发布太快，请 "+Math.ceil(POST_MIN_INTERVAL-elapsed)+" 秒后再试");return}
+/* 防连点：busy 要等两次 await（敏感词/提交）之后才置位，这段时间双击会发两条。
+   线上实测 id 119→120 间隔 0 秒。闸门放在校验之后，不误伤"改完错别字再点一次"。 */
+if(Date.now()-(window.__lastPostTry||0)<3000)return;window.__lastPostTry=Date.now();
 busy=true;
 const postRes=await sb.rpc("fn_wall_post",{p_target:to,p_msg:msg,p_nick:name,p_sender_gender:fromG,p_target_gender:toG,p_grade_year:year,p_class_no:cls,p_love_tag:tag,p_user_key:uk||"",p_anon:(name===""),p_gift:(typeof pickedGift!=="undefined")?pickedGift:"",p_ip:wallIp()});
 if(postRes.error){const m=postRes.error.message||"";if(/sensitive|semantic_blocked/i.test(m)){toast("内容含不当信息（敏感词 / 联系方式 / 变体粗口），请修改后重发")}else if(/rate_limit/i.test(m)){toast("发送过快，请稍候")}else if(/wall_not_found/i.test(m)){toast("目标不存在")}else{toast("发布失败："+m)}busy=false;return}
@@ -1282,10 +1289,10 @@ async function fetchMine(){
   var uk=userKey();
   if(!uk) return {rows:[],err:"这台设备没有身份标识"};
   try{
-    var q=await sb.from("wall").select("id,love_msg,target_name,status,created_ts,semantic_review")
+    var q=await sb.from("wall").select("id,love_msg,target_name,status,created_ts,semantic_review,love_tag")
       .eq("user_key",uk).order("created_ts",{ascending:false}).limit(30);
     if(q&&q.error) return {rows:[],err:String(q.error.message||"读取失败").slice(0,40)};
-    return {rows:(q&&q.data)||[]};
+    return {rows:((q&&q.data)||[]).filter(function(r){return !isLostRow(r)})};
   }catch(e){return {rows:[],err:String((e&&e.message)||"读取失败").slice(0,40)}}
 }
 async function openMine(){

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="icon-48.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0e9f6e">
+  <link rel="apple-touch-icon" href="icon-apple-180.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="寻物启事">
+  <script src="assets/pwa.js?v=8"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="preconnect" href="https://dpceuvqtwvhoipxhozxz.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://dpceuvqtwvhoipxhozxz.supabase.co">
+<title>寻物启事 · 重庆第二外国语学校校园墙</title>
+<meta name="description" content="重庆第二外国语学校 · 寻物启事：丢了东西、捡到东西都贴这里，全校可见">
+<meta property="og:type" content="website">
+<meta property="og:title" content="寻物启事 · 重庆第二外国语学校校园墙">
+<meta property="og:description" content="丢了东西 / 捡到东西 · 贴在这里，全校都能看到">
+<meta property="og:image" content="https://wutongyu1213.github.io/wall/icon-512.png">
+<meta property="og:url" content="https://wutongyu1213.github.io/wall/lost-found.html">
+<meta property="og:site_name" content="重庆二外 · 校园墙">
+<meta name="twitter:card" content="summary_large_image">
+<script src="assets/supabase.js?v=1"></script>
+<script src="assets/device-fp.js?v=2"></script>
+<script>if(typeof window.supabase==="undefined"){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');}</script>
+<script src="assets/announce.js?v=2"></script>
+<style>
+:root{
+  --ink:#16291f;--muted:#5f7a6e;--line:#d5ebe0;--line-soft:#e6f4ec;
+  --acc:#0e9f6e;--acc-d:#0a7c56;--acc-bg:#e8f8f1;
+  --amber:#b06a00;--amber-bg:#fff6e6;
+  --rose:#c4002a;--rose-bg:#ffeff2;
+  --card:#fff;--bg1:#f2fbf7;--bg2:#e8f7ef;--bg3:#f7fdf9;
+  --shadow:0 8px 24px rgba(14,159,110,.10);
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+  background:radial-gradient(1100px 520px at 85% -10%,rgba(14,159,110,.14),transparent 60%),
+             radial-gradient(900px 460px at -10% 15%,rgba(255,196,88,.16),transparent 60%),
+             linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));}
+body.dark{--ink:#e7f3ec;--muted:#a7c3b6;--card:#132420;--bg1:#0b1714;--bg2:#102420;--bg3:#0d1b17;--line:#22443a;--line-soft:#1b352d;--acc-bg:#123b2e;--amber-bg:#2e2515;--rose-bg:#2e1a1e;--shadow:0 8px 24px rgba(0,0,0,.5)}
+
+/* 离线提示条 */
+.netbar{position:fixed;left:0;right:0;top:0;z-index:90;background:#b3261e;color:#fff;text-align:center;
+  font-size:13px;line-height:34px;transform:translateY(-100%);transition:transform .25s;padding:0 12px}
+.netbar.show{transform:translateY(0)}
+.netbar.ok{background:#0e9f6e}
+
+/* 导航 */
+.nav{position:sticky;top:0;z-index:60;background:rgba(247,253,249,.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-soft)}
+body.dark .nav{background:rgba(13,27,23,.9)}
+.nav-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none}
+.nav-in::-webkit-scrollbar{display:none}
+.brand{display:flex;align-items:center;gap:7px;font-weight:800;font-size:15px;white-space:nowrap;margin-right:4px}
+.brand img{width:22px;height:22px;border-radius:50%;object-fit:cover}
+.brand small{font-weight:500;font-size:11px;color:var(--muted)}
+.nl{white-space:nowrap;font-size:13px;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:999px;font-weight:700}
+.nl:hover{color:var(--acc-d);background:var(--acc-bg)}
+.nl.cur{color:#fff;background:var(--acc)}
+
+.wrap{max-width:760px;margin:0 auto;padding:18px 14px 64px}
+.hero{margin:6px 0 16px}
+.hero h1{font-size:27px;letter-spacing:-.5px}
+.hero .sub{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.7}
+
+/* 未开通 */
+.notready{background:var(--amber-bg);border:1px solid #f0d9a8;border-radius:var(--radius);
+  padding:16px 16px 14px;margin-bottom:14px;font-size:13px;line-height:1.8;color:#6b4a00}
+body.dark .notready{border-color:#4a3a17;color:#f0d9a8}
+.notready b{display:block;font-size:15px;margin-bottom:6px}
+.notready code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:5px;font-size:12px}
+.notready ol{margin:8px 0 0 18px}
+.notready li{margin:3px 0}
+
+/* 发布区 */
+.compose{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;
+  box-shadow:var(--shadow);margin-bottom:16px}
+.kindtabs{display:flex;gap:8px;margin-bottom:14px}
+.kt{flex:1;min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:14px;
+  font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit}
+body.dark .kt{background:var(--card);color:var(--muted)}
+.kt.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.field{display:block;margin-bottom:12px}
+.field>span{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:700;
+  color:var(--muted);margin-bottom:6px}
+.field>span b{color:var(--rose)}
+.field>span i{font-style:normal;font-weight:600;font-size:11.5px;color:var(--muted)}
+.field input,.field textarea{width:100%;font-family:inherit;font-size:15px;color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 12px;outline:none}
+body.dark .field input,body.dark .field textarea{background:#0f201b;color:var(--ink)}
+.field input:focus,.field textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(14,159,110,.14)}
+.field textarea{min-height:78px;resize:vertical;line-height:1.65}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.row2{grid-template-columns:1fr}}
+.tip{font-size:12px;color:var(--muted);line-height:1.7;margin:-2px 0 12px}
+.submit{width:100%;min-height:50px;border:0;border-radius:14px;background:var(--acc);color:#fff;
+  font-size:16px;font-weight:800;font-family:inherit;cursor:pointer}
+.submit:active{transform:scale(.99)}
+.submit[disabled]{opacity:.55;cursor:not-allowed}
+.submit.busy{opacity:.7}
+
+/* 工具条 */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{min-height:40px;padding:0 14px;border:1px solid var(--line);background:#fff;border-radius:999px;
+  font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit}
+body.dark .tab{background:var(--card)}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.search{flex:1;min-width:150px;min-height:40px;border:1px solid var(--line);border-radius:999px;
+  padding:0 14px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);outline:none}
+body.dark .search{background:var(--card)}
+.search:focus{border-color:var(--acc)}
+
+/* 列表 */
+.list{display:grid;gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+.item.done{opacity:.72}
+.itop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.3px}
+.badge.lost{background:var(--rose-bg);color:var(--rose)}
+.badge.found{background:var(--acc-bg);color:var(--acc-d)}
+.badge.done{background:#eef1ef;color:#6b7d74}
+body.dark .badge.done{background:#22302b;color:#a9bdb4}
+.item .time{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.item h3{font-size:16.5px;line-height:1.45;margin-bottom:5px}
+.item .meta{font-size:12.5px;color:var(--muted);margin-bottom:5px}
+.item .desc{font-size:14px;line-height:1.72;white-space:pre-wrap;word-break:break-word;margin-bottom:7px}
+.item .contact{font-size:13px;background:var(--acc-bg);color:var(--acc-d);border-radius:10px;
+  padding:8px 11px;line-height:1.6;word-break:break-word}
+.item .acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.mini{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:#fff;
+  font-size:12.5px;font-weight:700;color:var(--muted);font-family:inherit;cursor:pointer}
+body.dark .mini{background:var(--card)}
+.mini.ok{border-color:#bfe6d6;color:var(--acc-d);background:var(--acc-bg)}
+.mini.dgr{border-color:#f2c9d0;color:var(--rose);background:var(--rose-bg)}
+
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:44px 16px;line-height:1.9}
+.empty .big{font-size:34px;display:block;margin-bottom:8px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:rgba(22,41,31,.94);
+  color:#fff;font-size:13.5px;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;
+  transition:.25s;z-index:120;max-width:86vw;text-align:center;line-height:1.5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:820px){.field input,.field textarea,.search{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="netbar" id="netBar">当前离线 · 联网后自动恢复</div>
+
+<nav class="nav"><div class="nav-in">
+  <span class="brand"><img class="brand-ico" src="icon-48.png" alt="重庆第二外国语学校"> 校园墙<small>· 重庆二外</small></span>
+  <a class="nl" href="index.html">🏠 总入口</a>
+  <a class="nl" href="love-wall.html">❤️ 表白</a>
+  <a class="nl cur" href="lost-found.html">🔍 寻物</a>
+  <a class="nl" href="xiaohua-wall.html">🌸 校花</a>
+  <a class="nl" href="xiaocao-wall.html">🌿 校草</a>
+</div></nav>
+
+<main class="wrap">
+  <header class="hero">
+    <h1>寻物启事</h1>
+    <p class="sub">丢了东西、捡到东西，都贴在这里 · 全校可见 · 找到后记得标记「已找到」</p>
+  </header>
+
+  <section class="notready" id="notReady" hidden>
+    <b>这个功能还没开通</b>
+    页面已经做好了，但数据库里还缺一个写入函数，所以现在发不出去。<br>
+    管理员按下面三步操作，约 3 分钟，开通后这段提示会自动消失：
+    <ol>
+      <li>打开 Supabase Dashboard → <code>SQL Editor</code></li>
+      <li>把仓库里 <code>sql/05-寻物启事.sql</code> 全文粘贴进去</li>
+      <li>点 <code>Run</code>，然后刷新本页</li>
+    </ol>
+  </section>
+
+  <section class="compose">
+    <div class="kindtabs" role="tablist" aria-label="启事类型">
+      <button type="button" class="kt on" data-kind="寻物" role="tab" aria-selected="true">🔍 我丢了东西</button>
+      <button type="button" class="kt" data-kind="招领" role="tab" aria-selected="false">🙌 我捡到东西</button>
+    </div>
+
+    <div class="row2">
+      <label class="field"><span>物品名称 <b>*</b></span>
+        <input id="inItem" maxlength="20" placeholder="如：绿色藤编钱包" autocomplete="off"></label>
+      <label class="field"><span>地点</span>
+        <input id="inPlace" maxlength="30" placeholder="如：小雅堂四楼" autocomplete="off"></label>
+    </div>
+
+    <label class="field"><span>补充说明 <i id="cntDesc">0/140</i></span>
+      <textarea id="inDesc" maxlength="140" placeholder="颜色、特征、大概什么时候丢的…"></textarea></label>
+
+    <label class="field"><span>怎么联系 / 到哪里认领</span>
+      <input id="inContact" maxlength="60" placeholder="建议写「到 6 班找某某」或「交到门卫室」" autocomplete="off"></label>
+
+    <label class="field"><span>你的昵称（可留空）</span>
+      <input id="inNick" maxlength="8" placeholder="留空显示「匿名」" autocomplete="off"></label>
+
+    <p class="tip">🔒 这里填的内容全校都能看到。手机号也会公开，建议写班级或「交到某处」，不必留电话。</p>
+    <button type="button" class="submit" id="btnPost">发布</button>
+  </section>
+
+  <div class="toolbar">
+    <div class="tabs" role="tablist" aria-label="筛选">
+      <button type="button" class="tab on" data-f="all" role="tab" aria-selected="true">全部</button>
+      <button type="button" class="tab" data-f="寻物" role="tab" aria-selected="false">寻物</button>
+      <button type="button" class="tab" data-f="招领" role="tab" aria-selected="false">招领</button>
+      <button type="button" class="tab" data-f="found" role="tab" aria-selected="false">已找到</button>
+    </div>
+    <input class="search" id="inSearch" type="search" placeholder="🔍 搜物品、地点、描述" aria-label="搜索寻物启事">
+  </div>
+
+  <div class="list" id="list" aria-live="polite"></div>
+  <div class="empty" id="empty" hidden></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var URL="https://dpceuvqtwvhoipxhozxz.supabase.co";
+  var KEY="sb_publishable_lgsJvhLEHOG9oM1aXH7y1A_pgdmezyA";
+  var sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(URL,KEY):null;
+
+  var READY=false, ITEMS=[], FILTER="all", Q="", KIND="寻物", BUSY=false;
+  var DRAFT_KEY="lostDraftV1";
+
+  function $(id){return document.getElementById(id);}
+  function esc(s){
+    return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  var toastTimer=null;
+  function toast(t){
+    var el=$("toast");el.textContent=t;el.classList.add("show");
+    clearTimeout(toastTimer);toastTimer=setTimeout(function(){el.classList.remove("show");},2600);
+  }
+  function userKey(){
+    try{
+      if(window.__wallDevice&&typeof window.__wallDevice.id==="function"){
+        var v=window.__wallDevice.id(); if(v) return v;
+      }
+    }catch(e){}
+    try{
+      var k=localStorage.getItem("wallUserKey");
+      if(!k){k="u"+Math.random().toString(16).slice(2,10);localStorage.setItem("wallUserKey",k);}
+      return k;
+    }catch(e){return "u0";}
+  }
+  function timeAgo(ms){
+    var d=Date.now()-Number(ms||0);
+    if(!isFinite(d)||d<0)return "刚刚";
+    var m=Math.floor(d/60000);
+    if(m<1)return "刚刚";
+    if(m<60)return m+" 分钟前";
+    var h=Math.floor(m/60);
+    if(h<24)return h+" 小时前";
+    var day=Math.floor(h/24);
+    if(day<7)return day+" 天前";
+    var dt=new Date(Number(ms));
+    return (dt.getMonth()+1)+" 月 "+dt.getDate()+" 日";
+  }
+
+  /* ---------- 状态：离线 ---------- */
+  function netTick(){
+    var bar=$("netBar");
+    if(!bar)return;
+    if(navigator.onLine===false){bar.textContent="当前离线 · 联网后自动恢复";bar.className="netbar show";}
+    else{bar.className="netbar";}
+  }
+  window.addEventListener("offline",function(){netTick();});
+  window.addEventListener("online",function(){
+    var bar=$("netBar");bar.textContent="网络回来了";bar.className="netbar show ok";
+    setTimeout(function(){netTick();},1800);
+    load();
+  });
+
+  /* ---------- 草稿：切微信 / 锁屏都不丢 ---------- */
+  var draftTimer=null;
+  function saveDraft(){
+    try{
+      var d={item:$("inItem").value,place:$("inPlace").value,desc:$("inDesc").value,
+             contact:$("inContact").value,nick:$("inNick").value,kind:KIND,ts:Date.now()};
+      if(!d.item&&!d.desc&&!d.contact){localStorage.removeItem(DRAFT_KEY);return;}
+      localStorage.setItem(DRAFT_KEY,JSON.stringify(d));
+    }catch(e){}
+  }
+  function queueDraft(){clearTimeout(draftTimer);draftTimer=setTimeout(saveDraft,400);}
+  function restoreDraft(){
+    try{
+      var raw=localStorage.getItem(DRAFT_KEY);
+      if(!raw)return false;
+      var d=JSON.parse(raw);
+      if(!d||(Date.now()-d.ts)>7*86400000){localStorage.removeItem(DRAFT_KEY);return false;}
+      $("inItem").value=d.item||"";$("inPlace").value=d.place||"";
+      $("inDesc").value=d.desc||"";$("inContact").value=d.contact||"";$("inNick").value=d.nick||"";
+      if(d.kind==="招领")setKind("招领");
+      countDesc();
+      return true;
+    }catch(e){return false;}
+  }
+  function clearDraft(){try{localStorage.removeItem(DRAFT_KEY);}catch(e){}}
+
+  /* ---------- 字数 ---------- */
+  function countDesc(){
+    var n=$("inDesc").value.length, el=$("cntDesc");
+    el.textContent=n+"/140";
+    el.style.color = n>=140 ? "var(--rose)" : (n>=120 ? "var(--amber)" : "");
+  }
+
+  /* ---------- 类型切换 ---------- */
+  function setKind(k){
+    KIND=k;
+    var btns=document.querySelectorAll(".kt");
+    for(var i=0;i<btns.length;i++){
+      var on=btns[i].getAttribute("data-kind")===k;
+      btns[i].classList.toggle("on",on);
+      btns[i].setAttribute("aria-selected",on?"true":"false");
+    }
+    $("btnPost").textContent = k==="寻物" ? "发布寻物启事" : "发布招领启事";
+    saveDraft();
+  }
+
+  /* ---------- 渲染 ---------- */
+  function visible(){
+    return ITEMS.filter(function(x){
+      if(FILTER==="found"){ if(x.lost!=="found")return false; }
+      else if(FILTER!=="all"){ if(x.tag!==FILTER)return false; }
+      if(!Q)return true;
+      var m=x.meta||{};
+      var hay=(x.nick+" "+x.tag+" "+(m.item||"")+" "+(m.place||"")+" "+(m.desc||"")+" "+(m.contact||"")).toLowerCase();
+      return hay.indexOf(Q)>=0;
+    });
+  }
+  function render(){
+    var list=$("list"), empty=$("empty");
+    var rows=visible();
+    if(!rows.length){
+      list.innerHTML="";
+      empty.hidden=false;
+      if(!READY){
+        empty.innerHTML='<span class="big">🔧</span>功能还没开通<br><span style="font-size:12.5px">开通后这里会显示全校的寻物启事</span>';
+      }else if(ITEMS.length===0){
+        empty.innerHTML='<span class="big">🌱</span>还没有人贴寻物启事<br><span style="font-size:12.5px">你可以贴第一条</span>';
+      }else{
+        empty.innerHTML='<span class="big">🔍</span>这个筛选下没有内容<br><span style="font-size:12.5px">换个筛选或清空搜索试试</span>';
+      }
+      return;
+    }
+    empty.hidden=true;
+    var h="";
+    for(var i=0;i<rows.length;i++){
+      var x=rows[i], m=x.meta||{};
+      var done=x.lost==="found";
+      h+='<article class="item'+(done?' done':'')+'">'+
+        '<div class="itop">'+
+          '<span class="badge '+(x.tag==="寻物"?"lost":"found")+'">'+(x.tag==="寻物"?"寻物":"招领")+'</span>'+
+          (done?'<span class="badge done">已找到</span>':'')+
+          '<span class="time">'+esc(timeAgo(x.ts))+'</span>'+
+        '</div>'+
+        '<h3>'+esc(m.item||"（未填物品）")+'</h3>'+
+        (m.place?'<div class="meta">📍 '+esc(m.place)+'</div>':'')+
+        (m.desc?'<div class="desc">'+esc(m.desc)+'</div>':'')+
+        (m.contact?'<div class="contact">📮 '+esc(m.contact)+'</div>':'')+
+        '<div class="meta" style="margin-top:8px">发布者：'+esc(x.nick||"匿名")+'</div>'+
+        (x.mine&&!done?'<div class="acts"><button type="button" class="mini ok" data-done="'+Number(x.id)+'">✅ 我已经找到了</button>'+
+          '<button type="button" class="mini dgr" data-del="'+Number(x.id)+'">申请删除</button></div>':'')+
+        (x.mine&&done?'<div class="acts"><button type="button" class="mini dgr" data-del="'+Number(x.id)+'">申请删除</button></div>':'')+
+      '</article>';
+    }
+    list.innerHTML=h;
+  }
+
+  /* ---------- 数据 ---------- */
+  function probeReady(){
+    return sb.rpc("fn_lost_ready").then(function(r){
+      READY=!r.error;
+      $("notReady").hidden=READY;
+      $("btnPost").disabled=!READY;
+      return READY;
+    }).catch(function(){ READY=false;$("notReady").hidden=false;$("btnPost").disabled=true;return false; });
+  }
+  function load(){
+    if(!sb)return Promise.resolve();
+    return sb.rpc("fn_lost_list",{p_limit:120,p_user_key:userKey()}).then(function(r){
+      if(r.error){ ITEMS=[]; render(); return; }
+      ITEMS=(r.data||[]).map(function(x){
+        return {id:x.id,nick:x.nick,tag:x.tag,lost:x.lost,meta:x.meta||{},ts:x.ts,mine:!!x.mine};
+      });
+      render();
+    }).catch(function(){ ITEMS=[]; render(); });
+  }
+
+  /* ---------- 发布 ---------- */
+  function post(){
+    if(BUSY)return;
+    if(!READY){toast("功能还没开通，先让管理员执行 sql/05-寻物启事.sql");return;}
+    var item=$("inItem").value.trim();
+    var place=$("inPlace").value.trim();
+    var desc=$("inDesc").value.trim();
+    var contact=$("inContact").value.trim();
+    var nick=$("inNick").value.trim();
+    if(!item){ toast(KIND==="寻物"?"请填丢的是什么":"请填捡到了什么"); $("inItem").focus(); return; }
+    if(desc.length>140){ toast("补充说明不能超过 140 字"); $("inDesc").focus(); return; }
+
+    BUSY=true;
+    var btn=$("btnPost"); btn.disabled=true; btn.classList.add("busy"); btn.textContent="发布中…";
+    sb.rpc("fn_lost_post",{
+      p_kind:KIND,p_item:item,p_place:place,p_desc:desc,p_contact:contact,
+      p_nick:nick,p_user_key:userKey(),p_ip:null
+    }).then(function(r){
+      if(r.error){ toast("发布失败："+(r.error.message||"稍后再试")); return; }
+      var d=r.data||{};
+      if(d.ok){
+        toast("已发布 ✅ 全校现在能看到了");
+        $("inItem").value="";$("inPlace").value="";$("inDesc").value="";$("inContact").value="";
+        countDesc(); clearDraft();
+        return load();
+      }
+      var msg={kind_invalid:"类型不对",item_required:"物品名称必填",item_too_long:"物品名称太长",
+        place_too_long:"地点太长",desc_too_long:"补充说明太长",contact_too_long:"联系方式太长",
+        nick_too_long:"昵称太长",user_key_required:"设备身份缺失，请刷新页面",
+        too_fast:"发得太快了，等 "+(d.wait||60)+" 秒再试"}[d.error]||("发布失败："+d.error);
+      toast(msg);
+    }).catch(function(){ toast("发布失败，检查网络后重试"); })
+      .then(function(){
+        BUSY=false; btn.disabled=!READY; btn.classList.remove("busy");
+        btn.textContent=KIND==="寻物"?"发布寻物启事":"发布招领启事";
+      });
+  }
+
+  /* ---------- 标记已找到 / 申请删除 ---------- */
+  function markFound(id){
+    sb.rpc("fn_lost_resolve",{p_id:id,p_user_key:userKey()}).then(function(r){
+      if(r.error){toast("操作失败："+(r.error.message||"稍后再试"));return;}
+      var d=r.data||{};
+      if(d.ok){ toast("已标记为找到 🎉"); return load(); }
+      toast(d.error==="not_yours_or_missing"?"只能标记自己发的启事":"操作失败");
+    }).catch(function(){toast("操作失败，检查网络");});
+  }
+  function appealDelete(id){
+    if(!window.confirm("申请删除这条？管理员确认后才会真正删除。"))return;
+    sb.rpc("fn_wall_appeal",{p_target_kind:"wall",p_target_id:Number(id),
+      p_reason:"寻物启事发布者申请删除",p_user_key:userKey(),p_ip:null}).then(function(r){
+      if(r.error){toast("提交失败："+(r.error.message||""));return;}
+      toast("已提交删除申请，管理员会尽快处理");
+    }).catch(function(){toast("提交失败，检查网络");});
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  $("btnPost").onclick=post;
+  $("inDesc").oninput=function(){countDesc();queueDraft();};
+  ["inItem","inPlace","inContact","inNick"].forEach(function(id){
+    $(id).oninput=queueDraft;
+  });
+  var kts=document.querySelectorAll(".kt");
+  for(var i=0;i<kts.length;i++){
+    kts[i].onclick=function(){setKind(this.getAttribute("data-kind"));};
+  }
+  var tabs=document.querySelectorAll(".tab");
+  for(var j=0;j<tabs.length;j++){
+    tabs[j].onclick=function(){
+      FILTER=this.getAttribute("data-f");
+      for(var k=0;k<tabs.length;k++){
+        var on=tabs[k]===this;
+        tabs[k].classList.toggle("on",on);
+        tabs[k].setAttribute("aria-selected",on?"true":"false");
+      }
+      render();
+    };
+  }
+  $("inSearch").oninput=(function(){
+    var t=null;
+    return function(){
+      clearTimeout(t);
+      var v=this.value.trim().toLowerCase();
+      t=setTimeout(function(){Q=v;render();},150);
+    };
+  })();
+
+  $("list").addEventListener("click",function(e){
+    var t=e.target;
+    if(!t||!t.getAttribute)return;
+    var d=t.getAttribute("data-done"), x=t.getAttribute("data-del");
+    if(d){ markFound(Number(d)); return; }
+    if(x){ appealDelete(Number(x)); }
+  });
+
+  /* ---------- 启动 ---------- */
+  if(!sb){
+    $("notReady").hidden=false;
+    $("notReady").innerHTML='<b>页面没能加载数据库组件</b>请刷新；如果一直这样，可能是网络拦截了 Supabase。';
+    render();
+  }else{
+    netTick();
+    probeReady().then(function(ok){
+      if(ok){ load(); }
+      else { render(); }
+    });
+    if(restoreDraft()){ toast("已恢复上次没发完的内容"); }
+    countDesc();
+  }
+})();
+</script>
+</body>
+</html>

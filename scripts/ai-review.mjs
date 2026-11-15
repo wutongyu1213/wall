@@ -60,6 +60,11 @@ const AUTO_HIDE_CATS = (process.env.AUTO_HIDE_PII === '1'
 const WINDOW_MIN = Math.max(5, Number(process.env.WINDOW_MIN) || 45);
 const sinceMs = Date.now() - WINDOW_MIN * 60000;
 
+/* 寻物启事（sql/05）与表白共用 wall 表。它对「联系方式 / 在哪认领」有天然需求——
+   那是它存在的意义，不是风险。对这两类只保留真正会伤人的类别，
+   否则每条寻物启事都会堆进后台的「风险待确认」，红点会变成噪音。 */
+const LOST_TAGS = ['寻物', '招领'];
+
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('缺少 SUPABASE_URL / SUPABASE_ANON_KEY');
   process.exit(1);
@@ -244,7 +249,7 @@ async function resolveProvider() {
 
 /* ---------------- 2. 取数据 ---------------- */
 async function fetchPosts() {
-  const u = `${SUPABASE_URL}/rest/v1/wall?select=id,nickname,target_name,love_msg,like_count,created_ts&status=eq.ok&created_ts=gt.${sinceMs}&order=created_ts.desc&limit=${LIMIT}`;
+  const u = `${SUPABASE_URL}/rest/v1/wall?select=id,nickname,target_name,love_msg,love_tag,like_count,created_ts&status=eq.ok&created_ts=gt.${sinceMs}&order=created_ts.desc&limit=${LIMIT}`;
   const r = await getJSON(u, { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` });
   if (!r.ok) throw new Error(`读取帖子失败 HTTP ${r.status}：${r.text.slice(0, 120)}`);
   return JSON.parse(r.text) || [];
@@ -469,7 +474,11 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
     if (quotaDead) return;
     if (!String(p.love_msg || '').trim()) return;
     if (Date.now() - t0 > BUDGET_MS) { skipped++; return; }
-    const text = `${p.nickname || '匿名'} 对 ${p.target_name || ''}：${p.love_msg || ''}`;
+    const lostPost = LOST_TAGS.includes(p.love_tag);
+    /* 寻物启事没有「对谁说」，用它的原始结构喂给模型，别拼成「韦妙 对 钱包」这种句子 */
+    const text = lostPost
+      ? `【${p.love_tag}启事】${p.love_msg || ''}`
+      : `${p.nickname || '匿名'} 对 ${p.target_name || ''}：${p.love_msg || ''}`;
     let res = preScan(text);
     if (res) {
       /* 规则直接命中：不调用模型、不花钱、不等网络 */
@@ -492,6 +501,12 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
       }
     }
     checked++;
+    /* 寻物启事的「联系方式 / 到哪认领」是它存在的意义，不是风险。
+       只对这两类豁免；辱骂、性暗示、自伤、诈骗仍照常标记。 */
+    if (lostPost && (res.cat === 'pii' || res.cat === 'contact')) {
+      log(`  #${p.id} 寻物启事含联系方式（正常）→ 不标记｜${res.reason}`);
+      return;
+    }
     /* 只靠分数不够：实测小模型会出现「理由写正常、分数却 0.9」的自相矛盾。
        所以自动隐藏必须同时满足「归类不是 none」且「分数达阈值」。
        分数高但归类为 none 的，降级成「需人工看一眼」，绝不动手隐藏。 */
