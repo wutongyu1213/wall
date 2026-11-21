@@ -710,8 +710,9 @@ function renderPosts(){
     const stTag=stx==="ok"?'<span class="tag on">可见</span>':'<span class="tag dis">'+esc(stx)+'</span>';
     /* 寻物启事与表白共用 wall 表：字段语义不同，别把「韦妙 → 钱包 · 级班 · 男→男」直接摊出来 */
     const isLost=(w.love_tag==="寻物"||w.love_tag==="招领");
+    const lostItem=(String(w.love_msg||"").split("：")[1]||"").split("｜")[0];
     const title=isLost
-      ? '#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' · '+esc(w.target_name||"（未填物品）")
+      ? '#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' · '+esc(lostItem||w.target_name||"（未填物品）")
       : '#'+Number(w.id||0)+' '+esc(w.nickname||"匿名")+' → '+esc(w.target_name||"（未指定）");
     const metaLine=isLost
       ? '发布者 '+esc(w.nickname||"匿名")+' · '+fmtTime(w.created_ts?w.created_ts/1000:(w.created_at||w.created_ts))

@@ -474,7 +474,8 @@ body.dark .mini{background:var(--card)}
       var msg={kind_invalid:"类型不对",item_required:"物品名称必填",item_too_long:"物品名称太长",
         place_too_long:"地点太长",desc_too_long:"补充说明太长",contact_too_long:"联系方式太长",
         nick_too_long:"昵称太长",user_key_required:"设备身份缺失，请刷新页面",
-        too_fast:"发得太快了，等 "+(d.wait||60)+" 秒再试"}[d.error]||("发布失败："+d.error);
+        too_fast:"发得太快了，等 "+(d.wait||60)+" 秒再试",
+        auto_hidden:"内容触发了自动审核（可能含电话/网址/敏感词），请换个说法再试"}[d.error]||("发布失败："+d.error);
       toast(msg);
     }).catch(function(){ toast("发布失败，检查网络后重试"); })
       .then(function(){

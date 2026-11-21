@@ -58,6 +58,7 @@ declare
   v_last    bigint;
   v_now     bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint;
   v_id      bigint;
+  v_status  text;
   v_msg     text;
 begin
   if p_kind is null or p_kind not in ('寻物', '招领') then
@@ -97,10 +98,15 @@ begin
   end if;
 
   -- 给人看的一句话（后台「内容」页、邮件报告都读这一列）
-  v_msg := p_kind || '：' || v_item
+  -- ⚠️ wall 表有 BEFORE INSERT 触发器（check_content / wall_ins_guard），规则包括：
+  --    target_name > 4 字 → 隐藏；love_msg > 200 字 → 隐藏；
+  --    正文含 电话/网址/宿舍/地址/微信号 等词 → 隐藏。
+  --    所以：物品名不能放 target_name（会超 4 字），改放 kind；
+  --    整句裁到 200 以内；若触发器仍判隐藏，最后会如实返回 auto_hidden。
+  v_msg := left(p_kind || '：' || v_item
         || case when v_place   <> '' then '｜地点：' || v_place else '' end
         || case when v_desc    <> '' then '｜' || v_desc else '' end
-        || case when v_contact <> '' then '｜联系：' || v_contact else '' end;
+        || case when v_contact <> '' then '｜联系：' || v_contact else '' end, 200);
 
   insert into public.wall (
     nickname, target_name, grade_year, class_no,
@@ -110,7 +116,7 @@ begin
     like_count, dislike_count, gift
   ) values (
     case when v_nick = '' then '匿名' else v_nick end,
-    v_item, '', '',
+    p_kind, '', '',
     '', '',
     v_msg, p_kind, v_uk, 'ok',
     'open',
@@ -119,7 +125,14 @@ begin
     v_now,
     0, 0, ''
   )
-  returning id into v_id;
+  returning id, status into v_id, v_status;
+
+  -- 触发器可能把 status 改成 hidden/flagged（含电话、网址、敏感词、超长等）。
+  -- 此时【如实告诉用户被拦截】，而不是假装成功——不然发布者以为发出去了，
+  -- 墙上却永远不显示。行保留在库里（后台可见），不删除。
+  if v_status is distinct from 'ok' then
+    return jsonb_build_object('ok', false, 'error', 'auto_hidden', 'id', v_id);
+  end if;
 
   return jsonb_build_object('ok', true, 'id', v_id);
 end;
