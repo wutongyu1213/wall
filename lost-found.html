@@ -165,7 +165,7 @@ body.dark .mini{background:var(--card)}
 <main class="wrap">
   <header class="hero">
     <h1>寻物启事</h1>
-    <p class="sub">丢了东西、捡到东西，都贴在这里 · 全校可见 · 找到后记得标记「已找到」</p>
+    <p class="sub">丢了东西、捡到东西，都贴在这里 · 全校可见 · 找到后记得标记「已找到」 · 只展示最近 30 天</p>
   </header>
 
   <section class="notready" id="notReady" hidden>
@@ -230,6 +230,10 @@ body.dark .mini{background:var(--card)}
 
   var READY=false, ITEMS=[], FILTER="all", Q="", KIND="寻物", BUSY=false;
   var DRAFT_KEY="lostDraftV1";
+  /* 超过这个天数的启事不再展示（数据不删，只是不占版面）。
+     与 docs/寻物启事.md 的口径保持一致。 */
+  var EXPIRE_DAYS=30;
+  var LOAD_ERR="";   /* 列表读取失败时不要冒充「还没有人贴」 */
 
   function $(id){return document.getElementById(id);}
   function esc(s){
@@ -279,7 +283,7 @@ body.dark .mini{background:var(--card)}
   window.addEventListener("online",function(){
     var bar=$("netBar");bar.textContent="网络回来了";bar.className="netbar show ok";
     setTimeout(function(){netTick();},1800);
-    load();
+    start();
   });
 
   /* ---------- 草稿：切微信 / 锁屏都不丢 ---------- */
@@ -329,8 +333,13 @@ body.dark .mini{background:var(--card)}
   }
 
   /* ---------- 渲染 ---------- */
+  /* 未过期的条目（数据不删，只是不占版面） */
+  function alive(){
+    var now=Date.now(), ttl=EXPIRE_DAYS*86400000;
+    return ITEMS.filter(function(x){return now-Number(x.ts||0)<=ttl;});
+  }
   function visible(){
-    return ITEMS.filter(function(x){
+    return alive().filter(function(x){
       if(FILTER==="found"){ if(x.lost!=="found")return false; }
       else if(FILTER!=="all"){ if(x.tag!==FILTER)return false; }
       if(!Q)return true;
@@ -341,14 +350,22 @@ body.dark .mini{background:var(--card)}
   }
   function render(){
     var list=$("list"), empty=$("empty");
+    empty.onclick=null;   /* 清掉上一次的错误重试绑定，避免空态还残留旧 handler */
     var rows=visible();
     if(!rows.length){
       list.innerHTML="";
       empty.hidden=false;
-      if(!READY){
+      if(LOAD_ERR){
+        /* 放在最前：断网时 READY 也是 false，先判错误才不会误报「没开通」 */
+        empty.innerHTML='<span class="big">📡</span>'+esc(LOAD_ERR)+'<br><span style="font-size:12.5px">点这里重试</span>';
+        empty.onclick=function(){LOAD_ERR="";start();};
+      }else if(!READY){
         empty.innerHTML='<span class="big">🔧</span>功能还没开通<br><span style="font-size:12.5px">开通后这里会显示全校的寻物启事</span>';
       }else if(ITEMS.length===0){
         empty.innerHTML='<span class="big">🌱</span>还没有人贴寻物启事<br><span style="font-size:12.5px">你可以贴第一条</span>';
+      }else if(alive().length===0){
+        /* 有数据但全部超过 30 天：这时候说「换个筛选」是骗人的，换也没用 */
+        empty.innerHTML='<span class="big">🗓️</span>最近 '+EXPIRE_DAYS+' 天没有新的寻物启事<br><span style="font-size:12.5px">更早的启事已自动收起（数据还在，没有删除）</span>';
       }else{
         empty.innerHTML='<span class="big">🔍</span>这个筛选下没有内容<br><span style="font-size:12.5px">换个筛选或清空搜索试试</span>';
       }
@@ -379,23 +396,53 @@ body.dark .mini{background:var(--card)}
   }
 
   /* ---------- 数据 ---------- */
+  /* 区分两种失败，别把网络问题说成配置问题：
+     · PGRST202 / Could not find the function → 真的没开通，引导管理员执行 SQL
+     · 其它（断网、超时、CORS）            → 网络问题，显示重试，不动 SQL 引导 */
   function probeReady(){
     return sb.rpc("fn_lost_ready").then(function(r){
-      READY=!r.error;
-      $("notReady").hidden=READY;
-      $("btnPost").disabled=!READY;
-      return READY;
-    }).catch(function(){ READY=false;$("notReady").hidden=false;$("btnPost").disabled=true;return false; });
+      if(!r.error){
+        READY=true;
+        $("notReady").hidden=true;
+        $("btnPost").disabled=false;
+        return true;
+      }
+      READY=false;
+      $("btnPost").disabled=true;
+      var m=String(((r.error&&r.error.message)||"")+" "+((r.error&&r.error.code)||""));
+      if(/PGRST202|Could not find the function/i.test(m)){
+        $("notReady").hidden=false;
+      }else{
+        $("notReady").hidden=true;
+        LOAD_ERR="连不上服务器，请检查网络后重试";
+      }
+      return false;
+    }).catch(function(){
+      READY=false;
+      $("btnPost").disabled=true;
+      $("notReady").hidden=true;
+      LOAD_ERR="连不上服务器，请检查网络后重试";
+      return false;
+    });
+  }
+  /* 探针 + 拉列表：重试按钮和「网络恢复」都走这里，避免 READY 还是 false 时白拉一次 */
+  function start(){
+    if(!sb)return;
+    probeReady().then(function(ok){
+      if(ok){ load(); }
+      else { render(); }
+    });
   }
   function load(){
     if(!sb)return Promise.resolve();
+    LOAD_ERR="";
     return sb.rpc("fn_lost_list",{p_limit:120,p_user_key:userKey()}).then(function(r){
-      if(r.error){ ITEMS=[]; render(); return; }
+      if(r.error){ LOAD_ERR="读取失败："+(r.error.message||"服务端拒绝"); ITEMS=[]; render(); return; }
       ITEMS=(r.data||[]).map(function(x){
         return {id:x.id,nick:x.nick,tag:x.tag,lost:x.lost,meta:x.meta||{},ts:x.ts,mine:!!x.mine};
       });
       render();
-    }).catch(function(){ ITEMS=[]; render(); });
+    }).catch(function(e){ LOAD_ERR="网络异常，没读到寻物启事"; ITEMS=[]; render(); });
   }
 
   /* ---------- 发布 ---------- */
@@ -500,10 +547,7 @@ body.dark .mini{background:var(--card)}
     render();
   }else{
     netTick();
-    probeReady().then(function(ok){
-      if(ok){ load(); }
-      else { render(); }
-    });
+    start();
     if(restoreDraft()){ toast("已恢复上次没发完的内容"); }
     countDesc();
   }

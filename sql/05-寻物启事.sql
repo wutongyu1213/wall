@@ -161,6 +161,10 @@ as $$
   select jsonb_build_object('ok', true, 'version', 1);
 $$;
 
+/* 为什么用 security definer：
+   未来执行 02-收回表读权限.sql 后，anon 会失去 wall 表的 SELECT，
+   若此函数以调用者身份运行就会立刻失效（寻物页空白）。
+   函数内部已用 where 限死「只返回寻物/招领」，不构成越权读取。 */
 create or replace function public.fn_lost_list(
   p_limit    int default 120,
   p_user_key text default null
@@ -168,6 +172,8 @@ create or replace function public.fn_lost_list(
 returns setof jsonb
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select jsonb_build_object(
            'id', id,
