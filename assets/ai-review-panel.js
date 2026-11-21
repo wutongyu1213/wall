@@ -83,6 +83,7 @@
       '<input id="aiModel" placeholder="模型 agnes-3.0-flash" value="' + (conf.model || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
       '<input id="aiKey" type="password" placeholder="API Key（只存本机）" value="' + (conf.key || '') + '" style="padding:11px 12px;border:1px solid rgba(196,0,42,.16);border-radius:12px;font-size:14px;background:#fff">' +
       '</div>' +
+      '<div id="aiCfgToggle" style="display:none;text-align:right;font-size:12px;color:#8f7bff;cursor:pointer;margin:-2px 0 10px">⚙ 已保存配置 · 点此修改</div>' +
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
       '<span style="font-size:13px;color:#8a5a68">检查最近</span>' +
       '<input id="aiN" type="number" min="1" max="50" value="20" style="width:72px;padding:8px 10px;border:1px solid rgba(196,0,42,.16);border-radius:10px;font-size:14px;background:#fff">' +
@@ -102,6 +103,17 @@
     q('#aiClose').onclick = closePanel;
     q('#aiRun').onclick = runScan;
 
+    /* 配置区显隐：
+       - 本机已经存过 Key → 默认收起三个框，只留「开始检查」，点「修改」再展开
+       - 服务端配好 → 彻底隐藏（连「修改」都不给，因为根本用不到本机 Key） */
+    var cfgBox = q('#aiCfgBox'), cfgToggle = q('#aiCfgToggle');
+    function setCfgVisible(show) {
+      cfgBox.style.display = show ? 'grid' : 'none';
+      cfgToggle.style.display = (show || !conf.key) ? 'none' : 'block';
+    }
+    if (conf.key) setCfgVisible(false);
+    cfgToggle.onclick = function () { setCfgVisible(true); };
+
     /* ---------------- 服务端代理（wall-ai Edge） ----------------
        目的：密钥放 Supabase Secrets，浏览器里没有。
        探测到已配置 → 隐藏输入框，点一下就能扫；没部署/没配 → 退回本机 Key 手动模式。
@@ -115,7 +127,7 @@
     }
 
     async function probeServer() {
-      var tip = q('#aiServerTip'), box = q('#aiCfgBox');
+      var tip = q('#aiServerTip');
       if (typeof PWD === 'undefined' || !PWD) return;   // 未登录不探
       var ep = apiEndpoint();
       try {
@@ -137,7 +149,9 @@
           tip.style.color = '#0f7a3d';
           tip.innerHTML = '✅ <b>已由服务端配置好</b>，不用填任何东西，直接点下面的按钮。<br>' +
             '模型：' + escHtml(j.model || '—') + ' · 密钥存在 Supabase，浏览器里没有。';
-          box.style.display = 'none';
+          setCfgVisible(true);       // 先把框设成可见，再整体隐藏（toggle 也一并消失）
+          cfgBox.style.display = 'none';
+          cfgToggle.style.display = 'none';
           var rb = q('#aiRun');
           if (rb) rb.textContent = '开始检查（已配置）';
         } else {
@@ -147,6 +161,7 @@
           tip.style.color = '#8a5a1a';
           tip.innerHTML = '⚠️ 服务端已连通，但<b>还没配 AI_API_KEY</b>。<br>' +
             '可以让管理员去 Supabase → Edge Functions → Secrets 加一条，或在下面临时填一个 Key。';
+          setCfgVisible(true);       // 这种情况必须能填 Key
         }
       } catch (e) { /* 网络异常 → 保持手动模式，不打扰用户 */ }
     }
